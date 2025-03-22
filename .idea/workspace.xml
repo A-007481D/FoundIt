@@ -4,15 +4,110 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="cf378c0b-cb5f-416a-9518-e81cff0de413" name="Changes" comment="" />
+    <list default="true" id="cf378c0b-cb5f-416a-9518-e81cff0de413" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Conception UML/ClassDiagram.mermaid" beforeDir="false" afterPath="$PROJECT_DIR$/Conception UML/ClassDiagram.mermaid" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/.editorconfig" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/.env.example" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/.gitattributes" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/.gitignore" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/README.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/app/Http/Controllers/Auth/AuthenticatedSessionController.php" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/app/Http/Controllers/Auth/EmailVerificationNotificationController.php" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/app/Http/Controllers/Auth/NewPasswordController.php" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/app/Http/Controllers/Auth/PasswordResetLinkController.php" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/app/Http/Controllers/Auth/RegisteredUserController.php" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/app/Http/Controllers/Auth/VerifyEmailController.php" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/app/Http/Controllers/Controller.php" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/app/Http/Middleware/EnsureEmailIsVerified.php" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/app/Http/Requests/Auth/LoginRequest.php" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/app/Models/User.php" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/app/Providers/AppServiceProvider.php" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/artisan" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/bootstrap/app.php" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/bootstrap/cache/.gitignore" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/bootstrap/providers.php" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/composer.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/composer.lock" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/config/app.php" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/config/auth.php" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/config/cache.php" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/config/cors.php" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/config/database.php" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/config/filesystems.php" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/config/logging.php" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/config/mail.php" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/config/queue.php" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/config/sanctum.php" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/config/services.php" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/config/session.php" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/database/.gitignore" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/database/factories/UserFactory.php" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/database/migrations/0001_01_01_000000_create_users_table.php" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/database/migrations/0001_01_01_000001_create_cache_table.php" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/database/migrations/0001_01_01_000002_create_jobs_table.php" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/database/migrations/2025_01_31_224147_create_personal_access_tokens_table.php" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/database/seeders/DatabaseSeeder.php" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/docker-compose.yml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/phpunit.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/public/.htaccess" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/public/favicon.ico" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/public/index.php" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/public/robots.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/resources/views/.gitkeep" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/routes/api.php" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/routes/auth.php" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/routes/console.php" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/routes/web.php" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/storage/app/.gitignore" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/storage/app/private/.gitignore" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/storage/app/public/.gitignore" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/storage/framework/.gitignore" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/storage/framework/cache/.gitignore" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/storage/framework/cache/data/.gitignore" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/storage/framework/sessions/.gitignore" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/storage/framework/testing/.gitignore" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/storage/framework/views/.gitignore" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/storage/logs/.gitignore" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/tests/Feature/Auth/AuthenticationTest.php" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/tests/Feature/Auth/EmailVerificationTest.php" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/tests/Feature/Auth/PasswordResetTest.php" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/tests/Feature/Auth/RegistrationTest.php" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/tests/Feature/ExampleTest.php" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/tests/TestCase.php" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/tests/Unit/ExampleTest.php" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/README.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/eslint.config.js" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/eslint.config.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/index.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/package-lock.json" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/package-lock.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/package.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/src/App.jsx" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/src/index.css" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/src/index.css" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/src/layouts/Layout.jsx" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/src/main.jsx" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/src/pages/Home.jsx" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/src/pages/Login.jsx" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/src/pages/Register.jsx" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/src/pages/Users.jsx" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/src/router/index.jsx" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/vite.config.js" beforeDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
     <option name="LAST_RESOLUTION" value="IGNORE" />
   </component>
+  <component name="ComposerConfigs">
+    <option name="configs">
+      <option value="$PROJECT_DIR$/backend/composer.json" />
+    </option>
+  </component>
   <component name="ComposerSettings" synchronizationState="SYNCHRONIZE">
-    <pharConfigPath>$PROJECT_DIR$/backend/composer.json</pharConfigPath>
+    <pharConfigPath>$PROJECT_DIR$/composer.json</pharConfigPath>
     <execution />
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
   <component name="PhpWorkspaceProjectConfiguration" interpreter_name="/bin/php">
     <include_path>
@@ -146,12 +241,15 @@
   <component name="PropertiesComponent"><![CDATA[{
   "keyToString": {
     "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.git.unshallow": "true",
+    "git-widget-placeholder": "dev",
     "last_opened_file_path": "/var/www/nx",
     "node.js.detected.package.eslint": "true",
     "node.js.detected.package.tslint": "true",
     "node.js.selected.package.eslint": "(autodetect)",
     "node.js.selected.package.tslint": "(autodetect)",
     "nodejs_package_manager_path": "npm",
+    "ts.external.directory.path": "/home/malik/cs-projects/foundit/frontend/node_modules/typescript/lib",
     "vue.rearranger.settings.migration": "true"
   }
 }]]></component>
@@ -189,6 +287,19 @@
       <workItem from="1739273990647" duration="447000" />
       <workItem from="1739274567339" duration="333000" />
       <workItem from="1739274910326" duration="7280000" />
+      <workItem from="1739743325809" duration="48000" />
+      <workItem from="1740654576610" duration="2466000" />
+      <workItem from="1740738003237" duration="6000" />
+      <workItem from="1742206711582" duration="1244000" />
+      <workItem from="1742299684924" duration="126000" />
+      <workItem from="1742380274015" duration="2792000" />
+      <workItem from="1742483336348" duration="1819000" />
+      <workItem from="1742553029025" duration="27000" />
+      <workItem from="1742569486367" duration="178000" />
+      <workItem from="1742581637977" duration="6000" />
+      <workItem from="1742581832415" duration="1620000" />
+      <workItem from="1742601547234" duration="2434000" />
+      <workItem from="1742644022121" duration="4762000" />
     </task>
     <servers />
   </component>
