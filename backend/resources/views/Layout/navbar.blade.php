@@ -15,11 +15,11 @@
       </a>
     </div>
     <ul class="flex space-x-6 text-gray-700 font-medium">
-      <li><a href="#" class="hover:text-purple-600 hover:underline">Home</a></li>
-      <li><a href="#" class="hover:text-purple-600 hover:underline">How it works</a></li>
-      <li><a href="#" class="hover:text-purple-600 hover:underline">Community Forum</a></li>
-      <li><a href="#" class="hover:text-purple-600 hover:underline">Contact Us</a></li>
-      <li><a href="#" class="hover:text-purple-600 hover:underline">FAQ</a></li>
+      <li><a href="#" class="hover:text-purple-600 hover:border-purple-500 hover:border-b-2">Home</a></li>
+      <li><a href="#" class="hover:text-purple-600 hover:border-purple-500 hover:border-b-2">How it works</a></li>
+      <li><a href="#" class="hover:text-purple-600 hover:border-purple-500 hover:border-b-2">Community Forum</a></li>
+      <li><a href="#" class="hover:text-purple-600 hover:border-purple-500 hover:border-b-2">Contact Us</a></li>
+      <li><a href="#" class="hover:text-purple-600 hover:border-purple-500 hover:border-b-2">FAQ</a></li>
     </ul>
     <div class="flex items-center space-x-4">
       <a href="{{ route('login') }}" class="rounded-md font-medium bg-white border-2 border-purple-600 text-purple-600 px-4 py-2 hover:bg-purple-50">
