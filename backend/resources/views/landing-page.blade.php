@@ -45,7 +45,9 @@
         </div>
 
         <div class="relative w-full max-w-lg">
-            <div class="bg-white rounded-xl shadow-lg p-6">
+            <div class="absolute inset-0 transform rotate-[-4deg] bg-gray-200 rounded-xl shadow-lg"></div>
+
+            <div class="relative bg-white rounded-xl shadow-lg p-6 transition-transform duration-300 transform rotate-[-4deg] hover:rotate-0 hover:-translate-y-2">
 
                 <div class="flex items-start md:items-center justify-between bg-blue-50 rounded-md p-4 mb-4">
                     <div>
