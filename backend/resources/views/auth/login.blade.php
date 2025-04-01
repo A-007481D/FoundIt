@@ -5,7 +5,6 @@
     <title>Login</title>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
-
 </head>
 <body class="min-h-screen flex flex-col items-center justify-center bg-gray-50">
 
