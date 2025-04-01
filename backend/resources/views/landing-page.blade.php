@@ -10,7 +10,31 @@
 
 </head>
 
+
 <body class="bg-white text-gray-800">
+<nav class="sticky top-0 z-50 bg-white/70 backdrop-blur-md border-b border-gray-200 flex items-center justify-between py-3 px-28">
+    <div class="flex items-center space-x-2">
+      <a href="#" class="flex items-center space-x-1">
+        <img src="" alt="Logo" class="h-8 w-8 object-cover">
+        <span class="font-bold text-xl text-purple-600">Foundit!</span>
+      </a>
+    </div>
+    <ul class="flex space-x-6 text-gray-700 font-medium">
+      <li><a href="#" class="hover:text-purple-600 hover:border-purple-500 hover:border-b-2">Home</a></li>
+      <li><a href="#" class="hover:text-purple-600 hover:border-purple-500 hover:border-b-2">How it works</a></li>
+      <li><a href="#" class="hover:text-purple-600 hover:border-purple-500 hover:border-b-2">Community Forum</a></li>
+      <li><a href="#" class="hover:text-purple-600 hover:border-purple-500 hover:border-b-2">Contact Us</a></li>
+      <li><a href="#" class="hover:text-purple-600 hover:border-purple-500 hover:border-b-2">FAQ</a></li>
+    </ul>
+    <div class="flex items-center space-x-4">
+      <a href="{{ route('login') }}" class="rounded-md font-medium bg-white border-2 border-purple-600 text-purple-600 px-4 py-2 hover:bg-purple-50">
+        Log in
+      </a>
+      <a href="{{ route('register') }}" class="rounded-md text-white font-medium bg-purple-600 hover:bg-purple-700 border-2 border-purple-600 px-4 py-2">
+        Sign up
+      </a>
+    </div>
+  </nav>
     <section class="max-w-7xl mx-auto px-6 py-12 md:py-20 flex flex-col-reverse md:flex-row items-center">
         <div class="w-full md:w-1/2 md:pr-8 mt-8 md:mt-0">
             <h1 class="text-3xl sm:text-4xl md:text-5xl font-bold mb-4 leading-tight">
@@ -282,6 +306,60 @@
         </div>
     </div>
 
+    <section class="bg-purple-600 text-white py-16">
+    <div class="max-w-6xl mx-auto px-4 flex flex-col md:flex-row items-center md:justify-between">
+      <!-- Text Block -->
+      <div class="text-center md:text-left">
+        <h2 class="text-3xl md:text-4xl font-bold mb-2">
+          Ready to find what you've lost?
+        </h2>
+        <h3 class="text-white/80 text-xl md:text-2xl font-bold">
+          Sign up for FoundIt today.
+        </h3>
+      </div>
+      <!-- Button -->
+      <div class="mt-6 md:mt-0">
+        <a href="#"
+          class="bg-white text-purple-600 px-5 py-3 rounded-md font-semibold hover:bg-gray-100">
+          Get Started - It's Free
+        </a>
+      </div>
+    </div>
+  </section>
+
+    <footer class="bg-gray-900 text-gray-300 py-10">
+        <div class="max-w-7xl mx-auto px-4 md:flex md:justify-between">
+            <div class="mb-6 md:mb-0">
+                <h3 class="text-2xl font-bold text-white mb-2">FoundIt</h3>
+                <p class="max-w-sm text-gray-400">
+                    The campus lost and found platform that helps you reconnect with your belongings quickly and easily.
+                </p>
+            </div>
+            <div class="mb-6 md:mb-0">
+                <h4 class="text-lg font-semibold text-white mb-2">Quick Links</h4>
+                <ul class="space-y-1">
+                    <li><a href="#" class="hover:text-white hover:border-white hover:border-b-2">Home</a></li>
+                    <li><a href="#" class="hover:text-white hover:border-white hover:border-b-2">How it works</a></li>
+                    <li><a href="#" class="hover:text-white hover:border-white hover:border-b-2">Forum</a></li>
+                    <li><a href="#" class="hover:text-white hover:border-white hover:border-b-2">FAQs</a></li>
+                    <li><a href="#" class="hover:text-white hover:border-white hover:border-b-2">FAQs</a></li>
+                </ul>
+            </div>
+            <div>
+                <h4 class="text-lg font-semibold text-white mb-2">Contact info</h4>
+                <ul class="space-y-1 text-gray-400">
+                    <li>Reception, Main entrance</li>
+                    <li>YouCode CCI</li>
+                    <li>+212 010101010</li>
+                    <li>help@foundit.ma</li>
+                    <li>Mon-Fri: 9am - 5pm</li>
+                </ul>
+            </div>
+        </div>
+        <div class="border-t border-gray-800 mt-6 pt-6 text-center text-gray-500">
+            &copy; 2025 FoundIt. All rights reserved.
+        </div>
+    </footer>
     
 </body>
 
