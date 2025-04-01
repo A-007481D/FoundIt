@@ -51,12 +51,12 @@
 
             <div class="relative bg-white rounded-xl shadow-lg p-6 transition-transform duration-300 transform rotate-[-4deg] hover:rotate-0 hover:-translate-y-2">
 
-                <div class="flex items-start md:items-center justify-between bg-blue-50 rounded-md p-4 mb-4">
+                <div class="flex items-start md:items-center justify-between bg-purple-50 rounded-md p-4 mb-4">
                     <div>
-                        <h4 class="text-blue-600 font-semibold text-lg">Lost: Student ID Card</h4>
+                        <h4 class="text-purple-600 font-semibold text-lg">Lost: Student ID Card</h4>
                         <p class="text-sm text-gray-600">Last seen: Library 3rd floor</p>
                     </div>
-                    <span class="text-blue-500 font-medium mt-2 md:mt-0">
+                    <span class="text-purple-500 font-medium mt-2 md:mt-0">
                         Match Found!
                     </span>
                 </div>
@@ -135,6 +135,78 @@
             </div>
         </div>
     </div>
+    <div class="py-16 bg-white">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="lg:text-center">
+                <h2 class="text-base text-purple-600 font-semibold tracking-wide uppercase">Features</h2>
+                <p class="mt-2 text-3xl leading-8 font-extrabold tracking-tight text-gray-900 sm:text-4xl">
+                    Why Use FoundIt?
+                </p>
+            </div>
+
+            <div class="mt-16">
+                <div class="space-y-10 md:space-y-0 md:grid md:grid-cols-2 md:gap-x-8 md:gap-y-10">
+                    <div class="flex">
+                        <div class="flex-shrink-0">
+                            <div class="flex items-center justify-center h-12 w-12 rounded-md bg-purple-600 text-white">
+                                <i class="fas fa-bolt text-xl"></i>
+                            </div>
+                        </div>
+                        <div class="ml-4">
+                            <h3 class="text-lg font-medium text-gray-900">Fast & Efficient</h3>
+                            <p class="mt-2 text-base text-gray-500">
+                                Our algorithm quickly connects lost items with found ones, saving you time and stress.
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="flex">
+                        <div class="flex-shrink-0">
+                            <div class="flex items-center justify-center h-12 w-12 rounded-md bg-purple-600 text-white">
+                                <i class="fas fa-shield-alt text-xl"></i>
+                            </div>
+                        </div>
+                        <div class="ml-4">
+                            <h3 class="text-lg font-medium text-gray-900">Secure & Reliable</h3>
+                            <p class="mt-2 text-base text-gray-500">
+                                All exchanges are verified and occur through our campus lost and found office for maximum security.
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="flex">
+                        <div class="flex-shrink-0">
+                            <div class="flex items-center justify-center h-12 w-12 rounded-md bg-purple-600 text-white">
+                                <i class="fas fa-bell text-xl"></i>
+                            </div>
+                        </div>
+                        <div class="ml-4">
+                            <h3 class="text-lg font-medium text-gray-900">Real-time Notifications</h3>
+                            <p class="mt-2 text-base text-gray-500">
+                                Receive immediate alerts when your item is found or when someone claims the item you found.
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="flex">
+                        <div class="flex-shrink-0">
+                            <div class="flex items-center justify-center h-12 w-12 rounded-md bg-purple-600 text-white">
+                                <i class="fas fa-campus text-xl"></i>
+                            </div>
+                        </div>
+                        <div class="ml-4">
+                            <h3 class="text-lg font-medium text-gray-900">Campus-Specific</h3>
+                            <p class="mt-2 text-base text-gray-500">
+                                Designed specifically for our campus community, making it easier to find items in familiar locations.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    
 </body>
 
 </html>
