@@ -206,6 +206,82 @@
         </div>
     </div>
 
+    <div class="py-16 bg-white">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="lg:text-center">
+                <h2 class="text-base text-purple-600 font-semibold tracking-wide uppercase">Testimonials</h2>
+                <p class="mt-2 text-3xl leading-8 font-extrabold tracking-tight text-gray-900 sm:text-4xl">
+                    What Students Say
+                </p>
+            </div>
+            
+            <div class="mt-12">
+                <div class="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3">
+                    <div class="bg-gray-50 rounded-lg shadow-md p-6">
+                        <div class="flex items-center mb-4">
+                            <div class="h-10 w-10 rounded-full bg-purple-200 flex items-center justify-center text-purple-600 font-bold">
+                                AB
+                            </div>
+                            <div class="ml-4">
+                                <h4 class="text-lg font-medium text-gray-900">Anass B.</h4>
+                                <p class="text-sm text-gray-500">Biology Major</p>
+                            </div>
+                        </div>
+                        <p class="text-gray-600">"Found someone's laptop in the library. Posted it on FoundIt and within an hour was able to return it to its rightful owner. Great to see the relief on their face!"</p>
+                        <div class="mt-3 flex text-yellow-400">
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-gray-50 rounded-lg shadow-md p-6">
+                        <div class="flex items-center mb-4">
+                            <div class="h-10 w-10 rounded-full bg-purple-200 flex items-center justify-center text-purple-600 font-bold">
+                               WD
+                            </div>
+                            <div class="ml-4">
+                                <h4 class="text-lg font-medium text-gray-900">Wissam D.</h4>
+                                <p class="text-sm text-gray-500">Computer Science Major</p>
+                            </div>
+                        </div>
+                        <p class="text-gray-600">"Lost my case keys on last Friday and was so stressed about  my locked in laptop. Someone found them and posted on FoundIt. Process was super smooth!
+                        "</p>
+                        <div class="mt-3 flex text-yellow-400">
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star-half-alt"></i>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-gray-50 rounded-lg shadow-md p-6">
+                        <div class="flex items-center mb-4">
+                            <div class="h-10 w-10 rounded-full bg-purple-200 flex items-center justify-center text-purple-600 font-bold">
+                                HA
+                            </div>
+                            <div class="ml-4">
+                                <h4 class="text-lg font-medium text-gray-900">Hissoune A.</h4>
+                                <p class="text-sm text-gray-500">Business Administration</p>
+                            </div>
+                        </div>
+                        <p class="text-gray-600">"I lost my phone at the hour of exit and was freaking out. Posted it on FoundIt and had it back next day. Absolute lifesaver!"</p>
+                        <div class="mt-3 flex text-yellow-400">
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     
 </body>
 
