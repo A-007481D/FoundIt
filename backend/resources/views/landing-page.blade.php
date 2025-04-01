@@ -80,15 +80,56 @@
         </div>
     </section>
 
-    <section class="max-w-4xl mx-auto px-6 py-12 md:py-16 text-center">
-        <h4 class="text-purple-600 font-semibold tracking-widest mb-2">PROCESS</h4>
-        <h2 class="text-3xl md:text-4xl font-bold mb-4">How FoundIt Works</h2>
-        <p class="text-gray-600 text-lg md:text-xl leading-relaxed">
-            Our platform connects people who've lost items with those who've found them, making the return process simple and efficient.
-        </p>
-    </section>
+    <div id="how-it-works" class="py-16 bg-white">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="lg:text-center">
+                <h2 class="text-base text-purple-600 font-semibold tracking-wide uppercase">Process</h2>
+                <p class="mt-2 text-3xl leading-8 font-extrabold tracking-tight text-gray-900 sm:text-4xl">
+                    How FoundIt Works
+                </p>
+                <p class="mt-4 max-w-2xl text-xl text-gray-500 lg:mx-auto">
+                    Our platform connects people who've lost items with those who've found them, making the return process simple and efficient.
+                </p>
+            </div>
 
+            <div class="mt-16">
+                <div class="space-y-12 lg:space-y-0 lg:grid lg:grid-cols-3 lg:gap-x-8">
+                    <div class="relative">
+                        <div class="absolute flex items-center justify-center h-12 w-12 rounded-md bg-purple-600 text-white">
+                        </div>
+                        <div class="relative pl-16">
+                            <h3 class="text-xl font-bold text-gray-900">1. Report Item</h3>
+                            <p class="mt-2 text-base text-gray-500">
+                                Lost something? Submit a detailed description, including where and when you last had it. Found something? Upload photos and details about where you found it.
+                            </p>
+                        </div>
+                    </div>
 
+                    <div class="relative mt-10 lg:mt-0">
+                        <div class="absolute flex items-center justify-center h-12 w-12 rounded-md bg-purple-600 text-white">
+                        </div>
+                        <div class="relative pl-16">
+                            <h3 class="text-xl font-bold text-gray-900">2. Match & Notify</h3>
+                            <p class="mt-2 text-base text-gray-500">
+                                Our system automatically matches lost items with found ones based on descriptions, locations, and dates. Both parties receive notifications when a potential match is found.
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="relative mt-10 lg:mt-0">
+                        <div class="absolute flex items-center justify-center h-12 w-12 rounded-md bg-purple-600 text-white">
+                        </div>
+                        <div class="relative pl-16">
+                            <h3 class="text-xl font-bold text-gray-900">3. Verify & Return</h3>
+                            <p class="mt-2 text-base text-gray-500">
+                                After verification, we facilitate a safe exchange through our campus lost and found office. The finder receives confirmation when the item is successfully returned.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 </body>
 
 </html>
