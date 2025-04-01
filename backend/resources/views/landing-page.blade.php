@@ -80,6 +80,14 @@
         </div>
     </section>
 
+    <section class="max-w-4xl mx-auto px-6 py-12 md:py-16 text-center">
+        <h4 class="text-purple-600 font-semibold tracking-widest mb-2">PROCESS</h4>
+        <h2 class="text-3xl md:text-4xl font-bold mb-4">How FoundIt Works</h2>
+        <p class="text-gray-600 text-lg md:text-xl leading-relaxed">
+            Our platform connects people who've lost items with those who've found them, making the return process simple and efficient.
+        </p>
+    </section>
+
 
 </body>
 
