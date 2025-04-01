@@ -6,6 +6,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>FoundIt - Find your belongings!</title>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+
 </head>
 
 <body class="bg-white text-gray-800">
@@ -96,6 +98,7 @@
                 <div class="space-y-12 lg:space-y-0 lg:grid lg:grid-cols-3 lg:gap-x-8">
                     <div class="relative">
                         <div class="absolute flex items-center justify-center h-12 w-12 rounded-md bg-purple-600 text-white">
+                            <i class="fas fa-clipboard-list text-xl"></i>
                         </div>
                         <div class="relative pl-16">
                             <h3 class="text-xl font-bold text-gray-900">1. Report Item</h3>
@@ -107,6 +110,7 @@
 
                     <div class="relative mt-10 lg:mt-0">
                         <div class="absolute flex items-center justify-center h-12 w-12 rounded-md bg-purple-600 text-white">
+                            <i class="fas fa-search text-xl"></i>
                         </div>
                         <div class="relative pl-16">
                             <h3 class="text-xl font-bold text-gray-900">2. Match & Notify</h3>
@@ -118,6 +122,7 @@
 
                     <div class="relative mt-10 lg:mt-0">
                         <div class="absolute flex items-center justify-center h-12 w-12 rounded-md bg-purple-600 text-white">
+                            <i class="fas fa-handshake text-xl"></i>
                         </div>
                         <div class="relative pl-16">
                             <h3 class="text-xl font-bold text-gray-900">3. Verify & Return</h3>
