@@ -1,3 +1,44 @@
+// test data for items
+const featuredItems = [
+    {
+        id: "1",
+        title: "iPhone 13 Pro - Space Gray",
+        description: "Lost my iPhone at Central Park yesterday afternoon. It has a black case with a photo of my dog on the back.",
+        image: "https://placehold.co/400",
+        type: "lost",
+        category: "Electronics",
+        location: "Central Park, NY",
+        date: "2 hours ago",
+        views: 124,
+        featured: true,
+    },
+    {
+        id: "2",
+        title: "iPhone 13 Pro - Space Gray",
+        description: "Lost my iPhone at Central Park yesterday afternoon. It has a black case with a photo of my dog on the back.",
+        image: "https://placehold.co/400",
+        type: "lost",
+        category: "Electronics",
+        location: "Central Park, NY",
+        date: "2 hours ago",
+        views: 124,
+        featured: true,
+    },
+    {
+        id: "3",
+        title: "iPhone 13 Pro - Space Gray",
+        description: "Lost my iPhone at Central Park yesterday afternoon. It has a black case with a photo of my dog on the back.",
+        image: "https://placehold.co/400",
+        type: "lost",
+        category: "Electronics",
+        location: "Central Park, NY",
+        date: "2 hours ago",
+        views: 124,
+        featured: true,
+    },
+    
+ ];
+
 // func to create an item card
 function createItemCard(item) {
     const template = document.getElementById('item-card-template');
@@ -30,3 +71,9 @@ function createItemCard(item) {
     
     return clone;
 }
+
+// populate the featured container
+const featuredItemsContainer = document.getElementById('featured-items');
+featuredItems.forEach(item => {
+    featuredItemsContainer.appendChild(createItemCard(item));
+});
