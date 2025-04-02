@@ -166,9 +166,26 @@
                             <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3" id="featured-items">
                             </div>
                         </div>
+                        <div>
+                            <div class="mb-4 flex items-center justify-between">
+                                <h2 class="text-xl font-semibold">Recent Items</h2>
+                                <button class="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-9 px-3 text-primary gap-1">
+                                    View all
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-4 w-4">
+                                        <path d="M5 12h14"></path>
+                                        <path d="m12 5 7 7-7 7"></path>
+                                    </svg>
+                                </button>
+                            </div>
+                            <!-- recent items-->
+                            <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3" id="recent-items">
+                            </div>
+                        </div>
                     </div>
                 </div>
+                </aside>
             </div>
+        </div>
     </main>
 </body>
 </html>
