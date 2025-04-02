@@ -17,13 +17,17 @@ jobs:
           cache: npm 
 
       - name: Install Dependencies
-        working-directory: ./backend
+        working-directory: backend
         run: npm ci
 
       - name: Build Tailwind CSS
-        working-directory: ./backend 
+        working-directory: backend 
         run: npm run build
 
       - name: Run Linting
-        working-directory: ./backend
+        working-directory: backend
         run: npm run lint
+
+      - name: Debug && List files in runner
+        run: ls -la backend
+
