@@ -150,3 +150,33 @@ const recentItemsContainer = document.getElementById('recent-items');
 recentItems.forEach(item => {
     recentItemsContainer.appendChild(createItemCard(item));
 });
+
+const lostItemsContainer = document.getElementById('lost-items');
+allItems.filter(item => item.type === 'lost').forEach(item => {
+    lostItemsContainer.appendChild(createItemCard(item));
+});
+
+const foundItemsContainer = document.getElementById('found-items');
+allItems.filter(item => item.type === 'found').forEach(item => {
+    foundItemsContainer.appendChild(createItemCard(item));
+});
+
+const tabButtons = document.querySelectorAll('[data-tab]');
+const tabContents = document.querySelectorAll('.tab-content');
+
+tabButtons.forEach(button => {
+    button.addEventListener('click', function() {
+        const tabId = this.getAttribute('data-tab');
+        
+        tabButtons.forEach(btn => {
+            btn.removeAttribute('data-state');
+            btn.classList.remove('bg-background', 'text-foreground', 'shadow-sm');
+        });
+        tabContents.forEach(content => content.classList.add('hidden'));
+        
+        this.setAttribute('data-state', 'active');
+        this.classList.add('bg-background', 'text-foreground', 'shadow-sm');
+        document.getElementById(`${tabId}-tab`).classList.remove('hidden');
+        document.getElementById(`${tabId}-tab`).classList.add('active');
+    });
+});
