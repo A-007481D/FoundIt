@@ -2,13 +2,18 @@
     "private": true,
     "type": "module",
     "scripts": {
-        "build": "vite build",
-        "dev": "vite"
+      "build": "vite build",
+      "dev": "vite",
+      "lint": "eslint resources/js --ext .js,.jsx,.vue",  
+      "lint:fix": "eslint resources/js --ext .js,.jsx,.vue --fix"
     },
     "devDependencies": {
+        "@eslint/js": "^9.23.0",
         "autoprefixer": "^10.4.21",
         "axios": "^1.7.4",
         "concurrently": "^9.0.1",
+        "eslint": "^9.23.0",
+        "globals": "^16.0.0",
         "laravel-vite-plugin": "^1.2.0",
         "postcss": "^8.5.3",
         "tailwindcss": "^3.4.17",
