@@ -67,7 +67,90 @@
                     </div>
                 </div>       
             </div>
+            <aside class="mt-6 flex gap-6">
+                    <!-- Filter Sidebar -->
+                    <aside class="hidden w-64 shrink-0 md:block">
+                        <div class="flex flex-col gap-6">
+                            <div>
+                                <h3 class="mb-2 font-medium">Item Type</h3>
+                                <div class="space-y-2">
+                                    <div class="flex items-center space-x-2">
+                                        <input type="radio" id="all" name="itemType" value="all" checked class="h-4 w-4 border-gray-300 text-primary focus:ring-primary">
+                                        <label for="all" class="text-sm">All Items</label>
+                                    </div>
+                                    <div class="flex items-center space-x-2">
+                                        <input type="radio" id="lost" name="itemType" value="lost" class="h-4 w-4 border-gray-300 text-primary focus:ring-primary">
+                                        <label for="lost" class="text-sm">Lost Items</label>
+                                    </div>
+                                    <div class="flex items-center space-x-2">
+                                        <input type="radio" id="found" name="itemType" value="found" class="h-4 w-4 border-gray-300 text-primary focus:ring-primary">
+                                        <label for="found" class="text-sm">Found Items</label>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div>
+                                <h3 class="mb-2 font-medium">Categories</h3>
+                                <div class="space-y-2">
+                                    <div class="flex items-center space-x-2">
+                                        <input type="checkbox" id="electronics" class="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary">
+                                        <label for="electronics" class="text-sm">Electronics</label>
+                                    </div>
+                                    <div class="flex items-center space-x-2">
+                                        <input type="checkbox" id="jewelry" class="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary">
+                                        <label for="jewelry" class="text-sm">Jewelry</label>
+                                    </div>
+                                    <div class="flex items-center space-x-2">
+                                        <input type="checkbox" id="documents" class="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary">
+                                        <label for="documents" class="text-sm">Documents</label>
+                                    </div>
+                                    <div class="flex items-center space-x-2">
+                                        <input type="checkbox" id="clothing" class="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary">
+                                        <label for="clothing" class="text-sm">Clothing</label>
+                                    </div>
+                                    <div class="flex items-center space-x-2">
+                                        <input type="checkbox" id="accessories" class="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary">
+                                        <label for="accessories" class="text-sm">Accessories</label>
+                                    </div>
+                                    <div class="flex items-center space-x-2">
+                                        <input type="checkbox" id="keys" class="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary">
+                                        <label for="keys" class="text-sm">Keys</label>
+                                    </div>
+                                    <div class="flex items-center space-x-2">
+                                        <input type="checkbox" id="other" class="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary">
+                                        <label for="other" class="text-sm">Other</label>
+                                    </div>
+                                </div>
+                            </div>
+                            <div>
+                                <h3 class="mb-2 font-medium">Date Posted</h3>
+                                <div class="space-y-2">
+                                    <div class="flex items-center space-x-2">
+                                        <input type="radio" id="anytime" name="datePosted" value="anytime" checked class="h-4 w-4 border-gray-300 text-primary focus:ring-primary">
+                                        <label for="anytime" class="text-sm">Anytime</label>
+                                    </div>
+                                    <div class="flex items-center space-x-2">
+                                        <input type="radio" id="today" name="datePosted" value="today" class="h-4 w-4 border-gray-300 text-primary focus:ring-primary">
+                                        <label for="today" class="text-sm">Today</label>
+                                    </div>
+                                    <div class="flex items-center space-x-2">
+                                        <input type="radio" id="this-week" name="datePosted" value="this-week" class="h-4 w-4 border-gray-300 text-primary focus:ring-primary">
+                                        <label for="this-week" class="text-sm">This Week</label>
+                                    </div>
+                                    <div class="flex items-center space-x-2">
+                                        <input type="radio" id="this-month" name="datePosted" value="this-month" class="h-4 w-4 border-gray-300 text-primary focus:ring-primary">
+                                        <label for="this-month" class="text-sm">This Month</label>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <button class="inline-flex items-center justify-center rounded-md bg-purple-600 px-4 py-2 text-sm font-medium text-white shadow transition-colors hover:bg-purple-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 mt-2">Apply Filters</button>
+                        </div>
+                    </aside>
+
         </div>
+
+        
     </main>
     </body>
 </html>
