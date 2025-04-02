@@ -177,15 +177,27 @@
                                     </svg>
                                 </button>
                             </div>
-                            <!-- recent items-->
+                            <!-- recent items -->
                             <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3" id="recent-items">
                             </div>
                         </div>
                     </div>
+                    <!-- tabbed lost items-->
+                    <div class="tab-content hidden" id="lost-tab">
+                        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3" id="lost-items">
+                        </div>
+                    </div>
+                    <!-- tabbed found items -->
+                    <div class="tab-content hidden" id="found-tab">
+                        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3" id="found-items">
+                        </div>
+                    </div>
                 </div>
-                </aside>
             </div>
         </div>
+        </div>
     </main>
+    
 </body>
+
 </html>
