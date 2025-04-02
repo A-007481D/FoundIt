@@ -173,10 +173,41 @@ tabButtons.forEach(button => {
             btn.classList.remove('bg-background', 'text-foreground', 'shadow-sm');
         });
         tabContents.forEach(content => content.classList.add('hidden'));
-        
+
         this.setAttribute('data-state', 'active');
         this.classList.add('bg-background', 'text-foreground', 'shadow-sm');
         document.getElementById(`${tabId}-tab`).classList.remove('hidden');
         document.getElementById(`${tabId}-tab`).classList.add('active');
     });
 });
+
+// location prompt
+const locationPrompt = document.getElementById('locationPrompt');
+const closeLocationPrompt = document.getElementById('closeLocationPrompt');
+const dismissLocationPrompt = document.getElementById('dismissLocationPrompt');
+const enableLocation = document.getElementById('enableLocation');
+
+closeLocationPrompt.addEventListener('click', function() {
+    locationPrompt.style.display = 'none';
+});
+
+dismissLocationPrompt.addEventListener('click', function() {
+    locationPrompt.style.display = 'none';
+});
+
+enableLocation.addEventListener('click', function() {
+    if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+            function(position) {
+                locationPrompt.style.display = 'none';
+                console.log("Location enabled successfully");
+            },
+            function(error) {
+                console.error("Error getting location:", error);
+            }
+        );
+    } else {
+        console.error("Geolocation is not supported by this browser");
+    }
+}); 
+
