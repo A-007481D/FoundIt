@@ -197,6 +197,34 @@
         </div>
         </div>
     </main>
+     <!-- enable location permission -->
+     <div id="locationPrompt" class="fixed bottom-4 left-0 right-0 z-40 mx-auto w-full max-w-md rounded-lg border bg-white p-4 shadow-lg md:bottom-8">
+        <div class="flex items-start justify-between">
+            <div class="flex items-start gap-3">
+                <div class="rounded-full bg-primary/10 p-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-5 w-5 text-primary">
+                        <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"></path>
+                        <circle cx="12" cy="10" r="3"></circle>
+                    </svg>
+                </div>
+                <div>
+                    <h3 class="font-medium">Enable location services</h3>
+                    <p class="mt-1 text-sm text-muted-foreground">See lost & found items near you by enabling location access.</p>
+                </div>
+            </div>
+            <button id="closeLocationPrompt" class="rounded-md p-1 text-muted-foreground hover:bg-gray-100">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-4 w-4">
+                    <path d="M18 6 6 18"></path>
+                    <path d="m6 6 12 12"></path>
+                </svg>
+                <span class="sr-only">Dismiss</span>
+            </button>
+        </div>
+        <div class="mt-4 flex gap-2">
+            <button class="inline-flex items-center justify-center rounded-md border border-input bg-background px-4 py-2 text-sm font-medium shadow-sm transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 flex-1">Not now</button>
+            <button class="inline-flex items-center justify-center rounded-md bg-purple-600 px-4 py-2 text-sm font-medium text-white shadow transition-colors hover:bg-purple-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 flex-1">Enable location</button>
+        </div>
+    </div>
     <!--  card template -->
     <template id="item-card-template">
         <a href="#" class="group h-full overflow-hidden rounded-lg border border-border bg-white transition-all hover:shadow-md">
