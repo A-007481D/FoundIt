@@ -10,30 +10,20 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
-      - name: Debug - List files
-        run: ls -R
-          
-          
       - name: Set Up Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '20'
           cache: 'npm'
 
-      - name: Ensure `package-lock.json` Exists
-        run: |
-          if [ ! -f package-lock.json ]; then
-            echo "{}" > package-lock.json
-            git add package-lock.json
-            git commit -m "Fix missing package-lock.json"
-            git push
-          fi
-
       - name: Install Dependencies
+        working-directory: ./backend
         run: npm ci
-      
+        
       - name: Build Tailwind CSS
+        working-directory: ./backend
         run: npm run build
 
       - name: Run Linting
+        working-directory: ./backend
         run: npm run lint
