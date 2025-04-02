@@ -1,5 +1,5 @@
-// test data for items
-const featuredItems = [
+ // test data for items
+ const featuredItems = [
     {
         id: "1",
         title: "iPhone 13 Pro - Space Gray",
@@ -107,6 +107,9 @@ const recentItems = [
     },
 ];
 
+// combines all items for filtering
+const allItems = [...featuredItems, ...recentItems];
+
 // func to create an item card
 function createItemCard(item) {
     const template = document.getElementById('item-card-template');
@@ -129,10 +132,17 @@ function createItemCard(item) {
     badge.textContent = item.type === 'lost' ? 'Lost' : 'Found';
     badge.classList.add(item.type === 'lost' ? 'badge-lost' : 'badge-found');
 
+    if (item.type === 'lost') {
+        badge.classList.add('text-red-500', 'bg-red-100', 'border-2', 'border-red-300' )
+        
+    } else {
+        badge.classList.add('text-green-500', 'bg-green-100', 'border-2', 'border-green-300')
+    }
+    
     clone.querySelector('h3').textContent = item.title;
     clone.querySelector('span.shrink-0').textContent = item.category;
     clone.querySelector('p').textContent = item.description;
-
+    
     clone.querySelector('.location').textContent = item.location;
     clone.querySelector('.date').textContent = item.date;
     clone.querySelector('.views').textContent = item.views;
@@ -209,5 +219,4 @@ enableLocation.addEventListener('click', function() {
     } else {
         console.error("Geolocation is not supported by this browser");
     }
-}); 
-
+});
