@@ -7,7 +7,12 @@
     <title>FoundIt - Find your belongings!</title>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-
+    <!-- <style>
+        html {
+            scroll-behavior: smooth;
+        }
+        
+    </style> -->
 </head>
 
 
@@ -21,7 +26,7 @@
     </div>
     <ul class="flex space-x-6 text-gray-700 font-medium">
       <li><a href="#" class="hover:text-purple-600 hover:border-purple-500 hover:border-b-2">Home</a></li>
-      <li><a href="#" class="hover:text-purple-600 hover:border-purple-500 hover:border-b-2">How it works</a></li>
+      <li><a href="#how-it-works" class="hover:text-purple-600 hover:border-purple-500 hover:border-b-2">How it works</a></li>
       <li><a href="#" class="hover:text-purple-600 hover:border-purple-500 hover:border-b-2">Community Forum</a></li>
       <li><a href="#" class="hover:text-purple-600 hover:border-purple-500 hover:border-b-2">Contact Us</a></li>
       <li><a href="#" class="hover:text-purple-600 hover:border-purple-500 hover:border-b-2">FAQ</a></li>
@@ -106,7 +111,7 @@
         </div>
     </section>
 
-    <div id="how-it-works" class="py-16 bg-white">
+    <div id="how-it-works" class="py-20 bg-white">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="lg:text-center">
                 <h2 class="text-base text-purple-600 font-semibold tracking-wide uppercase">Process</h2>
@@ -339,7 +344,7 @@
                 <h4 class="text-lg font-semibold text-white mb-2">Quick Links</h4>
                 <ul class="space-y-1">
                     <li><a href="#" class="hover:text-white hover:border-white hover:border-b-2">Home</a></li>
-                    <li><a href="#" class="hover:text-white hover:border-white hover:border-b-2">How it works</a></li>
+                    <li><a href="#how-it-works" class="hover:text-white hover:border-white hover:border-b-2">How it works</a></li>
                     <li><a href="#" class="hover:text-white hover:border-white hover:border-b-2">Forum</a></li>
                     <li><a href="#" class="hover:text-white hover:border-white hover:border-b-2">FAQs</a></li>
                     <li><a href="#" class="hover:text-white hover:border-white hover:border-b-2">FAQs</a></li>

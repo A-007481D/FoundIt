@@ -3,12 +3,12 @@
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
-    return view('welcome');
+    return view('landing-page');
 });
 
 
 Route::get('/forgot-password', function () {
-    return view('auth.forgotPassword');
+    return view('auth.forgot-password');
 })->name('forgot-password');
 
 
@@ -19,3 +19,8 @@ Route::get('/login', function () {
 Route::get('/register', function () {
     return view('auth.register');
 })->name('register');
+
+Route::get('/discover', function () {
+    return view('pages.discover'); 
+
+});
