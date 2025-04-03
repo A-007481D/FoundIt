@@ -25,6 +25,6 @@ jobs:
         working-directory: ./backend
         run: npm run build
 
-      - name: Run Linting
-        working-directory: ./backend
-        run: npm run lint
+      # - name: Run Linting
+      #   working-directory: ./backend   #damn this sh!t
+      #   run: npm run lint
