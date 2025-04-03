@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Foundit! - Find your belongings!</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50">
+    <!-- Navbar -->
+    <nav 
+        class="sticky top-0 z-50 bg-white/70 backdrop-blur-md border-b border-gray-200 
+               flex items-center justify-between px-6 py-3"
+    >
+        <!-- Left: Logo -->
+        <div class="flex items-center space-x-2">
+            <!-- Replace with your own logo/image -->
+            <a href="" class="flex items-center space-x-1">
+                <img src="https://via.placeholder.com/40" alt="Logo" class="h-8 w-8 object-cover">
+                <span class="font-bold text-xl text-purple-600">Foundit!</span>
+            </a>
+        </div>
+
+        <!-- Middle: Navigation Links -->
+        <div class="hidden md:block">
+            
+                <!-- If user is authenticated, show different nav links -->
+                <!-- <ul class="flex space-x-6 text-gray-700 font-medium">
+                    <li><a href="" class="hover:text-purple-600">Dashboard</a></li>
+                    <li><a href="" class="hover:text-purple-600">My Items</a></li>
+                    <li><a href="" class="hover:text-purple-600">Profile</a></li>
+                    <li><a href="" class="hover:text-purple-600">Community Forum</a></li>
+                    <li><a href="" class="hover:text-purple-600">FAQ</a></li>
+                </ul> -->
+            
+                <!-- If user is NOT authenticated, show public nav links -->
+                <ul class="flex space-x-6 text-gray-700 font-medium">
+                    <li><a href="" class="hover:text-purple-600">Home</a></li>
+                    <li><a href="" class="hover:text-purple-600">How it works</a></li>
+                    <li><a href="" class="hover:text-purple-600">Community Forum</a></li>
+                    <li><a href="" class="hover:text-purple-600">Contact Us</a></li>
+                    <li><a href="" class="hover:text-purple-600">FAQ</a></li>
+                </ul>
+            
+        </div>
+
+        <!-- Right: Auth Buttons or Logout --> 
+        <div class="hidden md:flex items-center space-x-4">
+            
+                <!-- Logout link or dropdown -->
+                <!-- <form method="POST" action="">
+                    
+                    <button 
+                        type="submit" 
+                        class="px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700"
+                    >
+                        Logout
+                    </button>
+                </form>
+             -->
+                <a 
+                    href="{{ route('login') }}" 
+                    class="rounded-md font-medium bg-white border-2 border-purple-600 
+                           text-purple-600 px-4 py-2 hover:bg-purple-50"
+                >
+                    Log in
+                </a>
+                <a 
+                    href="{{ route('register') }}" 
+                    class="rounded-md text-white font-medium bg-purple-600 hover:bg-purple-700 
+                           border-2 border-purple-600 px-4 py-2"
+                >
+                    Sign up
+                </a>
+            
+        </div>
+
+        <!-- Mobile Menu Toggle (optional) -->
+        <div class="md:hidden">
+            <!-- You can implement a hamburger icon & mobile menu if needed -->
+            <button 
+                class="p-2 text-purple-600 border border-purple-600 rounded-md"
+                onclick="document.getElementById('mobile-menu').classList.toggle('hidden')"
+            >
+                Menu
+            </button>
+        </div>
+    </nav>
+
+    <!-- Mobile Menu (hidden by default) -->
+    <div id="mobile-menu" class="md:hidden hidden bg-white/90 backdrop-blur-md border-b border-gray-200">
+        <ul class="flex flex-col p-4 space-y-3 text-gray-700 font-medium">
+            
+                <li><a href="" class="hover:text-purple-600">Dashboard</a></li>
+                <li><a href="" class="hover:text-purple-600">My Items</a></li>
+                <li><a href="" class="hover:text-purple-600">Profile</a></li>
+                <li><a href="" class="hover:text-purple-600">Community Forum</a></li>
+                <li><a href="" class="hover:text-purple-600">FAQ</a></li>
+                <!-- Logout button -->
+                <form method="POST" action="">
+                    
+                    <button 
+                        type="submit" 
+                        class="text-left hover:text-purple-600"
+                    >
+                        Logout
+                    </button>
+                </form>
+            
+                <li><a href="" class="hover:text-purple-600">Home</a></li>
+                <li><a href="" class="hover:text-purple-600">How it works</a></li>
+                <li><a href="" class="hover:text-purple-600">Community Forum</a></li>
+                <li><a href="" class="hover:text-purple-600">Contact Us</a></li>
+                <li><a href="" class="hover:text-purple-600">FAQ</a></li>
+                <div class="flex space-x-4 mt-3">
+                    <a 
+                        href="{{ route('login') }}" 
+                        class="rounded-md font-medium bg-white border-2 border-purple-600 
+                               text-purple-600 px-4 py-2 hover:bg-purple-50"
+                    >
+                        Log in
+                    </a>
+                    <a 
+                        href="{{ route('register') }}" 
+                        class="rounded-md text-white font-medium bg-purple-600 hover:bg-purple-700 
+                               border-2 border-purple-600 px-4 py-2"
+                    >
+                        Sign up
+                    </a>
+                </div>
+            
+        </ul>
+    </div>
+
+    <!-- Page Content -->
+    <div class="p-6">
+        <!-- Your page content here -->
+        <h1 class="text-2xl font-bold mb-4">Welcome to Foundit!</h1>
+        <p class="text-gray-700">
+            This is where your main page content would go. 
+            Use this layout to create a consistent experience for your users.
+        </p>
+    </div>
+</body>
+</html>

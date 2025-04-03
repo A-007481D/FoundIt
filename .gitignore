@@ -42,3 +42,4 @@ node_modules
 foundit.iml
 php.xml
 workspace.xml
+.xml*
