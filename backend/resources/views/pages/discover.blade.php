@@ -131,6 +131,15 @@
                             </div>
                         </div>
                         <div>
+                                <h3 class="mb-2 font-medium">Distance (Kilometers)</h3>
+                                <input type="range" min="1" max="50" value="5" class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer">
+                                <div class="flex items-center justify-between mt-2">
+                                    <span class="text-sm text-muted-foreground">1 Km</span>
+                                    <span class="font-medium text-sm">3 Km</span>
+                                    <span class="text-sm text-muted-foreground">5 Km</span>
+                                </div>
+                            </div>
+                        <div>
                             <h3 class="mb-2 font-medium">Date Posted</h3>
                             <div class="space-y-2">
                                 <div class="flex items-center space-x-2">
@@ -228,8 +237,8 @@
             </button>
         </div>
         <div class="mt-4 flex gap-2">
-            <button class="inline-flex items-center justify-center rounded-md border border-input bg-background px-4 py-2 text-sm font-medium shadow-sm transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 flex-1">Not now</button>
-            <button class="inline-flex items-center justify-center rounded-md bg-purple-600 px-4 py-2 text-sm font-medium text-white shadow transition-colors hover:bg-purple-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 flex-1">Enable location</button>
+            <button id="dismissLocationPrompt" class="inline-flex items-center justify-center rounded-md border border-input bg-background px-4 py-2 text-sm font-medium shadow-sm transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 flex-1">Not now</button>
+            <button id="enableLocation" class="inline-flex items-center justify-center rounded-md bg-purple-600 px-4 py-2 text-sm font-medium text-white shadow transition-colors hover:bg-purple-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 flex-1">Enable location</button>
         </div>
     </div>
     <!--  card template -->
@@ -274,7 +283,7 @@
             </div>
         </a>
     </template>
-
+    <script src="{{ asset('js/discover.js') }}"></script>
 </body>
 
 </html>
