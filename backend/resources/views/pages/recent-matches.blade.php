@@ -323,12 +323,27 @@
                     </div>
                 </div>
             </div>
-            <div class="mt-8 flex justify-center">
-                <button class="border rounded-md px-4 py-2 hover:bg-muted/50">
-                    <span>Load More Matches</span>
-                </button>
-            </div>
-        </main>
+
+    </div>
+
+    <!-- filtered tab contente -->
+    <div id="tab-content-new" class="space-y-6 hidden">
+        <!-- new -->
+    </div>
+
+    <div id="tab-content-in-progress" class="space-y-6 hidden">
+        <!-- in prog -->
+    </div>
+
+    <div id="tab-content-resolved" class="space-y-6 hidden">
+        <!-- resolved -->
+    </div>
+    <div class="mt-8 flex justify-center">
+        <button class="border rounded-md px-4 py-2 hover:bg-muted/50">
+            <span>Load More Matches</span>
+        </button>
+    </div>
+    </main>
     </div>
 
 </body>
