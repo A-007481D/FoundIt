@@ -24,3 +24,7 @@ Route::get('/discover', function () {
     return view('pages.discover'); 
 
 });
+
+Route::get('/matches', function () {
+    return view('pages.recent-matches');
+});
