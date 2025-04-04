@@ -62,6 +62,15 @@
                         Our algorithm has found potential matches between lost and found items
                     </p>
                 </div>
+                <a href="">
+                    <button class="bg-primary hover:bg-primary/90 text-white px-4 py-2 rounded-md flex items-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-2 h-4 w-4">
+                            <path d="M5 12h14"></path>
+                            <path d="M12 5v14"></path>
+                        </svg>
+                        New annoncement
+                    </button>
+                </a>
             </div>
 
             <div class="mb-6 flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
