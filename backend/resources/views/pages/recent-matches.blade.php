@@ -323,7 +323,11 @@
                     </div>
                 </div>
             </div>
-
+            <div class="mt-8 flex justify-center">
+                <button class="border rounded-md px-4 py-2 hover:bg-muted/50">
+                    <span>Load More Matches</span>
+                </button>
+            </div>
         </main>
     </div>
 
