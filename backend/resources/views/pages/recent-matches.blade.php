@@ -64,6 +64,45 @@
                 </div>
             </div>
 
+            <div class="mb-6 flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
+                <div class="flex flex-1 max-w-md gap-3">
+                    <button class="border rounded-md px-3 py-2 flex items-center gap-2 hover:bg-muted/50" id="filters-toggle">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-4 w-4">
+                            <line x1="21" x2="14" y1="4" y2="4"></line>
+                            <line x1="10" x2="3" y1="4" y2="4"></line>
+                            <line x1="21" x2="12" y1="12" y2="12"></line>
+                            <line x1="8" x2="3" y1="12" y2="12"></line>
+                            <line x1="21" x2="16" y1="20" y2="20"></line>
+                            <line x1="12" x2="3" y1="20" y2="20"></line>
+                            <line x1="14" x2="14" y1="2" y2="6"></line>
+                            <line x1="8" x2="8" y1="10" y2="14"></line>
+                            <line x1="16" x2="16" y1="18" y2="22"></line>
+                        </svg>
+                        Filters
+                    </button>
+                </div>
+
+                <div class="flex items-center gap-2 ml-auto">
+                    <span class="text-sm text-muted-foreground hidden sm:inline">Sort by:</span>
+                    <div class="relative" id="sort-dropdown-container">
+                        <button class="border rounded-md px-3 py-2 flex items-center justify-between w-[180px] h-9 text-sm" id="sort-dropdown-trigger">
+                            <span>Matching Score</span>
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-4 w-4 ml-2">
+                                <path d="m6 9 6 6 6-6"></path>
+                            </svg>
+                        </button>
+                        <div class="hidden absolute right-0 mt-2 w-[180px] rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 z-50" id="sort-dropdown-menu">
+                            <div class="py-1">
+                                <a href="#" class="block px-4 py-2 text-sm hover:bg-muted" data-value="match-score">Matching Score</a>
+                                <a href="#" class="block px-4 py-2 text-sm hover:bg-muted" data-value="date-new">Date (Most Recent)</a>
+                                <a href="#" class="block px-4 py-2 text-sm hover:bg-muted" data-value="date-old">Date (Older)</a>
+                                <a href="#" class="block px-4 py-2 text-sm hover:bg-muted" data-value="status">Status</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <div class="mb-6">
                 <div class="border-b">
                     <div class="flex -mb-px space-x-6 overflow-x-auto" id="tabs">
