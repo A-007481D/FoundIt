@@ -112,6 +112,72 @@
                 </div>
             </div>
 
+            <div class="mb-6 hidden" id="filters-panel">
+                <div class="bg-white border rounded-lg shadow-sm">
+                    <div class="p-6">
+                        <div class="grid gap-6 md:grid-cols-3">
+                            <div class="space-y-2">
+                                <h3 class="text-sm font-medium">Status</h3>
+                                <div class="grid grid-cols-3 gap-2">
+                                    <div class="flex items-center space-x-2">
+                                        <input type="checkbox" id="new" class="rounded text-primary focus:ring-primary" checked>
+                                        <label for="new" class="text-sm cursor-pointer">
+                                            New
+                                        </label>
+                                    </div>
+                                    <div class="flex items-center space-x-2">
+                                        <input type="checkbox" id="in-progress" class="rounded text-primary focus:ring-primary" checked>
+                                        <label for="in-progress" class="text-sm cursor-pointer">
+                                            In progress
+                                        </label>
+                                    </div>
+                                    <div class="flex items-center space-x-2">
+                                        <input type="checkbox" id="resolved" class="rounded text-primary focus:ring-primary" checked>
+                                        <label for="resolved" class="text-sm cursor-pointer">
+                                            Resolved
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="space-y-2">
+                                <h3 class="text-sm font-medium">Matching Score</h3>
+                                <input type="range" min="0" max="100" value="60" step="5" class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer">
+                                <div class="flex justify-between text-xs text-muted-foreground">
+                                    <span>0%</span>
+                                    <span>60%</span>
+                                    <span>100%</span>
+                                </div>
+                            </div>
+
+                            <div class="space-y-2">
+                                <h3 class="text-sm font-medium">Catergories</h3>
+                                <div class="relative">
+                                    <select class="block w-full rounded-md border-gray-300 py-2 pl-3 pr-10 text-base focus:border-primary focus:outline-none focus:ring-primary sm:text-sm">
+                                        <option value="all">All Catergories</option>
+                                        <option value="electronics">Electronics</option>
+                                        <option value="jewelry">Jewelry</option>
+                                        <option value="accessories">Accessories</option>
+                                        <option value="bags">Bags</option>
+                                        <option value="documents">Documents</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mt-4 flex justify-end gap-2">
+                            <button class="border rounded-md px-3 py-1 text-sm">
+                                Reset
+                            </button>
+                            <button class="bg-primary hover:bg-primary/90 text-white px-3 py-1 rounded-md text-sm">
+                                Apply filters
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+
             <div class="mb-6">
                 <div class="border-b">
                     <div class="flex -mb-px space-x-6 overflow-x-auto" id="tabs">
