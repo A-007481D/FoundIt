@@ -474,7 +474,84 @@
                             </div>
                         </div>
 
-                                     </div>
+                        <div x-show="activeTab === 'account'" class="bg-white shadow overflow-hidden sm:rounded-lg">
+                            <div class="px-4 py-5 sm:px-6 border-b border-gray-200">
+                                <h3 class="text-lg leading-6 font-medium text-gray-900">Account Information</h3>
+                                <p class="mt-1 max-w-2xl text-sm text-gray-500">Details about your account
+
+                                </p>
+                            </div>
+
+                            <div class="px-4 py-5 sm:p-6">
+                                <dl class="grid grid-cols-1 gap-x-4 gap-y-8 sm:grid-cols-2">
+                                    <div class="sm:col-span-1">
+                                        <dt class="text-sm font-medium text-gray-500">Account ID
+                                        </dt>
+                                        <dd class="mt-1 text-sm text-gray-900">AC-123456789</dd>
+                                    </div>
+                                    <div class="sm:col-span-1">
+                                        <dt class="text-sm font-medium text-gray-500">Join Date
+                                        </dt>
+                                        <dd class="mt-1 text-sm text-gray-900">12 January 2023</dd>
+                                    </div>
+                                    <div class="sm:col-span-1">
+                                        <dt class="text-sm font-medium text-gray-500">Last Profile Update
+                                        </dt>
+                                        <dd class="mt-1 text-sm text-gray-900">15 March 2023</dd>
+                                    </div>
+                                    <div class="sm:col-span-1">
+                                        <dt class="text-sm font-medium text-gray-500">Account Status</dt>
+                                        <dd class="mt-1 text-sm text-gray-900">Active</dd>
+                                    </div>
+                                </dl>
+
+                                <div class="mt-8 border-t border-gray-200 pt-6">
+                                    <h3 class="text-lg leading-6 font-medium text-gray-900">Region & Language</h3>
+                                    <div class="mt-4">
+                                        <label for="language" class="block text-sm font-medium text-gray-700">Language</label>
+                                        <select id="language" name="language" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md">
+                                            <option selected>English</option>
+                                            <option>Francais</option>
+                                            <option>Español</option>
+                                            <option>Deutsch</option>
+                                        </select>
+                                    </div>
+                                    <div class="mt-4">
+                                        <label for="timezone" class="block text-sm font-medium text-gray-700">Time zone</label>
+                                        <select id="timezone" name="timezone" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md">
+                                            <option selected>(GMT+01:00) Casablanca</option>
+                                            <option>(GMT+00:00) London</option>
+                                            <option>(GMT-05:00) New York</option>
+                                            <option>(GMT-08:00) Los Angeles</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <div class="mt-8 border-t border-gray-200 pt-6">
+                                    <h3 class="text-lg leading-6 font-medium text-gray-900">Data & export</h3>
+                                    <p class="mt-1 text-sm text-gray-500">Upload a copy of your data or delete your account.
+                                    </p>
+                                    <div class="mt-4">
+                                        <button type="button" class="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:outline-none focus:ring-1 focus:ring-offset-2 focus:ring-purple-500">
+                                            <svg class="-ml-1 mr-2 h-5 w-5 text-gray-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                                            </svg>
+                                            Export data
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <div class="mt-6 flex justify-end">
+                                    <button type="button" class="bg-white py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:outline-none focus:ring-1 focus:ring-offset-2 focus:ring-purple-500">
+                                        Cancel
+                                    </button>
+                                    <button type="submit" class="ml-3 inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md bg-primary hover:bg-primary/90 text-white focus:outline-none focus:ring-1 focus:ring-offset-2 focus:ring-purple-500">
+                                        Save changes
+                                    </button>
+                                </div>
+                            </div>
+                        </div>   
+                    </div>
                 </div>
             </div>
         </div>
