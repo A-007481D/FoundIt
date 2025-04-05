@@ -28,3 +28,8 @@ Route::get('/discover', function () {
 Route::get('/matches', function () {
     return view('pages.recent-matches');
 });
+
+
+Route::get('/profile', function () {
+    return view('pages.profile');
+});
