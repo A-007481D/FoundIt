@@ -550,7 +550,111 @@
                                     </button>
                                 </div>
                             </div>
-                        </div>   
+                        </div>
+
+                        <div x-show="activeTab === 'security'" class="bg-white shadow overflow-hidden sm:rounded-lg">
+                            <div class="px-4 py-5 sm:px-6 border-b border-gray-200">
+                                <h3 class="text-lg leading-6 font-medium text-gray-900">Security</h3>
+                                <p class="mt-1 max-w-2xl text-sm text-gray-500">Gérez votre mot de passe et la Security de votre compte.</p>
+                            </div>
+
+                            <div class="px-4 py-5 sm:p-6">
+                                <div class="border-b border-gray-200 pb-6">
+                                    <h3 class="text-lg leading-6 font-medium text-gray-900">Change password</h3>
+                                    <div class="mt-4">
+                                        <form class="space-y-4">
+                                            <div>
+                                                <label for="current-password" class="block text-sm font-medium text-gray-700">Current password</label>
+                                                <input type="password" name="current-password" id="current-password" placeholder="••••••••"
+                                                    class="mt-1 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md px-3 py-2 focus:ring-2 ring-purple-600 outline-none">
+                                            </div>
+                                            <div>
+                                                <label for="new-password" class="block text-sm font-medium text-gray-700">New password</label>
+                                                <input type="password" name="new-password" id="new-password" class="mt-1 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md px-3 py-2 focus:ring-2 ring-purple-600 outline-none">
+                                            </div>
+                                            <div>
+                                                <label for="confirm-password" class="block text-sm font-medium text-gray-700">Confirm password</label>
+                                                <input type="password" name="confirm-password" id="confirm-password" class="mt-1 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md px-3 py-2 focus:ring-2 ring-purple-600 outline-none">
+                                            </div>
+
+                                            <div>
+                                                <h4 class="text-sm font-medium text-gray-700">Password strength</h4>
+                                                <div class="mt-1 w-full bg-gray-200 rounded-full h-2.5">
+                                                    <div class="bg-green-500 h-2.5 rounded-full" style="width: 75%"></div>
+                                                </div>
+                                                <p class="mt-2 text-sm text-gray-500">Utilisez au moins 8 caractères avec des lettres majuscules, minuscules, des chiffres et des symboles.</p>
+                                            </div>
+
+                                            <div class="flex justify-end">
+                                                <button type="submit" class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:outline-none focus:ring-1 focus:ring-offset-2 focus:ring-purple-500">
+                                                    Update the password
+                                                </button>
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
+
+                                <div class="mt-6 border-b border-gray-200 pb-6">
+                                    <h3 class="text-lg leading-6 font-medium text-gray-900">Two factor authentication</h3>
+                                    <p class="mt-1 text-sm text-gray-500">Add an extra layer of security to your account.
+
+                                    </p>
+
+                                    <div class="mt-4 flex items-center justify-between">
+                                        <div>
+                                            <h4 class="text-sm font-medium text-gray-700">Status</h4>
+                                            <p class="text-sm text-gray-500">Two-factor authentication is currently disabled.</p>
+                                        </div>
+                                        <button type="button" class="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:outline-none focus:ring-1 focus:ring-offset-2 focus:ring-purple-500">
+                                            Activate
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <div class="mt-6">
+                                    <h3 class="text-lg leading-6 font-medium text-gray-900">Account activity
+                                    </h3>
+                                    <p class="mt-1 text-sm text-gray-500">Here are the devices that have been connected to your account recently.</p>
+
+                                    <div class="mt-4 overflow-hidden shadow ring-1 ring-black ring-opacity-5 sm:rounded-lg">
+                                        <table class="min-w-full divide-y divide-gray-300">
+                                            <thead class="bg-gray-50">
+                                                <tr>
+                                                    <th scope="col" class="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-6">Device</th>
+                                                    <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Location</th>
+                                                    <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Date</th>
+                                                    <th scope="col" class="relative py-3.5 pl-3 pr-4 sm:pr-6">
+                                                        <span class="sr-only">Actions</span>
+                                                    </th>
+                                                </tr>
+                                            </thead>
+                                            <tbody class="divide-y divide-gray-200 bg-white">
+                                                <tr>
+                                                    <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-6">Chrome on Windows</td>
+                                                    <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">Paris, France</td>
+                                                    <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">Today, 14:32</td>
+                                                    <td class="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
+                                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                                            Current
+                                                        </span>
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-6">Safari on iPhone</td>
+                                                    <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">Paris, France</td>
+                                                    <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">Yesterday, 09:15</td>
+                                                    <td class="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
+                                                        <a href="#" class="text-indigo-600 hover:text-indigo-900">Disconnect</a>
+                                                    </td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                       
                     </div>
                 </div>
             </div>
