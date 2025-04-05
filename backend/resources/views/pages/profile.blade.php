@@ -474,6 +474,7 @@
                             </div>
                         </div>
 
+                        <!-- Account Tab -->
                         <div x-show="activeTab === 'account'" class="bg-white shadow overflow-hidden sm:rounded-lg">
                             <div class="px-4 py-5 sm:px-6 border-b border-gray-200">
                                 <h3 class="text-lg leading-6 font-medium text-gray-900">Account Information</h3>
@@ -552,6 +553,7 @@
                             </div>
                         </div>
 
+                        <!-- Security Tab -->
                         <div x-show="activeTab === 'security'" class="bg-white shadow overflow-hidden sm:rounded-lg">
                             <div class="px-4 py-5 sm:px-6 border-b border-gray-200">
                                 <h3 class="text-lg leading-6 font-medium text-gray-900">Security</h3>
@@ -654,7 +656,303 @@
                             </div>
                         </div>
 
-                       
+                        <!-- Privacy Tab -->
+                        <div x-show="activeTab === 'privacy'" class="bg-white shadow overflow-hidden sm:rounded-lg">
+                            <div class="px-4 py-5 sm:px-6 border-b border-gray-200">
+                                <h3 class="text-lg leading-6 font-medium text-gray-900">Privacy</h3>
+                                <p class="mt-1 max-w-2xl text-sm text-gray-500">Gérez qui peut voir vos informations et comment vos données sont utilisées.</p>
+                            </div>
+
+                            <div class="px-4 py-5 sm:p-6">
+                                <div class="border-b border-gray-200 pb-6">
+                                    <h3 class="text-lg leading-6 font-medium text-gray-900">Visibilité du profil</h3>
+                                    <p class="mt-1 text-sm text-gray-500">Contrôlez qui peut voir vos informations de profil.</p>
+
+                                    <div class="mt-4 space-y-4">
+                                        <div class="flex items-start">
+                                            <div class="flex items-center h-5">
+                                                <input id="profile-public" name="profile-visibility" type="radio" checked class="focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-gray-300">
+                                            </div>
+                                            <div class="ml-3 text-sm">
+                                                <label for="profile-public" class="font-medium text-gray-700">Public</label>
+                                                <p class="text-gray-500">Tout le monde peut voir votre profil complet.</p>
+                                            </div>
+                                        </div>
+                                        <div class="flex items-start">
+                                            <div class="flex items-center h-5">
+                                                <input id="profile-contacts" name="profile-visibility" type="radio" class="focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-gray-300">
+                                            </div>
+                                            <div class="ml-3 text-sm">
+                                                <label for="profile-contacts" class="font-medium text-gray-700">Contacts uniquement</label>
+                                                <p class="text-gray-500">Seuls vos contacts peuvent voir votre profil complet.</p>
+                                            </div>
+                                        </div>
+                                        <div class="flex items-start">
+                                            <div class="flex items-center h-5">
+                                                <input id="profile-private" name="profile-visibility" type="radio" class="focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-gray-300">
+                                            </div>
+                                            <div class="ml-3 text-sm">
+                                                <label for="profile-private" class="font-medium text-gray-700">Privé</label>
+                                                <p class="text-gray-500">Personne ne peut voir votre profil sauf vous.</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="mt-6 border-b border-gray-200 pb-6">
+                                    <h3 class="text-lg leading-6 font-medium text-gray-900">Informations visibles</h3>
+                                    <p class="mt-1 text-sm text-gray-500">Choisissez quelles informations sont visibles sur votre profil.</p>
+
+                                    <div class="mt-4 space-y-4">
+                                        <div class="flex items-start">
+                                            <div class="flex items-center h-5">
+                                                <input id="show-email" name="show-email" type="checkbox" checked class="focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-gray-300 rounded">
+                                            </div>
+                                            <div class="ml-3 text-sm">
+                                                <label for="show-email" class="font-medium text-gray-700">Adresse email</label>
+                                            </div>
+                                        </div>
+                                        <div class="flex items-start">
+                                            <div class="flex items-center h-5">
+                                                <input id="show-phone" name="show-phone" type="checkbox" class="focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-gray-300 rounded">
+                                            </div>
+                                            <div class="ml-3 text-sm">
+                                                <label for="show-phone" class="font-medium text-gray-700">Numéro de téléphone</label>
+                                            </div>
+                                        </div>
+                                        <div class="flex items-start">
+                                            <div class="flex items-center h-5">
+                                                <input id="show-location" name="show-location" type="checkbox" checked class="focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-gray-300 rounded">
+                                            </div>
+                                            <div class="ml-3 text-sm">
+                                                <label for="show-location" class="font-medium text-gray-700">Localisation</label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="mt-6">
+                                    <h3 class="text-lg leading-6 font-medium text-gray-900">Cookies et données</h3>
+                                    <p class="mt-1 text-sm text-gray-500">Gérez comment nous utilisons les cookies et vos données.</p>
+
+                                    <div class="mt-4 space-y-4">
+                                        <div class="flex items-start">
+                                            <div class="flex items-center h-5">
+                                                <input id="analytics-cookies" name="analytics-cookies" type="checkbox" checked class="focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-gray-300 rounded">
+                                            </div>
+                                            <div class="ml-3 text-sm">
+                                                <label for="analytics-cookies" class="font-medium text-gray-700">Cookies d'analyse</label>
+                                                <p class="text-gray-500">Nous permettent d'améliorer notre site en comprenant comment vous l'utilisez.</p>
+                                            </div>
+                                        </div>
+                                        <div class="flex items-start">
+                                            <div class="flex items-center h-5">
+                                                <input id="marketing-cookies" name="marketing-cookies" type="checkbox" class="focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-gray-300 rounded">
+                                            </div>
+                                            <div class="ml-3 text-sm">
+                                                <label for="marketing-cookies" class="font-medium text-gray-700">Cookies marketing</label>
+                                                <p class="text-gray-500">Permettent de vous montrer des publicités pertinentes sur d'autres sites.</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="mt-6 flex justify-end">
+                                    <button type="button" class="bg-white py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:outline-none focus:ring-1 focus:ring-offset-2 focus:ring-purple-500">
+                                        Cancel
+                                    </button>
+                                    <button type="submit" class="ml-3 inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md bg-primary hover:bg-primary/90 text-white focus:outline-none focus:ring-1 focus:ring-offset-2 focus:ring-purple-500">
+                                        <!-- class="bg-primary hover:bg-primary/90 text-white px-4 py-2 rounded-md flex items-center"> -->
+                                        Save changes
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Notifications Tab -->
+                        <div x-show="activeTab === 'notifications'" class="bg-white shadow overflow-hidden sm:rounded-lg">
+                            <div class="px-4 py-5 sm:px-6 border-b border-gray-200">
+                                <h3 class="text-lg leading-6 font-medium text-gray-900">Notifications</h3>
+                                <p class="mt-1 max-w-2xl text-sm text-gray-500">Manage how and when you receive notifications.</p>
+                            </div>
+
+                            <div class="px-4 py-5 sm:p-6">
+                                <div class="border-b border-gray-200 pb-6">
+                                    <h3 class="text-lg leading-6 font-medium text-gray-900">Notifications by email</h3>
+
+                                    <div class="mt-4 space-y-4">
+                                        <div class="flex items-start">
+                                            <div class="flex items-center h-5">
+                                                <input id="email-comments" name="email-comments" type="checkbox" checked class="focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-gray-300 rounded">
+                                            </div>
+                                            <div class="ml-3 text-sm">
+                                                <label for="email-comments" class="font-medium text-gray-700">Commentaries</label>
+                                                <p class="text-gray-500">Receive an email when someone comments on your posts..</p>
+                                            </div>
+                                        </div>
+                                        <div class="flex items-start">
+                                            <div class="flex items-center h-5">
+                                                <input id="email-mentions" name="email-mentions" type="checkbox" checked class="focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-gray-300 rounded">
+                                            </div>
+                                            <div class="ml-3 text-sm">
+                                                <label for="email-mentions" class="font-medium text-gray-700">Mentions</label>
+                                                <p class="text-gray-500">Receive an email when someone mentions you.</p>
+                                            </div>
+                                        </div>
+                                        <div class="flex items-start">
+                                            <div class="flex items-center h-5">
+                                                <input id="email-updates" name="email-updates" type="checkbox" class="focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-gray-300 rounded">
+                                            </div>
+                                            <div class="ml-3 text-sm">
+                                                <label for="email-updates" class="font-medium text-gray-700">Updates to the product</label>
+                                                <p class="text-gray-500">Receive emails about new features and improvements.</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="mt-6 border-b border-gray-200 pb-6">
+                                    <h3 class="text-lg leading-6 font-medium text-gray-900">Push notifications</h3>
+
+                                    <div class="mt-4 space-y-4">
+                                        <div class="flex items-start">
+                                            <div class="flex items-center h-5">
+                                                <input id="push-comments" name="push-comments" type="checkbox" checked class="focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-gray-300 rounded">
+                                            </div>
+                                            <div class="ml-3 text-sm">
+                                                <label for="push-comments" class="font-medium text-gray-700">Commentaires</label>
+                                                <p class="text-gray-500">Get a push notification when someone comments on your posts.
+
+                                                </p>
+                                            </div>
+                                        </div>
+                                        <div class="flex items-start">
+                                            <div class="flex items-center h-5">
+                                                <input id="push-mentions" name="push-mentions" type="checkbox" checked class="focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-gray-300 rounded">
+                                            </div>
+                                            <div class="ml-3 text-sm">
+                                                <label for="push-mentions" class="font-medium text-gray-700">Mentions</label>
+                                                <p class="text-gray-500">Get a push notification when someone mentions you..</p>
+                                            </div>
+                                        </div>
+                                        <div class="flex items-start">
+                                            <div class="flex items-center h-5">
+                                                <input id="push-messages" name="push-messages" type="checkbox" checked class="focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-gray-300 rounded">
+                                            </div>
+                                            <div class="ml-3 text-sm">
+                                                <label for="push-messages" class="font-medium text-gray-700">Messages</label>
+                                                <p class="text-gray-500">Receive a push notification when you receive a new message.</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="mt-6">
+                                    <h3 class="text-lg leading-6 font-medium text-gray-900">Notification preferences
+                                    </h3>
+
+                                    <div class="mt-4 grid grid-cols-1 gap-y-6 sm:grid-cols-2 sm:gap-x-4">
+                                        <div>
+                                            <label for="notification-frequency" class="block text-sm font-medium text-gray-700">Set how often you want to receive notifications
+
+                                            </label>
+                                            <select id="notification-frequency" name="notification-frequency" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md">
+                                                <option selected>Real-time</option>
+                                                <option>Every hour</option>
+                                                <option>Once a day</option>
+                                                <option>Once a week</option>
+                                            </select>
+                                        </div>
+
+                                        <div>
+                                            <label for="quiet-hours-start" class="block text-sm font-medium text-gray-700">Quiet Hours (start)</label>
+                                            <input type="time" name="quiet-hours-start" id="quiet-hours-start" value="22:00"
+                                                class="mt-1 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md px-3 py-2 focus:ring-2 ring-purple-600 outline-none">
+                                        </div>
+
+                                        <div>
+                                            <label for="quiet-hours-end" class="block text-sm font-medium text-gray-700">Quiet Hours (end)</label>
+                                            <input type="time" name="quiet-hours-end" id="quiet-hours-end" value="07:00" class="mt-1 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md px-3 py-2 focus:ring-2 ring-purple-600 outline-none">
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="mt-6 flex justify-end">
+                                    <button type="button" class="bg-white py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:outline-none focus:ring-1 focus:ring-offset-2 focus:ring-purple-500">
+                                        Cancel
+                                    </button>
+                                    <button type="submit" class="ml-3 inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md bg-primary hover:bg-primary/90 text-white focus:outline-none focus:ring-1 focus:ring-offset-2 focus:ring-purple-500">
+                                        Save changes
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Delete Account Tab -->
+                        <div x-show="activeTab === 'delete'" class="bg-white shadow overflow-hidden sm:rounded-lg">
+                            <div class="px-4 py-5 sm:px-6 border-b border-gray-200">
+                                <h3 class="text-lg leading-6 font-medium text-gray-900">Delete account</h3>
+                                <p class="mt-1 max-w-2xl text-sm text-gray-500">Permanently delete your account and all your data.
+
+                                </p>
+                            </div>
+
+                            <div class="px-4 py-5 sm:p-6">
+                                <div class="rounded-md bg-red-50 p-4">
+                                    <div class="flex">
+                                        <div class="flex-shrink-0">
+                                            <svg class="h-5 w-5 text-red-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
+                                            </svg>
+                                        </div>
+                                        <div class="ml-3">
+                                            <h3 class="text-sm font-medium text-red-800">Caution: This action is irreversible</h3>
+                                            <div class="mt-2 text-sm text-red-700">
+                                                <p>Deleting your account will result in the permanent loss of all your data, including:
+                                                </p>
+                                                <ul class="list-disc pl-5 mt-1 space-y-1">
+                                                    <li>Your personal information</li>
+                                                    <li>Your posts and comments
+                                                    </li>
+                                                    <li>Your activity history
+                                                    </li>
+                                                    <li>All files and documents downloaded
+                                                    </li>
+                                                </ul>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="mt-6">
+                                    <h3 class="text-lg leading-6 font-medium text-gray-900">Confirmation</h3>
+                                    <p class="mt-1 text-sm text-gray-500">Please enter your password to confirm the deletion of your account.</p>
+
+                                    <div class="mt-4">
+                                        <label for="delete-password" class="block text-sm font-medium text-gray-700">Mot de passe</label>
+                                        <input type="password" name="delete-password" id="delete-password" placeholder="••••••••"
+                                            class="mt-1 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md px-3 py-2 focus:ring-2 ring-purple-600 outline-none">
+                                    </div>
+
+                                    <div class="mt-4">
+                                        <div class="flex items-start">
+                                            <div class="flex items-center h-5">
+                                                <input id="confirm-delete" name="confirm-delete" type="checkbox" class="focus:ring-red-500 h-4 w-4 text-red-600 border-gray-300 rounded">
+                                            </div>
+                                            <div class="ml-3 text-sm">
+                                                <label for="confirm-delete" class="font-medium text-gray-700">I understand that this action is irreversible and I want to permanently delete my account.</label>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="mt-6">
+                                        <button type="button" class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">
+                                            Permanently delete my account
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
