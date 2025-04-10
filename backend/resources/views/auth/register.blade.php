@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <title>Login</title>
+    <title>Register</title>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
 
@@ -15,7 +15,23 @@
         Sign up to start using Foundit!
     </p>
 
-    <form method="POST" action="">
+    @if(session('status'))
+        <div class="mb-4 text-green-600">
+            {{ session('status') }}
+        </div>
+    @endif
+
+    <!-- Display Validation Errors -->
+    @if($errors->any())
+        <div class="mb-4 text-red-600">
+            <ul>
+                @foreach($errors->all() as $error)
+                    <li>{{ $error }}</li>
+                @endforeach
+            </ul>
+        </div>
+    @endif
+    <form method="POST" action="{{ route('register') }}">
         @csrf
 
 
@@ -37,7 +53,7 @@
         <div class="flex gap-2 mb-4">
             <input type="text" name="firstname" id="first-name" required placeholder="Abdelmalek"
                    class="w-full border border-gray-300 rounded px-3 py-2 focus:ring-2 ring-purple-600 outline-none">
-            <input type="text" name="password" id="password" required placeholder="Labid"
+            <input type="text" name="lastname" id="last-name" required placeholder="Labid"
                    class="w-full border border-gray-300 rounded px-3 py-2 focus:ring-2 ring-purple-600 outline-none">
         </div>
 
@@ -65,6 +81,22 @@
             Sign in
         </button>
     </form>
+    @if(session('status'))
+        <div class="mb-4 text-green-600">
+            {{ session('status') }}
+        </div>
+    @endif
+
+    <!-- Display Validation Errors -->
+    @if($errors->any())
+        <div class="mb-4 text-red-600">
+            <ul>
+                @foreach($errors->all() as $error)
+                    <li>{{ $error }}</li>
+                @endforeach
+            </ul>
+        </div>
+    @endif
 
     <p class="mt-4 text-center text-sm text-gray-500">
         Already registered?

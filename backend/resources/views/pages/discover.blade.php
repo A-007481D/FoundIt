@@ -131,14 +131,14 @@
                             </div>
                         </div>
                         <div>
-                                <h3 class="mb-2 font-medium">Distance (Kilometers)</h3>
-                                <input type="range" min="1" max="50" value="5" class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer">
-                                <div class="flex items-center justify-between mt-2">
-                                    <span class="text-sm text-muted-foreground">1 Km</span>
-                                    <span class="font-medium text-sm">3 Km</span>
-                                    <span class="text-sm text-muted-foreground">5 Km</span>
-                                </div>
-                            </div>
+{{--                                <h3 class="mb-2 font-medium">Distance (Kilometers)</h3>--}}
+{{--                                <input type="range" min="1" max="50" value="5" class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer">--}}
+{{--                                <div class="flex items-center justify-between mt-2">--}}
+{{--                                    <span class="text-sm text-muted-foreground">1 Km</span>--}}
+{{--                                    <span class="font-medium text-sm">3 Km</span>--}}
+{{--                                    <span class="text-sm text-muted-foreground">5 Km</span>--}}
+{{--                                </div>--}}
+{{--                            </div>--}}
                         <div>
                             <h3 class="mb-2 font-medium">Date Posted</h3>
                             <div class="space-y-2">

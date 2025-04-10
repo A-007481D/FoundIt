@@ -13,7 +13,22 @@
     <p class="text-gray-500 mb-6 text-center">
         Enter your credentials to access your account
     </p>
+    @if(session('status'))
+        <div class="mb-4 text-green-600">
+            {{ session('status') }}
+        </div>
+    @endif
 
+    <!-- Display Validation Errors -->
+    @if($errors->any())
+        <div class="mb-4 text-red-600">
+            <ul>
+                @foreach($errors->all() as $error)
+                    <li>{{ $error }}</li>
+                @endforeach
+            </ul>
+        </div>
+    @endif
     <form method="POST" action="">
         @csrf
 
@@ -58,6 +73,22 @@
             Sign in
         </button>
     </form>
+    @if(session('status'))
+        <div class="mb-4 text-green-600">
+            {{ session('status') }}
+        </div>
+    @endif
+
+    <!-- Display Validation Errors -->
+    @if($errors->any())
+        <div class="mb-4 text-red-600">
+            <ul>
+                @foreach($errors->all() as $error)
+                    <li>{{ $error }}</li>
+                @endforeach
+            </ul>
+        </div>
+    @endif
 
     <p class="mt-4 text-center text-sm text-gray-500">
         Don't have an account yet?
