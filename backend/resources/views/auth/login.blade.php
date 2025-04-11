@@ -19,7 +19,6 @@
         </div>
     @endif
 
-    <!-- Display Validation Errors -->
     @if($errors->any())
         <div class="mb-4 text-red-600">
             <ul>
@@ -79,7 +78,6 @@
         </div>
     @endif
 
-    <!-- Display Validation Errors -->
     @if($errors->any())
         <div class="mb-4 text-red-600">
             <ul>

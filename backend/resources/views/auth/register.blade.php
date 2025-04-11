@@ -35,14 +35,24 @@
         @csrf
 
 
-        <div class="flex gap-2 mb-4">
-            <button type="button" class="flex-1 border py-2 px-3 text-center rounded">
-                Facebook
-            </button>
-            <button type="button" class="flex-1 border py-2 px-3 text-center rounded">
-                Google
-            </button>
+        <div class="w-full max-w-md mx-auto mt-6">
+            <div class="flex flex-col sm:flex-row gap-4">
+                <a href="{{ route('auth.google') }}"
+                   class="flex items-center justify-center w-full px-4 py-3 border border-gray-300 rounded-lg hover:bg-gray-100 transition">
+                    <img src="https://www.svgrepo.com/show/475656/google-color.svg" alt="Google"
+                         class="h-5 w-5 mr-2">
+                    <span class="text-sm font-medium text-gray-700">Google</span>
+                </a>
+                <a href="{{ route('auth.facebook') }}"
+                   class="flex items-center justify-center w-full px-4 py-3 border border-gray-300 rounded-lg hover:bg-gray-100 transition">
+                    <img src="https://www.svgrepo.com/show/475647/facebook-color.svg" alt="Facebook"
+                         class="h-5 w-5 mr-2">
+                    <span class="text-sm font-medium text-gray-700">Facebook</span>
+                </a>
+            </div>
         </div>
+
+
 
         <div class="flex items-center my-4">
             <div class="flex-grow border-t border-gray-300"></div>
@@ -51,10 +61,17 @@
         </div>
 
         <div class="flex gap-2 mb-4">
-            <input type="text" name="firstname" id="first-name" required placeholder="Abdelmalek"
-                   class="w-full border border-gray-300 rounded px-3 py-2 focus:ring-2 ring-purple-600 outline-none">
-            <input type="text" name="lastname" id="last-name" required placeholder="Labid"
-                   class="w-full border border-gray-300 rounded px-3 py-2 focus:ring-2 ring-purple-600 outline-none">
+            <div class="mb-4">
+                <label for="first-name" class="block text-sm font-medium text-gray-700 mb-1">First Name</label>
+                <input type="text" name="firstname" id="first-name" required placeholder="Abdelmalek"
+                       class="w-full border border-gray-300 rounded px-3 py-2 focus:ring-2 ring-purple-600 outline-none">
+            </div>
+            <div class="mb-4">
+                <label for="last-name" class="block text-sm font-medium text-gray-700 mb-1">Last Name</label>
+                <input type="text" name="lastname" id="last-name" required placeholder="Labid"
+                       class="w-full border border-gray-300 rounded px-3 py-2 focus:ring-2 ring-purple-600 outline-none">
+            </div>
+
         </div>
 
         <div class="mb-4">
