@@ -27,3 +27,4 @@ Route::middleware('auth')->group(function () {
     Route::view('/matches', 'pages.recent-matches');
     Route::view('/profile', 'pages.profile');
 });
+
