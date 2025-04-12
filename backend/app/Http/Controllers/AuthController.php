@@ -68,7 +68,7 @@ class AuthController extends Controller
         $validated = $request->validate([
             'email' => 'required|email',
         ]);
-
+ 
         try {
             $this->authService->sendResetLink($validated);
         } catch (ValidationException $e) {

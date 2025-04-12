@@ -1,33 +1,34 @@
-name: Backend CI
+name: Backend CI (Laravel)
 
-# This will trigger on ANY push to ANY branch
-on: [push, pull_request]
+on:
+  push:
+    branches:
+      - dev
+  pull_request:
 
 jobs:
   laravel-tests:
     runs-on: ubuntu-latest
 
-    # Only run if we're on dev branch (optional)
-    if: github.ref == 'refs/heads/dev'
-    
     services:
       postgres:
         image: postgres:15
         env:
-          POSTGRES_DB: ${{ secrets.DB_DATABASE }}
-          POSTGRES_USER: ${{ secrets.DB_USERNAME }}
-          POSTGRES_PASSWORD: ${{ secrets.DB_PASSWORD }}
+          POSTGRES_DB: foundit_test
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
         ports:
           - 5432:5432
         options: >-
-          --health-cmd="pg_isready -U ${{ secrets.DB_USERNAME }}"
+          --health-cmd="pg_isready -U postgres"
           --health-interval=10s
           --health-timeout=5s
           --health-retries=5
 
     steps:
-      - uses: actions/checkout@v4
-      
+      - name: Checkout code
+        uses: actions/checkout@v4
+
       - name: Set up PHP
         uses: shivammathur/setup-php@v2
         with:
@@ -35,14 +36,31 @@ jobs:
           extensions: mbstring, bcmath, pgsql
           coverage: none
 
-      - name: Install dependencies
+      - name: Install Composer dependencies
+        working-directory: backend
+        run: composer install --prefer-dist --no-progress --no-suggest
+
+      - name: Generate .env from hardcoded values
         working-directory: backend
         run: |
-          composer install --prefer-dist --no-progress --no-suggest
-          php artisan key:generate
-          
-      - name: Run tests
+          echo "APP_ENV=testing" > .env
+          echo "APP_KEY=" >> .env
+          echo "APP_DEBUG=false" >> .env
+          echo "DB_CONNECTION=pgsql" >> .env
+          echo "DB_HOST=127.0.0.1" >> .env
+          echo "DB_PORT=5432" >> .env
+          echo "DB_DATABASE=foundit_test" >> .env
+          echo "DB_USERNAME=postgres" >> .env
+          echo "DB_PASSWORD=postgres" >> .env
+
+      - name: Generate Laravel app key
         working-directory: backend
-        run: |
-          php artisan migrate --force
-          php artisan test
+        run: php artisan key:generate
+
+      - name: Run database migrations
+        working-directory: backend
+        run: php artisan migrate --force
+
+      - name: Run automated tests
+        working-directory: backend
+        run: php artisan test
