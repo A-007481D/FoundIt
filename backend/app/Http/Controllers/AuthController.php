@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Services\AuthenticationService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\ValidationException;
 
 class AuthController extends Controller
@@ -48,8 +49,8 @@ class AuthController extends Controller
 
         try {
             $token = $this->authService->login($validated);
-            session(['jwt_token' => $token]);
-            return redirect()->route('feed')->with('status', 'Logged in successfully!');
+            Auth::loginUsingId($this->authService->findByEmail($validated['email'])->id);
+            return redirect()->route('discover')->with('status', 'Logged in successfully!');
         } catch (ValidationException $e) {
             return redirect()->back()->withErrors($e->errors())->withInput();
         }
