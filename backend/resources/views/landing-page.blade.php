@@ -7,22 +7,20 @@
     <title>FoundIt - Find your belongings!</title>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <!-- <style>
-        html {
-            scroll-behavior: smooth;
-        }
-        
-    </style> -->
 </head>
-
 
 <body class="bg-white text-gray-800">
 <nav class="sticky top-0 z-50 bg-white/70 backdrop-blur-md border-b border-gray-200 flex items-center justify-between py-3 px-28">
     <div class="flex items-center space-x-2">
-      <a href="#" class="flex items-center space-x-1">
-        <img src="" alt="Logo" class="h-8 w-8 object-cover">
-        <span class="font-bold text-xl text-purple-600">Foundit!</span>
-      </a>
+        <a href="/" class="flex items-center gap-2 font-bold">
+            <div class="h-8 w-8 rounded-full bg-primary flex items-center justify-center text-white">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-4 w-4">
+                    <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"></path>
+                    <circle cx="12" cy="10" r="3"></circle>
+                </svg>
+            </div>
+            <span class="text-xl">FoundIt!</span>
+        </a>
     </div>
     <ul class="flex space-x-6 text-gray-700 font-medium">
       <li><a href="#" class="hover:text-purple-600 hover:border-purple-500 hover:border-b-2">Home</a></li>
@@ -243,7 +241,7 @@
                     What Students Say
                 </p>
             </div>
-            
+
             <div class="mt-12">
                 <div class="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3">
                     <div class="bg-gray-50 rounded-lg shadow-md p-6">
@@ -265,7 +263,7 @@
                             <i class="fas fa-star"></i>
                         </div>
                     </div>
-                    
+
                     <div class="bg-gray-50 rounded-lg shadow-md p-6">
                         <div class="flex items-center mb-4">
                             <div class="h-10 w-10 rounded-full bg-purple-200 flex items-center justify-center text-purple-600 font-bold">
@@ -286,7 +284,7 @@
                             <i class="fas fa-star-half-alt"></i>
                         </div>
                     </div>
-                    
+
                     <div class="bg-gray-50 rounded-lg shadow-md p-6">
                         <div class="flex items-center mb-4">
                             <div class="h-10 w-10 rounded-full bg-purple-200 flex items-center justify-center text-purple-600 font-bold">
@@ -365,7 +363,7 @@
             &copy; 2025 FoundIt. All rights reserved.
         </div>
     </footer>
-    
+
 </body>
 
 </html>

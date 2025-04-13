@@ -961,7 +961,7 @@
 <!-- footer -->
 <footer class="py-8 bg-muted/30">
         <div class="container mx-auto px-4">
-            
+
 
             <div class="mt-8 px-20 pt-8 border-t flex flex-col md:flex-row items-center justify-between gap-4">
                 <p class="text-sm text-muted-foreground">© <span id="current-year"></span> FoundIt! All rights reserved.</p>
