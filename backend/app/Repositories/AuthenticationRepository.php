@@ -9,46 +9,45 @@ use Illuminate\Support\Facades\Hash;
 
 class AuthenticationRepository implements AuthenticationRepositoryInterface
 {
-
-    public function findByEmail(string $email)
+    public function findByEmail(string $email): ?User
     {
-        return DB::table('users')->where('email', $email)->first();
+        $user = DB::table('users')->where('email', $email)->first();
+        return $user ? $this->hydrateUser($user) : null;
     }
 
-    public function findById($id)
+    public function findById($id): ?User
     {
-        return DB::table('users')->where('id', $id)->first();
+        $user = DB::table('users')->where('id', $id)->first();
+        return $user ? $this->hydrateUser($user) : null;
     }
 
-    public function create(array $data)
+    public function create(array $data): User
     {
         $data['password'] = Hash::make($data['password']);
         $id = DB::table('users')->insertGetId($data);
-
-        return $this->findbyId($id);
+        return $this->findById($id);
     }
 
-    public function update(array $data, $id)
+    public function update(array $data, $id): ?User
     {
         DB::table('users')->where('id', $id)->update($data);
-
-        return $this->findbyId($id);
+        return $this->findById($id);
     }
 
-    public function delete($id)
+    public function delete($id): bool
     {
-        return DB::table('users')->where('id', $id)->delete();
-
+        return DB::table('users')->where('id', $id)->delete() > 0;
     }
 
     public function updatePassword(User $user, string $newPassword): bool
     {
-        $updated = DB::table('users')->where('id', $user->id)->update(['password' => Hash::make($newPassword)]);
-        return $updated > 0;
+        return DB::table('users')
+                ->where('id', $user->id)
+                ->update(['password' => Hash::make($newPassword)]) > 0;
     }
 
-    public function zabba()
+    protected function hydrateUser(object $userData): User
     {
-        // TODO: Implement zabba() method.
+        return User::hydrate([(array)$userData])->first();
     }
 }
