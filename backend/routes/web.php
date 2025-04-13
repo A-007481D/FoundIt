@@ -1,10 +1,24 @@
 <?php
-
+use App\Models\User;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\SocialiteController;
+use Illuminate\Foundation\Auth\EmailVerificationRequest;
+use Illuminate\Http\Request;
 
 Route::get('/', fn() => view('landing-page'));
+
+Route::get('/email/verify/{id}/{hash}', function ($id, $hash) {
+    $user = User::find($id);
+
+    if (!$user || !hash_equals((string) $hash, sha1($user->getEmailForVerification()))) {
+        abort(403, 'Invalid verification link');
+    }
+
+    $user->markEmailAsVerified();
+    return redirect('/profile')->with('verified', true);
+})->middleware(['signed'])->name('verification.verify');
 // auth
 Route::get('/login', [AuthController::class, 'showLoginForm'])->name('login');
 Route::post('/login', [AuthController::class, 'login']);
@@ -23,8 +37,36 @@ Route::get('/auth/google', [SocialiteController::class, 'redirectToGoogle'])->na
 Route::get('/auth/google/callback', [SocialiteController::class, 'handleGoogleCallback']);
 // protected
 Route::middleware('auth')->group(function () {
-    Route::view('/discover', 'pages.discover');
-    Route::view('/matches', 'pages.recent-matches');
-    Route::view('/profile', 'pages.profile');
+    // email verification notice
+    Route::get('/email/verify', function () {
+        return view('auth.verify-email');
+    })->name('verification.notice');
+
+    // resend verification
+    Route::post('/email/verification-notification', function (Request $request) {
+        $request->user()->sendEmailVerificationNotification();
+        return back()->with('message', 'Verification link sent!');
+    })->name('verification.send');
+
+    // verified oonly
+    Route::middleware('verified')->group(function () {
+        Route::view('/discover', 'pages.discover')->name('discover');
+        Route::view('/matches', 'pages.recent-matches');
+        Route::view('/profile', 'pages.profile');
+    });
 });
+
+// test email
+Route::get('/send-test-email', function () {
+    Mail::raw('This is a test email!', function ($message) {
+        $message->to('labidabdelmalek@gmail.com')
+            ->subject('Test Email from Laravel');
+    });
+    return 'Test email sent!';
+});
+//// Email verification routes (Moved OUTSIDE auth middleware)
+//Route::get('/email/verify/{id}/{hash}', function (EmailVerificationRequest $request) {
+//    $request->fulfill();
+//    return redirect('/profile'); // Redirect after verification
+//})->middleware(['signed'])->name('verification.verify');
 
