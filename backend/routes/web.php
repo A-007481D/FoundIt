@@ -27,7 +27,7 @@ Route::post('/login', [AuthController::class, 'login']);
 Route::get('/register', [AuthController::class, 'showRegisterForm'])->name('register');
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
-Route::get('/profile', [ProfileController::class, 'show'])->name('profile')->middleware('auth');
+//Route::get('/profile', [ProfileController::class, 'show'])->name('profile')->middleware('auth');
 // password resets
 Route::get('/forgot-password', fn() => view('auth.forgot-password'))->name('forgot-password');
 Route::post('/forgot-password', [AuthController::class, 'sendResetLink']);
@@ -55,7 +55,7 @@ Route::middleware('auth')->group(function () {
     Route::middleware('verified')->group(function () {
         Route::view('/discover', 'pages.discover')->name('discover');
         Route::view('/matches', 'pages.recent-matches');
-        Route::view('/profile', 'pages.profile');
+        Route::view('/settings', 'pages.profile');
     });
 });
 
