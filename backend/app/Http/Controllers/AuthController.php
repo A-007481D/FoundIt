@@ -55,13 +55,22 @@ class AuthController extends Controller
             return redirect()->back()->withErrors($e->errors())->withInput();
         }
     }
-
     public function logout(Request $request)
     {
-        $this->authService->logout();
-        $request->session()->forget('jwt_token');
+        try {
+            auth()->logout();
+            $request->session()->invalidate();
+            $request->session()->regenerateToken();
 
-        return redirect()->route('login')->with('status', 'Logged out successfully.');
+            $this->authService->logout();
+            return redirect()->route('login')
+                ->with('status', 'Logged out successfully.')
+                ->withoutCookie('XSRF-TOKEN')
+                ->withoutCookie('foundit_session');
+
+        } catch (\RuntimeException $e) {
+            return redirect()->back()->withErrors(['error' => $e->getMessage()]);
+        }
     }
 
     public function sendResetLink(Request $request)

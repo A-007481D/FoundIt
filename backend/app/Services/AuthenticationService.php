@@ -52,7 +52,18 @@ class AuthenticationService extends AuthenticationRepository
     }
     public function logout(): void
     {
-        JWTAuth::invalidate(JWTAuth::getToken());
+        try {
+            // force token extraction from req
+            $token = JWTAuth::parseToken();
+            JWTAuth::invalidate($token);
+
+            // toekn blacklists for 1 min
+            JWTAuth::getManager()->getBlacklist()->add(
+                JWTAuth::getPayload($token)
+            );
+        } catch (\Exception $e) {
+            throw new \RuntimeException('Logout failed: ' . $e->getMessage());
+        }
     }
 
     /**

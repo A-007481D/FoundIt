@@ -1,4 +1,6 @@
 <?php
+
+use App\Http\Controllers\ProfileController;
 use App\Models\User;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Route;
@@ -25,6 +27,7 @@ Route::post('/login', [AuthController::class, 'login']);
 Route::get('/register', [AuthController::class, 'showRegisterForm'])->name('register');
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
+Route::get('/profile', [ProfileController::class, 'show'])->name('profile')->middleware('auth');
 // password resets
 Route::get('/forgot-password', fn() => view('auth.forgot-password'))->name('forgot-password');
 Route::post('/forgot-password', [AuthController::class, 'sendResetLink']);
