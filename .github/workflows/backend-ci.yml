@@ -2,11 +2,9 @@ name: Backend CI
 
 on:
   push:
-    paths:
-      - 'backend/**'
+    branches: [dev, main]
   pull_request:
-    paths:
-      - 'backend/**'
+    branches: [dev]
 
 jobs:
   laravel-tests:
@@ -22,10 +20,11 @@ jobs:
         ports:
           - 5432:5432
         options: >-
-          --health-cmd="pg_isready"
+          --health-cmd="pg_isready -U ${{ secrets.DB_USERNAME }} -d ${{ secrets.DB_DATABASE }}"
           --health-interval=10s
           --health-timeout=5s
           --health-retries=5
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -41,26 +40,31 @@ jobs:
         working-directory: backend
         run: composer install --prefer-dist --no-progress --no-suggest
 
-      - name: Generate .env dynamically using GitHub secrets
+      - name: Generate .env dynamically
         working-directory: backend
         run: |
           echo "APP_ENV=testing" > .env
           echo "APP_KEY=" >> .env
           echo "APP_DEBUG=false" >> .env
-          echo "DB_CONNECTION=${{ secrets.DB_CONNECTION }}" >> .env
-          echo "DB_HOST=${{ secrets.DB_HOST }}" >> .env
-          echo "DB_PORT=${{ secrets.DB_PORT }}" >> .env
+          echo "DB_CONNECTION=pgsql" >> .env
+          echo "DB_HOST=127.0.0.1" >> .env
+          echo "DB_PORT=5432" >> .env
           echo "DB_DATABASE=${{ secrets.DB_DATABASE }}" >> .env
           echo "DB_USERNAME=${{ secrets.DB_USERNAME }}" >> .env
           echo "DB_PASSWORD=${{ secrets.DB_PASSWORD }}" >> .env
-      - name: Generate Laravel app key
+
+      - name: Test PostgreSQL Connection
+        run: |
+          psql postgresql://${{ secrets.DB_USERNAME }}:${{ secrets.DB_PASSWORD }}@localhost:5432/${{ secrets.DB_DATABASE }} -c '\q'
+
+      - name: Generate Laravel key
         working-directory: backend
         run: php artisan key:generate
 
-      - name: Run database migrations
+      - name: Run migrations
         working-directory: backend
         run: php artisan migrate --force
 
-      - name: Run automated tests
+      - name: Run tests
         working-directory: backend
         run: php artisan test
