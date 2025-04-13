@@ -1,14 +1,12 @@
-name: Backend CI
+name: Backend CI (Laravel)
 
 on:
   push:
-    branches:
-      - dev
-    # paths:
-    #   - 'backend/**'
+    paths:
+      - 'backend/**'
   pull_request:
-    # paths:
-    #   - 'backend/**'
+    paths:
+      - 'backend/**'
 
 jobs:
   laravel-tests:
@@ -24,7 +22,7 @@ jobs:
         ports:
           - 5432:5432
         options: >-
-          --health-cmd="pg_isready -U ${{ secrets.DB_USERNAME }}"
+          --health-cmd="pg_isready"
           --health-interval=10s
           --health-timeout=5s
           --health-retries=5
@@ -44,19 +42,18 @@ jobs:
         working-directory: backend
         run: composer install --prefer-dist --no-progress --no-suggest
 
-      - name: Generate .env from secrets
+      - name: Generate .env dynamically using GitHub secrets
         working-directory: backend
         run: |
           echo "APP_ENV=testing" > .env
           echo "APP_KEY=" >> .env
           echo "APP_DEBUG=false" >> .env
           echo "DB_CONNECTION=${{ secrets.DB_CONNECTION }}" >> .env
-          echo "DB_HOST=127.0.0.1" >> .env
+          echo "DB_HOST=${{ secrets.DB_HOST }}" >> .env
           echo "DB_PORT=${{ secrets.DB_PORT }}" >> .env
           echo "DB_DATABASE=${{ secrets.DB_DATABASE }}" >> .env
           echo "DB_USERNAME=${{ secrets.DB_USERNAME }}" >> .env
           echo "DB_PASSWORD=${{ secrets.DB_PASSWORD }}" >> .env
-
 
       - name: Generate Laravel app key
         working-directory: backend
