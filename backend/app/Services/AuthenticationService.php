@@ -1,7 +1,7 @@
 <?php
 
 namespace App\Services;
-
+use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Password;
@@ -25,6 +25,9 @@ class AuthenticationService extends AuthenticationRepository
     public function register(array $data)
     {
         $user = $this->create($data);
+        event(new Registered($user));
+        
+        return $user;
     }
 
     /**
@@ -34,26 +37,19 @@ class AuthenticationService extends AuthenticationRepository
     {
         $user = $this->findByEmail($data['email']);
 
-        if(!$user || !Hash::check($data['password'], $user->password)) {
+        if (!$user || !Hash::check($data['password'], $user->password)) {
             throw ValidationException::withMessages([
                 'email' => ['The provided credentials are incorrect.'],
             ]);
         }
-        if (!isset($user->email_verified_at)) {
+        if (!$user->hasVerifiedEmail()) {
             throw ValidationException::withMessages([
                 'email' => ['Email is not verified.'],
             ]);
         }
-        $userModel = User::find($user->id);
-        if (!$userModel) {
-            throw ValidationException::withMessages([
-                'email' => ['User conversion failed.'],
-            ]);
-        }
 
-        return JWTAuth::fromUser($userModel);
+        return JWTAuth::fromUser($user);
     }
-
     public function logout(): void
     {
         JWTAuth::invalidate(JWTAuth::getToken());
