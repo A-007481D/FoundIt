@@ -1,6 +1,6 @@
 <?php
 
-namespace Feature;
+namespace Unit;
 
 use Tests\TestCase;
 
