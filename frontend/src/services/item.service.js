@@ -35,8 +35,16 @@ class ItemService {
   }
 
   // Get a specific item
-  getItem(id) {
-    return axios.get(`${API_URL}/items/${id}`, { headers: authHeader() });
+  async getItem(id) {
+    try {
+      console.log(`Fetching item details for ID: ${id}`);
+      const response = await axios.get(`${API_URL}/items/${id}`, { headers: authHeader() });
+      console.log('Item details response:', response);
+      return response;
+    } catch (error) {
+      console.error(`Error fetching item details for ID ${id}:`, error);
+      throw error;
+    }
   }
 
   // Create a new item

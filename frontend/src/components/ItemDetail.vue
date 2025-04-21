@@ -323,7 +323,27 @@ onMounted(async () => {
   try {
     loading.value = true;
     const response = await itemService.getItem(props.itemId);
-    item.value = response.data;
+    
+    // Log the raw response to debug the structure
+    console.log('Raw item detail response:', JSON.stringify(response.data, null, 2));
+    
+    // Handle different API response structures
+    if (response.data?.item) {
+      // If response has an 'item' property
+      item.value = response.data.item;
+    } else if (response.data?.data) {
+      // If response is a Laravel resource with 'data' property
+      item.value = response.data.data;
+    } else {
+      // If response itself is the item
+      item.value = response.data;
+    }
+    
+    console.log('Processed item data:', item.value);
+    
+    if (!item.value) {
+      throw new Error('Invalid item data received');
+    }
   } catch (err) {
     console.error('Error fetching item:', err);
     error.value = 'Failed to load item details. The item may have been removed or you do not have permission to view it.';

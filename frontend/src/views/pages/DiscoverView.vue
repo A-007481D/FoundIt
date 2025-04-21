@@ -62,28 +62,16 @@
                                     <h3 class="mb-2 font-medium">Categories</h3>
                                     <div class="space-y-2">
                                         <div v-for="category in categories" :key="category.id" class="flex items-center space-x-2">
-                                            <input
-                                                type="checkbox"
-                                                :id="category.id"
-                                                v-model="filters.categories[category.id]"
-                                                class="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
-                                            >
-                                            <label :for="category.id" class="text-sm">{{ category.label }}</label>
+                                             <input
+                                                 type="checkbox"
+                                                 :id="category.id"
+                                                 v-model="filters.categories[category.id]"
+                                                 class="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+                                             >
+                                             <label :for="category.id" class="text-sm">{{ category.name || category.label }}</label>
                                         </div>
                                     </div>
                                 </div>
-
-                                <!--                <div>-->
-                                <!--                  <h3 class="mb-2 font-medium">Distance (miles)</h3>-->
-                                <!--                  <input-->
-                                <!--                      type="range"-->
-                                <!--                      min="1"-->
-                                <!--                      max="50"-->
-                                <!--                      v-model="filters.distance"-->
-                                <!--                      class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"-->
-                                <!--                  >-->
-                                <!--                  <div class="flex items-center justify-between mt-2">-->
-                                <!--                    <span class="text-sm text-muted-foreground">1 mile</span>-->
 
                                 <div>
                                     <h3 class="mb-2 font-medium">Date Posted</h3>
@@ -246,7 +234,8 @@ const filters = ref({
   type: 'all',
   category_id: null,
   distance: 5,
-  datePosted: 'anytime'
+  datePosted: 'anytime',
+  categories: {}
 })
 
 const categories = ref([])
@@ -273,23 +262,26 @@ onMounted(async () => {
 })
 
 // Methods for fetching data
-const fetchItems = async () => {
+const fetchItems = async (customParams) => {
   try {
     isLoading.value = true
     console.log('Fetching items...')
-    const params = {}
+    const params = customParams || {}
     
-    // Apply filters
-    if (filters.value.type !== 'all') {
-      params.type = filters.value.type
+    // If no custom params are provided, apply filters from state
+    if (!customParams) {
+      // Apply filters
+      if (filters.value.type !== 'all') {
+        params.type = filters.value.type
+      }
+      
+      if (filters.value.category_id) {
+        params.category_id = filters.value.category_id
+      }
+      
+      // Always filter by active status for discover page
+      params.status = 'active'
     }
-    
-    if (filters.value.category_id) {
-      params.category_id = filters.value.category_id
-    }
-    
-    // Always filter by active status for discover page
-    params.status = 'active'
     
     console.log('Items request params:', params)
     const response = await itemService.getItems(params)
@@ -332,17 +324,54 @@ const fetchCategories = async () => {
     const response = await categoryService.getCategories()
     console.log('Categories response:', response)
     categories.value = response || []
-    filters.value.categories = {}
+    
+    // Initialize filters.categories object for each category
+    if (!filters.value.categories) {
+      filters.value.categories = {}
+    }
+    
     categories.value.forEach(cat => {
-      filters.value.categories[cat.id] = false
+      // Make sure we're using a proper category ID as the key
+      const categoryId = cat.id ? cat.id : cat._id || cat.category_id
+      if (categoryId) {
+        filters.value.categories[categoryId] = false
+      }
     })
+    
+    console.log('Categories initialized:', categories.value)
+    console.log('Category filters initialized:', filters.value.categories)
   } catch (error) {
     console.error('Error fetching categories:', error)
   }
 }
 
 const applyFilters = () => {
-  fetchItems()
+  // Build filter parameters based on selections
+  const params = {
+    status: 'active'
+  }
+  
+  // Handle item type filter
+  if (filters.value.type !== 'all') {
+    params.type = filters.value.type
+  }
+  
+  // Handle category filters
+  const selectedCategories = Object.entries(filters.value.categories || {})
+    .filter(([_, selected]) => selected)
+    .map(([id]) => id)
+  
+  if (selectedCategories.length > 0) {
+    params.category_ids = selectedCategories.join(',')
+  }
+  
+  // Handle date posted filter
+  if (filters.value.datePosted !== 'anytime') {
+    params.date_filter = filters.value.datePosted
+  }
+  
+  console.log('Applying filters:', params)
+  fetchItems(params)
 }
 
 const openItemDetail = (itemId) => {
