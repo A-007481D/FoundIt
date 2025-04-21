@@ -16,6 +16,9 @@ import MatchesView from "@/views/pages/MatchesView.vue";
 // Admin views
 import AdminLayout from '@/views/admin/AdminLayout.vue';
 import AdminDashboard from '@/views/admin/DashboardView.vue';
+import AdminUsers from '@/views/admin/UsersView.vue';
+import AdminItems from '@/views/admin/ItemsView.vue';
+import AdminReports from '@/views/admin/ReportsView.vue';
 
 const routes = [
     {
@@ -82,6 +85,24 @@ const routes = [
                 path: '',
                 name: 'AdminDashboard',
                 component: AdminDashboard,
+                meta: { requiresAuth: true, adminOnly: true }
+            },
+            {
+                path: 'users',
+                name: 'AdminUsers',
+                component: AdminUsers,
+                meta: { requiresAuth: true, adminOnly: true }
+            },
+            {
+                path: 'items',
+                name: 'AdminItems',
+                component: AdminItems,
+                meta: { requiresAuth: true, adminOnly: true }
+            },
+            {
+                path: 'reports',
+                name: 'AdminReports',
+                component: AdminReports,
                 meta: { requiresAuth: true, adminOnly: true }
             }
         ]
