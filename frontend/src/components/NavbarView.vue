@@ -186,6 +186,7 @@ const navItems = computed(() => {
     return [
       { name: 'Découvrir', to: '/discover' },
       { name: 'Matches', to: '/matches' },
+      { name: 'My Items', to: '/my-items' },
     ];
   } else {
     return [

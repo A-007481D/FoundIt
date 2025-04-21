@@ -30,6 +30,20 @@ Route::middleware('auth:api')->group(function () {
     Route::post('/auth/refresh', [AuthController::class, 'refresh']);
     Route::get('/auth/user', [AuthController::class, 'getAuthUser']);
 
+    // Item routes for all authenticated users
+    Route::prefix('items')->group(function () {
+        Route::get('/', [\App\Http\Controllers\ItemController::class, 'index']);
+        Route::get('/my-items', [\App\Http\Controllers\ItemController::class, 'userItems']);
+        Route::post('/', [\App\Http\Controllers\ItemController::class, 'store']);
+        Route::get('/{id}', [\App\Http\Controllers\ItemController::class, 'show']);
+        Route::put('/{id}', [\App\Http\Controllers\ItemController::class, 'update']);
+        Route::patch('/{id}/archive', [\App\Http\Controllers\ItemController::class, 'archive']);
+        Route::patch('/{id}/restore', [\App\Http\Controllers\ItemController::class, 'restore']);
+    });
+    
+    // Categories for item creation/filtering
+    Route::get('/categories', [\App\Http\Controllers\ItemController::class, 'getCategories']);
+    
     // Report routes for all authenticated users
     Route::post('/reports', [\App\Http\Controllers\Admin\ReportController::class, 'store']);
 

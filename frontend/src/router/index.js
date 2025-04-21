@@ -12,6 +12,7 @@ import VerifyEmailView from '@/views/auth/VerifyEmailView.vue';
 import LandingView from '@/views/pages/LandingView.vue';
 import DiscoverView from "@/views/pages/DiscoverView.vue";
 import MatchesView from "@/views/pages/MatchesView.vue";
+import MyItemsView from "@/views/pages/MyItemsView.vue";
 
 // Admin views
 import AdminLayout from '@/views/admin/AdminLayout.vue';
@@ -61,6 +62,12 @@ const routes = [
         path: '/matches',
         name: 'Matches',
         component: MatchesView,
+        meta: { requiresAuth: true }
+    },
+    {
+        path: '/my-items',
+        name: 'MyItems',
+        component: MyItemsView,
         meta: { requiresAuth: true }
     },
     {
