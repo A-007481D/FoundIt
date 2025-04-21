@@ -294,7 +294,29 @@ const fetchItems = async () => {
     console.log('Items request params:', params)
     const response = await itemService.getItems(params)
     console.log('Items response:', response)
-    items.value = response.data?.items || []
+    // Log the actual data structure to understand the API response format
+    console.log('Raw API response data:', JSON.stringify(response.data, null, 2))
+    
+    // Check different possible data formats and handle appropriately
+    if (Array.isArray(response.data)) {
+      items.value = response.data
+    } else if (response.data?.items && Array.isArray(response.data.items)) {
+      items.value = response.data.items
+    } else if (response.data?.data && Array.isArray(response.data.data)) {
+      // Handle Laravel resource collections format
+      items.value = response.data.data
+    } else {
+      // If all else fails, look for any array in the response
+      const anyArrayProperty = Object.keys(response.data || {}).find(key => 
+        Array.isArray(response.data[key]))
+      
+      if (anyArrayProperty) {
+        items.value = response.data[anyArrayProperty]
+      } else {
+        console.warn('Could not find items array in API response')
+        items.value = []  
+      }
+    }
     console.log('Items processed:', items.value)
   } catch (error) {
     console.error('Error fetching items:', error)
