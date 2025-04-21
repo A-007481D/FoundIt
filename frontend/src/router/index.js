@@ -7,6 +7,9 @@ import RegisterView from '@/views/auth/RegisterView.vue';
 import ForgotPasswordView from '@/views/auth/ForgotPasswordView.vue';
 import ResetPasswordView from '@/views/auth/ResetPasswordView.vue';
 import VerifyEmailView from '@/views/auth/VerifyEmailView.vue';
+
+// Page views
+import LandingView from '@/views/pages/LandingView.vue';
 import DiscoverView from "@/views/pages/DiscoverView.vue";
 import MatchesView from "@/views/pages/MatchesView.vue";
 // Protected area example (dashboard)
@@ -57,11 +60,19 @@ const routes = [
     },
     {
         path: '/',
-        redirect: '/login'
+        name: 'Home',
+        component: LandingView,
+        meta: { guest: true }
+    },
+    {
+        path: '/home',
+        name: 'HomePage',
+        component: LandingView,
+        meta: { guest: true }
     },
     {
         path: '/:pathMatch(.*)*',
-        redirect: '/login'
+        redirect: '/'
     }
 ];
 
