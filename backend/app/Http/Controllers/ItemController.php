@@ -124,10 +124,12 @@ class ItemController extends Controller
         // Set dates based on type
         if ($request->type === 'lost') {
             $item->lost_date = $request->lost_date;
-            $item->found_date = null;
+            // Use current date as default instead of null for found_date
+            $item->found_date = $request->found_date ?? now();
         } else {
             $item->found_date = $request->found_date;
-            $item->lost_date = null;
+            // Use current date as default instead of null for lost_date
+            $item->lost_date = $request->lost_date ?? now();
         }
         
         $item->save();

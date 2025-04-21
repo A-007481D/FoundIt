@@ -35,30 +35,64 @@ class ItemService {
   }
 
   // Get a specific item
-  getItem(id) {
-    return axios.get(`${API_URL}/items/${id}`, { headers: authHeader() });
+  async getItem(id) {
+    try {
+      console.log(`Fetching item details for ID: ${id}`);
+      const response = await axios.get(`${API_URL}/items/${id}`, { headers: authHeader() });
+      console.log('Item details response:', response);
+      return response;
+    } catch (error) {
+      console.error(`Error fetching item details for ID ${id}:`, error);
+      throw error;
+    }
   }
 
   // Create a new item
-  createItem(itemData) {
-    // Use FormData for image upload
-    const formData = new FormData();
-    
-    // Append all item data to FormData
-    Object.keys(itemData).forEach(key => {
-      if (key === 'image' && itemData[key] instanceof File) {
-        formData.append(key, itemData[key]);
-      } else if (itemData[key] !== null && itemData[key] !== undefined) {
-        formData.append(key, itemData[key]);
+  async createItem(itemData) {
+    try {
+      console.log('Creating item with data:', itemData);
+      
+      // Use FormData for image upload
+      const formData = new FormData();
+      
+      // Ensure required fields are present based on item type
+      if (itemData.type === 'lost' && !itemData.found_date) {
+        itemData.found_date = new Date().toISOString();
+      } else if (itemData.type === 'found' && !itemData.lost_date) {
+        itemData.lost_date = new Date().toISOString();
       }
-    });
-    
-    return axios.post(`${API_URL}/items`, formData, { 
-      headers: {
-        ...authHeader(),
-        'Content-Type': 'multipart/form-data'
+      
+      // Ensure status is set
+      if (!itemData.status) {
+        itemData.status = 'active';
       }
-    });
+      
+      // Append all item data to FormData
+      Object.keys(itemData).forEach(key => {
+        if (key === 'image' && itemData[key] instanceof File) {
+          formData.append(key, itemData[key]);
+        } else if (itemData[key] !== null && itemData[key] !== undefined) {
+          formData.append(key, itemData[key]);
+        }
+      });
+      
+      // Log the FormData entries for debugging
+      for (let pair of formData.entries()) {
+        console.log(pair[0] + ': ' + pair[1]);
+      }
+      
+      const response = await axios.post(`${API_URL}/items`, formData, { 
+        headers: {
+          ...authHeader(),
+          'Content-Type': 'multipart/form-data'
+        }
+      });
+      
+      return response;
+    } catch (error) {
+      console.error('Error in createItem:', error);
+      throw error; // Re-throw to allow component to handle the error
+    }
   }
 
   // Update an item
