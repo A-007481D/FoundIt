@@ -103,7 +103,7 @@
           </div>
         </div>
         <div class="mt-4 text-center">
-          <button class="text-sm text-primary hover:underline">View All Activity</button>
+          <button @click="navigateToUsers" class="text-sm text-primary hover:underline">View All Activity</button>
         </div>
       </div>
       
@@ -128,12 +128,12 @@
               </div>
             </div>
             <div>
-              <button class="text-sm text-primary hover:underline">View</button>
+              <button @click="viewReport(report)" class="text-sm text-primary hover:underline">View</button>
             </div>
           </div>
         </div>
         <div class="mt-4 text-center">
-          <button class="text-sm text-primary hover:underline">View All Reports</button>
+          <button @click="navigateToReports" class="text-sm text-primary hover:underline">View All Reports</button>
         </div>
       </div>
     </div>
@@ -187,92 +187,173 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue';
+import { ref, computed, onMounted } from 'vue';
+import { useRouter } from 'vue-router';
+import adminService from '@/services/admin.service';
+import { format, formatDistance } from 'date-fns';
 
-// Mock data for dashboard stats
+const router = useRouter();
+const loading = ref(true);
+const error = ref(null);
+
+// Dashboard stats
 const stats = ref({
-  totalUsers: 1248,
-  newUsers: 42,
-  totalItems: 3567,
-  newItems: 128,
-  activeReports: 23,
-  newReports: 5,
-  successRate: 87,
-  successRateChange: 2.4
+  totalUsers: 0,
+  newUsers: 0,
+  totalItems: 0,
+  newItems: 0,
+  activeReports: 0,
+  newReports: 0,
+  successRate: 0,
+  successRateChange: 0
 });
 
-// Mock data for recent activity
-const recentActivity = ref([
-  { 
-    type: 'user', 
-    message: 'New user registered: Ahmed Mahmoud', 
-    time: '10 minutes ago' 
-  },
-  { 
-    type: 'item', 
-    message: 'New item reported as found: MacBook Pro', 
-    time: '25 minutes ago' 
-  },
-  { 
-    type: 'report', 
-    message: 'New report submitted against item #4532', 
-    time: '1 hour ago' 
-  },
-  { 
-    type: 'user', 
-    message: 'User Karim Hassan was suspended for policy violation', 
-    time: '2 hours ago' 
-  },
-  { 
-    type: 'item', 
-    message: 'Item #3211 (iPhone 13) was matched with its owner', 
-    time: '3 hours ago' 
-  }
-]);
+// Recent activity
+const recentActivity = ref([]);
 
-// Mock data for recent reports
-const recentReports = ref([
-  {
-    title: 'Inappropriate item description',
-    description: 'User reported item #4532 for inappropriate content',
-    status: 'New',
-    time: '1 hour ago'
-  },
-  {
-    title: 'Fake lost item report',
-    description: 'Item #3987 reported as potentially fraudulent',
-    status: 'Under Review',
-    time: '3 hours ago'
-  },
-  {
-    title: 'Harassment in item comments',
-    description: 'User reported harassment in comments on item #2156',
-    status: 'Resolved',
-    time: '1 day ago'
-  },
-  {
-    title: 'Suspicious user activity',
-    description: 'Multiple reports against user ID #567',
-    status: 'Under Review',
-    time: '2 days ago'
-  }
-]);
+// Recent reports
+const recentReports = ref([]);
 
-// Mock data for user stats
+// User stats
 const userStats = ref({
-  active: 1184,
-  suspended: 42,
-  banned: 22,
-  admins: 5
+  active: 0,
+  suspended: 0,
+  banned: 0,
+  admins: 0
 });
 
-// Mock data for item stats
+// Item stats
 const itemStats = ref({
-  lost: 1845,
-  found: 1722,
-  matched: 1124,
-  reported: 87
+  lost: 0,
+  found: 0,
+  matched: 0,
+  reported: 0
 });
+
+// Fetch dashboard data
+const fetchDashboardData = async () => {
+  loading.value = true;
+  error.value = null;
+  
+  try {
+    const response = await adminService.getDashboardStats();
+    const data = response.data;
+    
+    // Update stats
+    stats.value = {
+      totalUsers: data.counts.users,
+      newUsers: data.users.trend[data.users.trend.length - 1].count,
+      totalItems: data.counts.items,
+      newItems: data.items.trend[data.items.trend.length - 1].count,
+      activeReports: data.reports.pending,
+      newReports: data.reports.pending,
+      successRate: calculateSuccessRate(data),
+      successRateChange: 2.4 // This would need to be calculated based on historical data
+    };
+    
+    // Update user stats
+    userStats.value = {
+      active: data.users.active,
+      suspended: data.users.suspended,
+      banned: data.users.banned,
+      admins: data.users.admins
+    };
+    
+    // Update item stats
+    itemStats.value = {
+      lost: data.items.lost,
+      found: data.items.found,
+      matched: 0, // This would need to be added to the backend
+      reported: data.items.reported
+    };
+    
+    // Generate recent activity from the data
+    generateRecentActivity(data);
+    
+    // Generate recent reports
+    generateRecentReports(data);
+    
+  } catch (err) {
+    console.error('Error fetching dashboard data:', err);
+    error.value = 'Failed to load dashboard data. Please try again.';
+  } finally {
+    loading.value = false;
+  }
+};
+
+// Calculate success rate based on found vs lost items
+const calculateSuccessRate = (data) => {
+  if (data.items.found === 0 || data.items.lost === 0) return 0;
+  return Math.round((data.items.found / (data.items.lost + data.items.found)) * 100);
+};
+
+// Generate recent activity from the data
+const generateRecentActivity = (data) => {
+  const activity = [];
+  
+  // Add recent users
+  data.users.recent.forEach(user => {
+    activity.push({
+      type: 'user',
+      message: `New user registered: ${user.firstname} ${user.lastname}`,
+      time: formatDistance(new Date(user.created_at), new Date(), { addSuffix: true })
+    });
+  });
+  
+  // Add recent items
+  data.items.recent.forEach(item => {
+    activity.push({
+      type: 'item',
+      message: `New item ${item.type === 'lost' ? 'reported as lost' : 'reported as found'}: ${item.title}`,
+      time: formatDistance(new Date(item.created_at), new Date(), { addSuffix: true })
+    });
+  });
+  
+  // Add recent reports
+  data.reports.recent.forEach(report => {
+    activity.push({
+      type: 'report',
+      message: `New report submitted: ${report.reason.substring(0, 30)}${report.reason.length > 30 ? '...' : ''}`,
+      time: formatDistance(new Date(report.created_at), new Date(), { addSuffix: true })
+    });
+  });
+  
+  // Sort by time (most recent first) and limit to 5
+  activity.sort((a, b) => new Date(b.time) - new Date(a.time));
+  recentActivity.value = activity.slice(0, 5);
+};
+
+// Generate recent reports from the data
+const generateRecentReports = (data) => {
+  const reports = data.reports.recent.map(report => {
+    return {
+      id: report.id,
+      title: report.reason.substring(0, 30) + (report.reason.length > 30 ? '...' : ''),
+      description: report.details ? (report.details.substring(0, 50) + (report.details.length > 50 ? '...' : '')) : 'No details provided',
+      status: report.status === 'pending' ? 'New' : (report.status === 'resolved' ? 'Resolved' : 'Under Review'),
+      time: formatDistance(new Date(report.created_at), new Date(), { addSuffix: true })
+    };
+  });
+  
+  recentReports.value = reports;
+};
+
+// Navigation functions
+const navigateToReports = () => {
+  router.push('/admin/reports');
+};
+
+const navigateToUsers = () => {
+  router.push('/admin/users');
+};
+
+const navigateToItems = () => {
+  router.push('/admin/items');
+};
+
+const viewReport = (report) => {
+  router.push(`/admin/reports?id=${report.id}`);
+};
 
 // Helper functions for styling
 const activityIconClass = (type) => {
@@ -296,4 +377,9 @@ const reportStatusClass = (status) => {
   
   return classes[status] || classes.default;
 };
+
+// Fetch data on component mount
+onMounted(() => {
+  fetchDashboardData();
+});
 </script>

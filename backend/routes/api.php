@@ -30,6 +30,35 @@ Route::middleware('auth:api')->group(function () {
     Route::post('/auth/refresh', [AuthController::class, 'refresh']);
     Route::get('/auth/user', [AuthController::class, 'getAuthUser']);
 
+    // Report routes for all authenticated users
+    Route::post('/reports', [\App\Http\Controllers\Admin\ReportController::class, 'store']);
 
-    // Add other protected routes here
+    // Admin routes
+    Route::middleware('admin')->prefix('admin')->group(function () {
+        // Dashboard
+        Route::get('/dashboard', [\App\Http\Controllers\Admin\DashboardController::class, 'index']);
+        
+        // Users
+        Route::get('/users', [\App\Http\Controllers\Admin\UserController::class, 'index']);
+        Route::get('/users/{id}', [\App\Http\Controllers\Admin\UserController::class, 'show']);
+        Route::patch('/users/{id}/status', [\App\Http\Controllers\Admin\UserController::class, 'updateStatus']);
+        Route::patch('/users/{id}/role', [\App\Http\Controllers\Admin\UserController::class, 'updateRole']);
+        Route::get('/users/stats', [\App\Http\Controllers\Admin\UserController::class, 'getStats']);
+        
+        // Items
+        Route::get('/items', [\App\Http\Controllers\Admin\ItemController::class, 'index']);
+        Route::get('/items/{id}', [\App\Http\Controllers\Admin\ItemController::class, 'show']);
+        Route::patch('/items/{id}/status', [\App\Http\Controllers\Admin\ItemController::class, 'updateStatus']);
+        Route::patch('/items/{id}/archive', [\App\Http\Controllers\Admin\ItemController::class, 'archive']);
+        Route::delete('/items/{id}', [\App\Http\Controllers\Admin\ItemController::class, 'delete']);
+        Route::get('/items/stats', [\App\Http\Controllers\Admin\ItemController::class, 'getStats']);
+        
+        // Reports
+        Route::get('/reports', [\App\Http\Controllers\Admin\ReportController::class, 'index']);
+        Route::get('/reports/{id}', [\App\Http\Controllers\Admin\ReportController::class, 'show']);
+        Route::patch('/reports/{id}/status', [\App\Http\Controllers\Admin\ReportController::class, 'updateStatus']);
+        Route::patch('/reports/{id}/resolve', [\App\Http\Controllers\Admin\ReportController::class, 'resolve']);
+        Route::patch('/reports/{id}/dismiss', [\App\Http\Controllers\Admin\ReportController::class, 'dismiss']);
+        Route::get('/reports/stats', [\App\Http\Controllers\Admin\ReportController::class, 'getStats']);
+    });
 });
