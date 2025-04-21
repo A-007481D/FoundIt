@@ -313,11 +313,15 @@ const submitForm = async () => {
     
     // Format dates for API
     if (submitData.type === 'lost') {
+      // For lost items, set lost_date from form and set found_date to a default value
       submitData.lost_date = new Date(submitData.lost_date).toISOString();
-      delete submitData.found_date;
+      submitData.found_date = new Date().toISOString(); // Default to current date
+      submitData.status = 'active'; // Ensure status is set
     } else {
+      // For found items, set found_date from form and set lost_date to a default value
       submitData.found_date = new Date(submitData.found_date).toISOString();
-      delete submitData.lost_date;
+      submitData.lost_date = new Date().toISOString(); // Default to current date
+      submitData.status = 'active'; // Ensure status is set
     }
     
     let response;
@@ -330,7 +334,8 @@ const submitForm = async () => {
     emit('submit', response.data.item);
   } catch (error) {
     console.error('Error submitting form:', error);
-    alert(error.response?.data?.message || 'An error occurred while saving the item.');
+    // Log error details but don't reference submitData which might not be in scope
+    alert(error.response?.data?.message || 'An error occurred while saving the item. See console for details.');
   } finally {
     isSubmitting.value = false;
   }
