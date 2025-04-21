@@ -12,8 +12,13 @@ import VerifyEmailView from '@/views/auth/VerifyEmailView.vue';
 import LandingView from '@/views/pages/LandingView.vue';
 import DiscoverView from "@/views/pages/DiscoverView.vue";
 import MatchesView from "@/views/pages/MatchesView.vue";
-// Protected area example (dashboard)
-// import DashboardView from '@/views/DashboardView.vue';
+
+// Admin views
+import AdminLayout from '@/views/admin/AdminLayout.vue';
+import AdminDashboard from '@/views/admin/DashboardView.vue';
+import AdminUsers from '@/views/admin/UsersView.vue';
+import AdminItems from '@/views/admin/ItemsView.vue';
+import AdminReports from '@/views/admin/ReportsView.vue';
 
 const routes = [
     {
@@ -70,6 +75,38 @@ const routes = [
         component: LandingView,
         meta: { guest: true }
     },
+    // Admin routes
+    {
+        path: '/admin',
+        component: AdminLayout,
+        meta: { requiresAuth: true, adminOnly: true },
+        children: [
+            {
+                path: '',
+                name: 'AdminDashboard',
+                component: AdminDashboard,
+                meta: { requiresAuth: true, adminOnly: true }
+            },
+            {
+                path: 'users',
+                name: 'AdminUsers',
+                component: AdminUsers,
+                meta: { requiresAuth: true, adminOnly: true }
+            },
+            {
+                path: 'items',
+                name: 'AdminItems',
+                component: AdminItems,
+                meta: { requiresAuth: true, adminOnly: true }
+            },
+            {
+                path: 'reports',
+                name: 'AdminReports',
+                component: AdminReports,
+                meta: { requiresAuth: true, adminOnly: true }
+            }
+        ]
+    },
     {
         path: '/:pathMatch(.*)*',
         redirect: '/'
@@ -84,7 +121,16 @@ const router = createRouter({
 // Navigation guards
 router.beforeEach((to, from, next) => {
     const token = localStorage.getItem('token');
-    const user = localStorage.getItem('user');
+    const userStr = localStorage.getItem('user');
+    let user = null;
+    
+    if (userStr) {
+        try {
+            user = JSON.parse(userStr);
+        } catch (e) {
+            console.error('Error parsing user from localStorage', e);
+        }
+    }
     
     // For protected routes
     if (to.meta.requiresAuth && !token) {
@@ -93,6 +139,12 @@ router.beforeEach((to, from, next) => {
             name: 'Login',
             query: { redirect: to.fullPath } // Store the path user was trying to access
         });
+    }
+    
+    // For admin-only routes
+    if (to.meta.adminOnly && (!user || user.role !== 'admin')) {
+        // Redirect to discover if not an admin
+        return next({ name: 'Discover' });
     }
     
     // For guest-only routes (login, register, etc.)

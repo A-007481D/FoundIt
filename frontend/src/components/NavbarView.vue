@@ -97,6 +97,9 @@
                   <router-link to="/settings" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
                     Settings
                   </router-link>
+                  <router-link v-if="isAdmin" to="/admin" class="block px-4 py-2 text-sm text-primary font-medium hover:bg-gray-100">
+                    Admin Dashboard
+                  </router-link>
                   <div class="border-t my-1"></div>
                   <button
                     @click="logout"
@@ -196,6 +199,11 @@ const navItems = computed(() => {
 // computed properties
 const isAuthenticated = computed(() => {
   return !!authStore.token && !!authStore.user
+})
+
+// Check if user is admin
+const isAdmin = computed(() => {
+  return authStore.isAdmin
 })
 
 // Determine if we should show navigation links
