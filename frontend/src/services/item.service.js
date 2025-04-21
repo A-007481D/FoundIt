@@ -5,19 +5,33 @@ const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api';
 
 class ItemService {
   // Get all items with filtering
-  getItems(params = {}) {
-    return axios.get(`${API_URL}/items`, { 
-      headers: authHeader(),
-      params
-    });
+  async getItems(params = {}) {
+    try {
+      const response = await axios.get(`${API_URL}/items`, { 
+        headers: authHeader(),
+        params
+      });
+      return response;
+    } catch (error) {
+      console.error('Error in getItems:', error);
+      // Return a structured response even in error cases
+      return { data: { items: [] } };
+    }
   }
 
   // Get user's items
-  getUserItems(params = {}) {
-    return axios.get(`${API_URL}/items/my-items`, { 
-      headers: authHeader(),
-      params
-    });
+  async getUserItems(params = {}) {
+    try {
+      const response = await axios.get(`${API_URL}/items/my-items`, { 
+        headers: authHeader(),
+        params
+      });
+      return response;
+    } catch (error) {
+      console.error('Error in getUserItems:', error);
+      // Return a structured response even in error cases
+      return { data: { items: [] } };
+    }
   }
 
   // Get a specific item

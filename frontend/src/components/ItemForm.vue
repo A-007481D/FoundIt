@@ -56,7 +56,7 @@
         >
           <option value="" disabled>Select a category</option>
           <option v-for="category in categories" :key="category.id" :value="category.id">
-            {{ category.name }}
+            {{ category.name || category.label }}
           </option>
         </select>
       </div>
