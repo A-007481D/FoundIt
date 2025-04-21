@@ -56,4 +56,36 @@ class User extends Authenticatable implements MustVerifyEmail, JWTSubject
     {
         return [];
     }
+    
+    /**
+     * Get the items that belong to the user.
+     */
+    public function items()
+    {
+        return $this->hasMany(Item::class);
+    }
+    
+    /**
+     * Get the reports created by the user.
+     */
+    public function reports()
+    {
+        return $this->hasMany(Report::class, 'reporter_id');
+    }
+    
+    /**
+     * Get the reports for the user.
+     */
+    public function userReports()
+    {
+        return $this->morphMany(Report::class, 'reportable');
+    }
+    
+    /**
+     * Check if user is admin.
+     */
+    public function isAdmin()
+    {
+        return $this->role === 'admin';
+    }
 }
