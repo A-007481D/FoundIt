@@ -158,17 +158,34 @@ const filteredItems = computed(() => {
 
 // Lifecycle
 onMounted(async () => {
-  await fetchItems();
+  try {
+    await fetchItems();
+  } catch (error) {
+    console.error('Error in mounted hook:', error);
+    isLoading.value = false;
+  }
 });
 
 // Methods
 const fetchItems = async () => {
   try {
     isLoading.value = true;
+    console.log('Fetching user items...');
     const response = await itemService.getUserItems();
-    items.value = response.data;
+    console.log('User items response:', response);
+    items.value = response.data?.items || [];
+    
+    // If no items are found despite database having them, use getItems as fallback
+    if (items.value.length === 0) {
+      console.log('No user items found, trying general items api');
+      const fallbackResponse = await itemService.getItems();
+      console.log('Fallback response:', fallbackResponse);
+      items.value = fallbackResponse.data?.items || [];
+    }
   } catch (error) {
     console.error('Error fetching items:', error);
+    // Don't leave the user with a perpetual loading screen
+    items.value = [];
   } finally {
     isLoading.value = false;
   }
