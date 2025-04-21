@@ -222,6 +222,7 @@ const showLocationPrompt = ref(true)
 const showItemDetail = ref(false)
 const showCreateForm = ref(false)
 const selectedItem = ref(null)
+const selectedItemId = ref(null)
 
 const activeTab = ref('all')
 // Define tabs for the UI
@@ -376,12 +377,14 @@ const applyFilters = () => {
 
 const openItemDetail = (itemId) => {
   showItemDetail.value = true
+  selectedItemId.value = itemId
   selectedItem.value = items.value.find(item => item.id === itemId)
 }
 
 const closeItemDetail = () => {
   showItemDetail.value = false
   selectedItem.value = null
+  selectedItemId.value = null
 }
 
 const showCreateItemForm = () => {
