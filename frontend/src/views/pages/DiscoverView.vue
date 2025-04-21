@@ -236,6 +236,12 @@ const showCreateForm = ref(false)
 const selectedItem = ref(null)
 
 const activeTab = ref('all')
+// Define tabs for the UI
+const tabs = [
+  { value: 'all', label: 'All Items' },
+  { value: 'lost', label: 'Lost Items' },
+  { value: 'found', label: 'Found Items' }
+]
 const filters = ref({
   type: 'all',
   category_id: null,
