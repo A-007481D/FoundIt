@@ -57,10 +57,28 @@ const categoryClass = computed(() => {
 })
 
 const formatDate = (dateString) => {
-  const date = new Date(dateString)
-  return new Intl.DateTimeFormat('fr-FR', { 
-    day: 'numeric', 
-    month: 'short'
-  }).format(date)
+  try {
+    // Check if dateString is a relative time string like "2 hours ago"
+    if (typeof dateString === 'string' && dateString.includes('ago')) {
+      return dateString; // Just return the relative string as is
+    }
+    
+    // Try to parse the date
+    const date = new Date(dateString);
+    
+    // Check if date is valid
+    if (isNaN(date.getTime())) {
+      return dateString; // Return original string if parsing failed
+    }
+    
+    // Format the date if valid
+    return new Intl.DateTimeFormat('fr-FR', { 
+      day: 'numeric', 
+      month: 'short'
+    }).format(date);
+  } catch (error) {
+    console.error('Error formatting date:', error);
+    return dateString; // Return the original string in case of any error
+  }
 }
 </script>

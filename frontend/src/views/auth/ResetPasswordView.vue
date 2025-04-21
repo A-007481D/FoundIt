@@ -1,17 +1,5 @@
 <template>
   <div class="min-h-screen bg-gray-50 flex flex-col">
-    <!-- Header -->
-    <header class="w-full border-b bg-white shadow-sm">
-      <div class="container mx-auto px-4 flex h-16 items-center">
-        <router-link to="/" class="flex items-center gap-2 font-bold">
-          <div class="h-8 w-8 rounded-full bg-purple-600 flex items-center justify-center text-white">
-            <MapPin class="h-4 w-4" />
-          </div>
-          <span class="text-xl">FoundIt!</span>
-        </router-link>
-      </div>
-    </header>
-
     <!-- Main content -->
     <main class="flex-1 flex items-center justify-center p-4 md:p-8">
       <div class="w-full max-w-md">

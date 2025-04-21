@@ -33,8 +33,11 @@ export const useAuthStore = defineStore('auth', () => {
         localStorage.setItem('token', response.token);
         localStorage.setItem('user', JSON.stringify(response.user));
         
-        // Navigate to the discover page after successful login
-        router.push({ name: 'Discover' });
+        // Get the redirect path from the router query or default to Discover
+        const redirectPath = router.currentRoute.value.query.redirect || { name: 'Discover' };
+        
+        // Use router.replace instead of push to avoid back button issues
+        router.replace(redirectPath);
         return true;
       } else {
         throw new Error('No token received from server');
@@ -120,7 +123,9 @@ export const useAuthStore = defineStore('auth', () => {
       localStorage.removeItem('user');
       localStorage.removeItem('verification_status');
       localStorage.removeItem('pending_verification_email');
-      router.push({ name: 'Login' });
+      
+      // Use router.replace instead of push to avoid navigation issues
+      router.replace({ name: 'Login' });
     }
   }
 

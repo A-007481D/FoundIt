@@ -56,8 +56,12 @@ const routes = [
         meta: { requiresAuth: true }
     },
     {
+        path: '/',
+        redirect: '/login'
+    },
+    {
         path: '/:pathMatch(.*)*',
-        redirect: '/auth/login'
+        redirect: '/login'
     }
 ];
 
@@ -66,19 +70,34 @@ const router = createRouter({
     routes
 });
 
-// Navigation guards (optional)
+// Navigation guards
 router.beforeEach((to, from, next) => {
     const token = localStorage.getItem('token');
-
+    const user = localStorage.getItem('user');
+    
+    // For protected routes
     if (to.meta.requiresAuth && !token) {
-        return next({ name: 'Login' });
+        // Redirect to login if not authenticated
+        return next({ 
+            name: 'Login',
+            query: { redirect: to.fullPath } // Store the path user was trying to access
+        });
     }
-
+    
+    // For guest-only routes (login, register, etc.)
     if (to.meta.guest && token) {
+        // If already authenticated, redirect to discover page
         return next({ name: 'Discover' });
     }
-
+    
+    // Continue navigation
     next();
+});
+
+// After navigation completes
+router.afterEach((to, from) => {
+    // Scroll to top after navigation
+    window.scrollTo(0, 0);
 });
 
 export default router;

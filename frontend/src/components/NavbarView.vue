@@ -47,8 +47,8 @@
                 >
                   Profil
                 </router-link>
-                <button 
-                  @click="logout" 
+                <button
+                  @click="logout"
                   class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                 >
                   Déconnexion
@@ -78,19 +78,28 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted, nextTick } from 'vue'
 import { useAuthStore } from '@/stores/auth.store'
+import { useRouter } from 'vue-router'
 import { MapPin, User } from 'lucide-vue-next'
 
+const router = useRouter()
 const authStore = useAuthStore()
 const showDropdown = ref(false)
 const dropdownRef = ref(null)
 
-const isAuthenticated = computed(() => authStore.isAuthenticated)
+// Force re-evaluation of authentication state
+const isAuthenticated = computed(() => {
+  return !!authStore.token && !!authStore.user
+})
 
-const logout = () => {
-  authStore.logout()
+const logout = async () => {
   showDropdown.value = false
+  await authStore.logout()
+
+  // Force a navigation to login page after logout
+  await nextTick()
+  router.replace('/login')
 }
 
 // Close dropdown when clicking outside

@@ -1,5 +1,9 @@
 <!-- MatchesPage.vue -->
 <template>
+    <div v-if="!isLoaded" class="min-h-screen flex items-center justify-center">
+        <div class="animate-spin h-10 w-10 border-4 border-purple-600 border-t-transparent rounded-full"></div>
+    </div>
+    <template v-else>
     <div class="min-h-screen flex flex-col">
         <!-- Main content -->
         <div class="flex-1">
@@ -350,7 +354,43 @@
             </div>
         </footer>
     </div>
+    </template>
 </template>
+
+<script setup>
+import { ref, onMounted, nextTick } from 'vue'
+import { useAuthStore } from '@/stores/auth.store'
+
+// Ensure authentication state is properly loaded
+const authStore = useAuthStore()
+
+// Track component loading state
+const isLoaded = ref(false)
+const sortBy = ref('match-score')
+const showFilters = ref(false)
+
+// Force component to load data on mount
+onMounted(async () => {
+  // Simulate data loading
+  await nextTick()
+  isLoaded.value = true
+})
+
+// Status label helper function
+function statusLabel(status) {
+  switch (status) {
+    case 'new': return 'Nouvelle correspondance';
+    case 'in-progress': return 'En cours';
+    case 'resolved': return 'Résolu';
+    default: return '';
+  }
+}
+
+// Date formatting helper
+function formatDate(dateString) {
+  return new Date(dateString).toLocaleDateString();
+}
+</script>
 
 <script>
 export default {

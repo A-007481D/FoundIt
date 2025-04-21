@@ -1,7 +1,9 @@
 <!-- DiscoverPage.vue -->
 <template>
-    <div class="min-h-screen flex flex-col">
-
+    <div v-if="!isLoaded" class="min-h-screen flex items-center justify-center">
+        <div class="animate-spin h-10 w-10 border-4 border-purple-600 border-t-transparent rounded-full"></div>
+    </div>
+    <div v-else class="min-h-screen flex flex-col">
         <main class="max-w-[90rem] mx-auto flex-1 container py-6 flex flex-col-reverse md:flex-row items-center">
             <div class="flex flex-col gap-6">
                 <div class="flex flex-col gap-2">
@@ -449,8 +451,22 @@
 
 
 <script setup>
-import { ref, computed, defineComponent } from 'vue'
+import { ref, computed, onMounted, nextTick } from 'vue'
+import { useAuthStore } from '@/stores/auth.store'
 import ItemCard from '@/components/ItemCard.vue'
+
+// Ensure authentication state is properly loaded
+const authStore = useAuthStore()
+
+// Force component to load data on mount
+onMounted(async () => {
+  // Simulate data loading
+  await nextTick()
+  isLoaded.value = true
+})
+
+// Track component loading state
+const isLoaded = ref(false)
 const activeTab = ref('all')
 const showLocationPrompt = ref(true)
 
