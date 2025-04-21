@@ -1,7 +1,7 @@
 <template>
     <div class="app-container">
-        <!-- Only show navbar when user is authenticated -->
-        <NavbarView v-if="authStore.isAuthenticated" />
+        <!-- Always show navbar, the component will handle different states -->
+        <NavbarView />
         
         <!-- Use transition for smooth page changes -->
         <router-view v-slot="{ Component }">

@@ -11,14 +11,14 @@
           <span class="text-xl">FoundIt!</span>
         </router-link>
 
-        <nav class="hidden md:flex items-center gap-6">
+        <nav v-if="showNavLinks" class="hidden md:flex items-center gap-6">
           <router-link
               v-for="item in navItems"
               :key="item.name"
               :to="item.to"
               :class="[
               'text-sm font-medium hover:text-primary transition-colors',
-              $route.path === item.to ? 'text-primary' : 'text-foreground'
+              route.path === item.to ? 'text-primary' : 'text-foreground'
             ]"
           >
             {{ item.name }}
@@ -28,8 +28,8 @@
 
       <!-- Right-side controls -->
       <div class="flex items-center gap-4">
-        <!-- Search (md+) -->
-        <div class="relative hidden md:block">
+        <!-- Search (md+) - only shown when authenticated or on landing page -->
+        <div v-if="showSearch" class="relative hidden md:block">
           <input
               v-model="search"
               @keyup.enter="onSearch"
@@ -157,7 +157,7 @@
 <script setup>
 import { ref, computed, onMounted, onUnmounted, nextTick } from 'vue'
 import { useAuthStore } from '@/stores/auth.store'
-import { useRouter } from 'vue-router'
+import { useRouter, useRoute } from 'vue-router'
 import { MapPin, User, Bell as BellIcon, Menu as MenuIcon } from 'lucide-vue-next'
 
 // reactive toggles
@@ -172,19 +172,42 @@ const notifDropdownRef = ref(null)
 
 // router hooks
 const router = useRouter()
+const route = useRoute()
 
 // auth store
 const authStore = useAuthStore()
 
-// nav items
-const navItems = [
-  { name: 'Découvrir', to: '/discover' },
-  { name: 'Matches', to: '/matches' },
-]
+// nav items - different for authenticated vs unauthenticated users
+const navItems = computed(() => {
+  if (isAuthenticated.value) {
+    return [
+      { name: 'Découvrir', to: '/discover' },
+      { name: 'Matches', to: '/matches' },
+    ];
+  } else {
+    return [
+      { name: 'Home', to: '/' },
+      { name: 'How it works', to: '/#how-it-works' },
+      { name: 'FAQ', to: '/#faq' },
+    ];
+  }
+})
 
 // computed properties
 const isAuthenticated = computed(() => {
   return !!authStore.token && !!authStore.user
+})
+
+// Determine if we should show navigation links
+const showNavLinks = computed(() => {
+  // Hide nav links on login and register pages
+  return !['Login', 'Register', 'ForgotPassword', 'ResetPassword'].includes(route.name);
+})
+
+// Determine if we should show search
+const showSearch = computed(() => {
+  // Show search when authenticated or on landing page
+  return isAuthenticated.value || route.path === '/' || route.path === '/home';
 })
 
 const unreadCount = computed(() => {
