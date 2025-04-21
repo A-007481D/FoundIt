@@ -175,6 +175,7 @@
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue';
 import itemService from '@/services/item.service';
+import categoryService from '@/services/category.service';
 
 const props = defineProps({
   item: {
@@ -233,8 +234,8 @@ const imageInput = ref(null);
 onMounted(async () => {
   try {
     // Load categories
-    const response = await itemService.getCategories();
-    categories.value = response.data;
+    const response = await categoryService.getCategories();
+    categories.value = response;
     
     // Initialize form data if editing
     if (props.isEdit && props.item) {

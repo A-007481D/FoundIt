@@ -123,7 +123,7 @@
                                 <div v-if="isLoading" class="flex justify-center items-center py-12">
                                     <div class="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full"></div>
                                 </div>
-                                <div v-else-if="allItems.length === 0" class="flex flex-col items-center justify-center py-12 text-center">
+                                <div v-else-if="allItems.length === 0" class="flex flex-col items-center justify-center py-12 text-center w-full">
                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 text-muted-foreground mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
                                     </svg>
@@ -255,13 +255,14 @@ const recentItems = computed(() => items.value.filter(item => !item.featured))
 // Fetch initial data
 onMounted(async () => {
   try {
-    await Promise.all([
-      fetchItems(),
-      fetchCategories()
-    ])
+    // Fetch data sequentially to troubleshoot any issues
+    await fetchCategories()
+    await fetchItems()
+    isLoaded.value = true
+  } catch (error) {
+    console.error('Error initializing data:', error)
   } finally {
     isLoading.value = false
-    isLoaded.value = true
   }
 })
 
@@ -269,6 +270,7 @@ onMounted(async () => {
 const fetchItems = async () => {
   try {
     isLoading.value = true
+    console.log('Fetching items...')
     const params = {}
     
     // Apply filters
@@ -283,10 +285,14 @@ const fetchItems = async () => {
     // Always filter by active status for discover page
     params.status = 'active'
     
+    console.log('Items request params:', params)
     const response = await itemService.getItems(params)
-    items.value = response.data || []
+    console.log('Items response:', response)
+    items.value = response.data?.items || []
+    console.log('Items processed:', items.value)
   } catch (error) {
     console.error('Error fetching items:', error)
+    items.value = []
   } finally {
     isLoading.value = false
   }
@@ -294,8 +300,14 @@ const fetchItems = async () => {
 
 const fetchCategories = async () => {
   try {
+    console.log('Fetching categories...')
     const response = await categoryService.getCategories()
-    categories.value = response.data || []
+    console.log('Categories response:', response)
+    categories.value = response || []
+    filters.value.categories = {}
+    categories.value.forEach(cat => {
+      filters.value.categories[cat.id] = false
+    })
   } catch (error) {
     console.error('Error fetching categories:', error)
   }
