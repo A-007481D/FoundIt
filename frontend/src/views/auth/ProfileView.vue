@@ -185,7 +185,7 @@
                         v-model="notificationForm.email_notifications"
                         class="sr-only peer"
                       />
-                      <span class="absolute inset-0 rounded-full bg-gray-300 transition peer-checked:bg-purple-600"></span>
+                      <span class="absolute inset-0 rounded-full bg-purple-100 transition peer-checked:bg-purple-600"></span>
                       <span class="absolute inset-y-0 left-0 ml-0.5 mt-0.5 h-5 w-5 rounded-full bg-white transition-all peer-checked:translate-x-5 shadow-md"></span>
                     </div>
                     <div class="flex-1">
@@ -203,7 +203,7 @@
                         v-model="notificationForm.push_notifications"
                         class="sr-only peer"
                       />
-                      <span class="absolute inset-0 rounded-full bg-gray-300 transition peer-checked:bg-purple-600"></span>
+                      <span class="absolute inset-0 rounded-full bg-purple-100 transition peer-checked:bg-purple-600"></span>
                       <span class="absolute inset-y-0 left-0 ml-0.5 mt-0.5 h-5 w-5 rounded-full bg-white transition-all peer-checked:translate-x-5 shadow-md"></span>
                     </div>
                     <div class="flex-1">
@@ -221,7 +221,7 @@
                         v-model="notificationForm.item_updates"
                         class="sr-only peer"
                       />
-                      <span class="absolute inset-0 rounded-full bg-gray-300 transition peer-checked:bg-purple-600"></span>
+                      <span class="absolute inset-0 rounded-full bg-purple-100 transition peer-checked:bg-purple-600"></span>
                       <span class="absolute inset-y-0 left-0 ml-0.5 mt-0.5 h-5 w-5 rounded-full bg-white transition-all peer-checked:translate-x-5 shadow-md"></span>
                     </div>
                     <div class="flex-1">
@@ -258,7 +258,7 @@
                         v-model="privacyForm.show_email"
                         class="sr-only peer"
                       />
-                      <span class="absolute inset-0 rounded-full bg-gray-300 transition peer-checked:bg-purple-600"></span>
+                      <span class="absolute inset-0 rounded-full bg-purple-100 transition peer-checked:bg-purple-600"></span>
                       <span class="absolute inset-y-0 left-0 ml-0.5 mt-0.5 h-5 w-5 rounded-full bg-white transition-all peer-checked:translate-x-5 shadow-md"></span>
                     </div>
                     <div class="flex-1">
@@ -276,7 +276,7 @@
                         v-model="privacyForm.show_phone"
                         class="sr-only peer"
                       />
-                      <span class="absolute inset-0 rounded-full bg-gray-300 transition peer-checked:bg-purple-600"></span>
+                      <span class="absolute inset-0 rounded-full bg-purple-100 transition peer-checked:bg-purple-600"></span>
                       <span class="absolute inset-y-0 left-0 ml-0.5 mt-0.5 h-5 w-5 rounded-full bg-white transition-all peer-checked:translate-x-5 shadow-md"></span>
                     </div>
                     <div class="flex-1">
@@ -294,7 +294,7 @@
                         v-model="privacyForm.show_address"
                         class="sr-only peer"
                       />
-                      <span class="absolute inset-0 rounded-full bg-gray-300 transition peer-checked:bg-purple-600"></span>
+                      <span class="absolute inset-0 rounded-full bg-purple-100 transition peer-checked:bg-purple-600"></span>
                       <span class="absolute inset-y-0 left-0 ml-0.5 mt-0.5 h-5 w-5 rounded-full bg-white transition-all peer-checked:translate-x-5 shadow-md"></span>
                     </div>
                     <div class="flex-1">
@@ -321,46 +321,44 @@
             </div>
           </div>
         </div>
-        </div>
-    </div>
       </div>
     </div>
-  </div>
   
-  <!-- Alerts with Tailwind CSS -->
-  <div class="fixed bottom-5 right-5 z-50">
-    <div 
-      v-if="showAlert"
-      :class="{
-        'bg-white': true,
-        'border-l-4': true,
-        'border-green-500': alertType === 'success',
-        'border-red-500': alertType === 'error'
-      }"
-      class="rounded-lg shadow-lg overflow-hidden max-w-sm transform transition-all duration-300 ease-in-out"
-      role="alert"
-    >
-      <div class="p-4 flex items-start">
-        <div class="flex-shrink-0 mr-3">
-          <svg v-if="alertType === 'success'" class="h-6 w-6 text-green-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-          </svg>
-          <svg v-else class="h-6 w-6 text-red-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-          </svg>
+    <!-- Alerts with Tailwind CSS -->
+    <div class="fixed bottom-5 right-5 z-50">
+      <div 
+        v-if="showAlert"
+        :class="{
+          'bg-white': true,
+          'border-l-4': true,
+          'border-green-500': alertType === 'success',
+          'border-red-500': alertType === 'error'
+        }"
+        class="rounded-lg shadow-lg overflow-hidden max-w-sm transform transition-all duration-300 ease-in-out"
+        role="alert"
+      >
+        <div class="p-4 flex items-start">
+          <div class="flex-shrink-0 mr-3">
+            <svg v-if="alertType === 'success'" class="h-6 w-6 text-green-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <svg v-else class="h-6 w-6 text-red-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          </div>
+          <div class="flex-1 pr-8">
+            <h4 class="text-sm font-medium text-gray-900">{{ alertTitle }}</h4>
+            <p class="mt-1 text-sm text-gray-600">{{ alertMessage }}</p>
+          </div>
+          <button 
+            @click="showAlert = false" 
+            class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 focus:outline-none"
+          >
+            <svg class="h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
         </div>
-        <div class="flex-1 pr-8">
-          <h4 class="text-sm font-medium text-gray-900">{{ alertTitle }}</h4>
-          <p class="mt-1 text-sm text-gray-600">{{ alertMessage }}</p>
-        </div>
-        <button 
-          @click="showAlert = false" 
-          class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 focus:outline-none"
-        >
-          <svg class="h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-          </svg>
-        </button>
       </div>
     </div>
   </div>
@@ -387,6 +385,7 @@ export default {
     const alertMessage = ref('');
     const alertTitle = ref('');
     const alertType = ref('success');
+    const lastUpdateText = ref('');
     let alertTimeout;
 
     // Form data
@@ -453,6 +452,11 @@ export default {
         profileForm.phone = user.value.phone || '';
         profileForm.address = user.value.address || '';
         profileForm.bio = user.value.bio || '';
+        
+        // Set last update text
+        if (user.value.profile_updated_at) {
+          lastUpdateText.value = formatDate(user.value.profile_updated_at);
+        }
         
         // Set notification preferences
         if (user.value.notification_preferences) {
@@ -547,6 +551,9 @@ export default {
           emailChangeRestriction.value = formatDate(thirtyDaysLater);
         }
         
+        // Update last updated text
+        lastUpdateText.value = formatDate(new Date());
+        
         // Also update the user in AuthService
         authService.updateStoredUser(user.value);
         
@@ -636,6 +643,7 @@ export default {
       alertMessage,
       alertTitle,
       alertType,
+      lastUpdateText,
       openPhotoUpload,
       handlePhotoChange,
       updateProfileInfo,

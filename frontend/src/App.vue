@@ -1,16 +1,11 @@
 <template>
     <div class="app-container">
+        <!-- Always show navbar, the component will handle different states -->
         <NavbarView />
         
-        <!-- Use transition for smooth page changes -->
+        <!-- Simple routing without transitions to prevent blank page issues -->
         <main class="flex-1">
-            <router-view v-slot="{ Component }">
-                <transition name="page" mode="out-in">
-                    <div class="page-wrapper" :key="$route.fullPath">
-                        <component :is="Component" />
-                    </div>
-                </transition>
-            </router-view>
+            <router-view></router-view>
         </main>
     </div>
 </template>
