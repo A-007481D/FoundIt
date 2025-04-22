@@ -1,20 +1,24 @@
 
 import './assets/main.css'
+import './assets/transition.css'
 
 import { createApp }  from 'vue'
 import { createPinia } from 'pinia'
 import App            from './App.vue'
-import router         from './router'   // your router/index.js
+import router         from './router'
+import Vue3Toastify, { toast } from 'vue3-toastify'
+import 'vue3-toastify/dist/index.css'
 
-// 1️⃣ Create your Vue application instance
 const app = createApp(App)
 
-// 2️⃣ Create a Pinia instance and install it BEFORE any store is used
 const pinia = createPinia()
-app.use(pinia)            // ← without this, calls to useUserStore() will fail :contentReference[oaicite:0]{index=0}
+app.use(pinia)
 
-// 3️⃣ Install the router plugin
 app.use(router)
 
-// 4️⃣ Mount to the DOM
+app.use(Vue3Toastify, {
+  autoClose: 3000,
+  position: toast.POSITION.TOP_RIGHT
+})
+
 app.mount('#app')

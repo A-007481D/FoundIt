@@ -11,6 +11,7 @@ use Illuminate\Validation\ValidationException;
 use App\Repositories\AuthRepository;
 use Illuminate\Auth\Events\Registered;
 use Tymon\JWTAuth\Facades\JWTAuth;
+use Carbon\Carbon;
 
 class AuthService extends AuthRepository
 {
@@ -46,6 +47,36 @@ class AuthService extends AuthRepository
             throw ValidationException::withMessages([
                 'email' => ['Email is not verified.'],
             ]);
+        }
+        
+        // Check if user is banned
+        if ($user->status === 'banned') {
+            $reason = $user->banned_reason ? ': ' . $user->banned_reason : '';
+            throw ValidationException::withMessages([
+                'account' => ['Your account has been banned' . $reason],
+            ]);
+        }
+        
+        // Check if user is suspended
+        if ($user->status === 'suspended') {
+            // Check if suspension period is over
+            if ($user->suspension_end && now()->greaterThan($user->suspension_end)) {
+                // Reactivate user if suspension period is over
+                $user->status = 'active';
+                $user->save();
+            } else {
+                // Format the suspension end date if it exists
+                $endDate = '';
+                if ($user->suspension_end) {
+                    // Make sure suspension_end is a Carbon instance
+                    $endDate = ' until ' . Carbon::parse($user->suspension_end)->format('M d, Y');
+                }
+                
+                $reason = $user->suspended_reason ? ': ' . $user->suspended_reason : '';
+                throw ValidationException::withMessages([
+                    'account' => ['Your account has been temporarily suspended' . $endDate . $reason],
+                ]);
+            }
         }
 
         return JWTAuth::fromUser($user);

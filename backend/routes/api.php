@@ -3,6 +3,7 @@
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\ProfileController;
 
 /*
 |--------------------------------------------------------------------------
@@ -25,7 +26,17 @@ Route::prefix('auth')->group(function () {
 });
 
 // Protected routes
-Route::middleware('auth:api')->group(function () {
+Route::middleware(['auth:api', 'verified'])->group(function () {
+    // User routes
+    Route::get('/user', [AuthController::class, 'user']);
+    
+    // Profile routes
+    Route::get('/profile', [ProfileController::class, 'show']);
+    Route::put('/profile', [ProfileController::class, 'update']);
+    Route::post('/profile/photo', [ProfileController::class, 'updatePhoto']);
+    Route::put('/profile/notifications', [ProfileController::class, 'updateNotificationPreferences']);
+    Route::put('/profile/privacy', [ProfileController::class, 'updatePrivacySettings']);
+    
     Route::post('/auth/logout', [AuthController::class, 'logout']);
     Route::post('/auth/refresh', [AuthController::class, 'refresh']);
     Route::get('/auth/user', [AuthController::class, 'getAuthUser']);
@@ -57,12 +68,16 @@ Route::middleware('auth:api')->group(function () {
         Route::get('/users/{id}', [\App\Http\Controllers\Admin\UserController::class, 'show']);
         Route::patch('/users/{id}/status', [\App\Http\Controllers\Admin\UserController::class, 'updateStatus']);
         Route::patch('/users/{id}/role', [\App\Http\Controllers\Admin\UserController::class, 'updateRole']);
+        Route::patch('/users/{id}/ban', [\App\Http\Controllers\Admin\UserController::class, 'ban']);
+        Route::patch('/users/{id}/unban', [\App\Http\Controllers\Admin\UserController::class, 'unban']);
+        Route::patch('/users/{id}/suspend', [\App\Http\Controllers\Admin\UserController::class, 'suspend']);
         Route::get('/users/stats', [\App\Http\Controllers\Admin\UserController::class, 'getStats']);
         
         // Items
         Route::get('/items', [\App\Http\Controllers\Admin\ItemController::class, 'index']);
         Route::get('/items/{id}', [\App\Http\Controllers\Admin\ItemController::class, 'show']);
         Route::patch('/items/{id}/status', [\App\Http\Controllers\Admin\ItemController::class, 'updateStatus']);
+        Route::patch('/items/{id}/visibility', [\App\Http\Controllers\Admin\ItemController::class, 'updateVisibility']);
         Route::patch('/items/{id}/archive', [\App\Http\Controllers\Admin\ItemController::class, 'archive']);
         Route::delete('/items/{id}', [\App\Http\Controllers\Admin\ItemController::class, 'delete']);
         Route::get('/items/stats', [\App\Http\Controllers\Admin\ItemController::class, 'getStats']);

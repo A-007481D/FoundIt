@@ -37,8 +37,13 @@
       </div>
     </div>
 
+    <!-- Loading indicator -->
+    <div v-if="loading" class="flex justify-center items-center py-8">
+      <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+    </div>
+
     <!-- Reports Table -->
-    <div class="bg-white rounded-lg shadow overflow-hidden">
+    <div v-else class="bg-white rounded-lg shadow overflow-hidden">
       <table class="min-w-full divide-y divide-gray-200">
         <thead class="bg-gray-50">
           <tr>
@@ -114,11 +119,20 @@
                 <button @click="viewReport(report)" class="text-indigo-600 hover:text-indigo-900">
                   View
                 </button>
-                <button v-if="report.status === 'pending'" @click="resolveReport(report)" class="text-green-600 hover:text-green-900">
-                  Resolve
+                <button v-if="report.type === 'user'" @click="navigateToUser" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-medium rounded-md">
+                  View User Profile
                 </button>
-                <button v-if="report.status === 'pending'" @click="dismissReport(report)" class="text-red-600 hover:text-red-900">
-                  Dismiss
+                <button v-if="report.type === 'user'" @click="suspendUser" class="px-4 py-2 bg-yellow-600 hover:bg-yellow-700 text-white font-medium rounded-md ml-2">
+                  Suspend User
+                </button>
+                <button v-if="report.type === 'user'" @click="banUser" class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white font-medium rounded-md ml-2">
+                  Ban User
+                </button>
+                <button v-if="report.type === 'item'" @click="navigateToItem" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-medium rounded-md">
+                  View Item Details
+                </button>
+                <button v-if="report.type === 'item'" @click="deleteItem" class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white font-medium rounded-md ml-2">
+                  Delete Item
                 </button>
               </div>
             </td>
@@ -135,7 +149,7 @@
     <!-- Pagination -->
     <div class="flex justify-between items-center mt-4">
       <div class="text-sm text-gray-700">
-        Showing <span class="font-medium">{{ startIndex + 1 }}</span> to <span class="font-medium">{{ endIndex }}</span> of <span class="font-medium">{{ totalReports }}</span> reports
+        Showing <span class="font-medium">{{ startIndex + 1 }}</span> to <span class="font-medium">{{ endIndex }}</span> of <span class="font-medium">{{ totalItems }}</span> results
       </div>
       <div class="flex space-x-2">
         <button 
@@ -148,8 +162,8 @@
         </button>
         <button 
           @click="nextPage" 
-          :disabled="endIndex >= totalReports" 
-          :class="endIndex >= totalReports ? 'opacity-50 cursor-not-allowed' : ''"
+          :disabled="endIndex >= totalItems" 
+          :class="endIndex >= totalItems ? 'opacity-50 cursor-not-allowed' : ''"
           class="px-3 py-1 border rounded-md hover:bg-gray-50"
         >
           Next
@@ -289,151 +303,61 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
+import reportService from '@/services/report.service';
+import { toast } from 'vue3-toastify';
 
 const router = useRouter();
 
-// Mock reports data - replace with API calls in production
-const reports = ref([
-  {
-    id: 1,
-    type: 'user',
-    subject: {
-      id: 5,
-      name: 'Michael Brown',
-      email: 'michael@example.com',
-      image: null
-    },
-    reason: 'Inappropriate behavior in messages',
-    details: 'This user has been sending harassing messages to multiple users.',
-    reporter: {
-      id: 2,
-      name: 'Jane Smith',
-      email: 'jane@example.com'
-    },
-    status: 'pending',
-    created_at: '2025-03-15T10:00:00',
-    resolution: null
-  },
-  {
-    id: 2,
-    type: 'item',
-    subject: {
-      id: 3,
-      title: 'iPhone 14 Pro',
-      image: 'https://images.unsplash.com/photo-1592286927505-1def25115611?ixlib=rb-1.2.1&auto=format&fit=crop&w=1000&q=80'
-    },
-    reason: 'Suspicious listing - possible scam',
-    details: 'The price is too low and the seller is asking for payment outside the platform.',
-    reporter: {
-      id: 3,
-      name: 'Robert Johnson',
-      email: 'robert@example.com'
-    },
-    status: 'resolved',
-    created_at: '2025-03-16T14:30:00',
-    resolution: 'Item was removed and user was warned.'
-  },
-  {
-    id: 3,
-    type: 'user',
-    subject: {
-      id: 6,
-      name: 'David Wilson',
-      email: 'david@example.com',
-      image: null
-    },
-    reason: 'Fake profile',
-    details: 'This profile appears to be using stolen photos and information.',
-    reporter: {
-      id: 4,
-      name: 'Emily Williams',
-      email: 'emily@example.com'
-    },
-    status: 'dismissed',
-    created_at: '2025-03-17T09:15:00',
-    resolution: 'After investigation, the profile appears legitimate.'
-  },
-  {
-    id: 4,
-    type: 'item',
-    subject: {
-      id: 7,
-      title: 'MacBook Pro 16"',
-      image: 'https://images.unsplash.com/photo-1517336714731-489689fd1ca8?ixlib=rb-1.2.1&auto=format&fit=crop&w=1000&q=80'
-    },
-    reason: 'Item not as described',
-    details: 'The listing claims the item is new, but photos show it is clearly used.',
-    reporter: {
-      id: 1,
-      name: 'John Doe',
-      email: 'john@example.com'
-    },
-    status: 'pending',
-    created_at: '2025-03-18T16:45:00',
-    resolution: null
-  }
-]);
+// Reports data
+const reports = ref([]);
 
-// Pagination
-const itemsPerPage = 10;
-const currentPage = ref(1);
+// Basic state variables
 const searchQuery = ref('');
 const typeFilter = ref('all');
 const statusFilter = ref('all');
-const resolutionNotes = ref('');
+const currentPage = ref(1);
+const itemsPerPage = 10;
+const loading = ref(false);
+const totalItems = ref(0);
 
 // Modal state
 const showReportModal = ref(false);
 const currentReport = ref({});
-
-// Filtered reports
-const filteredReports = computed(() => {
-  return reports.value.filter(report => {
-    // Apply search filter
-    const searchLower = searchQuery.value.toLowerCase();
-    const matchesSearch = searchQuery.value === '' || 
-      (report.subject.name && report.subject.name.toLowerCase().includes(searchLower)) ||
-      (report.subject.title && report.subject.title.toLowerCase().includes(searchLower)) ||
-      (report.subject.email && report.subject.email.toLowerCase().includes(searchLower)) ||
-      report.reason.toLowerCase().includes(searchLower) ||
-      (report.details && report.details.toLowerCase().includes(searchLower));
-    
-    // Apply type filter
-    const matchesType = typeFilter.value === 'all' || report.type === typeFilter.value;
-    
-    // Apply status filter
-    const matchesStatus = statusFilter.value === 'all' || report.status === statusFilter.value;
-    
-    return matchesSearch && matchesType && matchesStatus;
-  });
-});
+const resolutionNotes = ref('');
 
 // Computed values for pagination
-const totalReports = computed(() => filteredReports.value.length);
 const startIndex = computed(() => (currentPage.value - 1) * itemsPerPage);
-const endIndex = computed(() => Math.min(startIndex.value + itemsPerPage, totalReports.value));
-const paginatedReports = computed(() => {
-  return filteredReports.value.slice(startIndex.value, endIndex.value);
-});
+const endIndex = computed(() => Math.min(startIndex.value + itemsPerPage, totalItems.value));
+const paginatedReports = computed(() => reports.value);
+
+// Update current page and refresh data for pagination
+const goToPage = (page) => {
+  currentPage.value = page;
+  fetchReports();
+};
 
 // Methods
 const handleSearch = () => {
   currentPage.value = 1; // Reset to first page on search
+  fetchReports();
 };
 
 const filterReports = () => {
   currentPage.value = 1; // Reset to first page on filter change
+  fetchReports();
 };
 
 const prevPage = () => {
   if (currentPage.value > 1) {
     currentPage.value--;
+    fetchReports();
   }
 };
 
 const nextPage = () => {
-  if (endIndex.value < totalReports.value) {
+  if (endIndex.value < totalItems.value) {
     currentPage.value++;
+    fetchReports();
   }
 };
 
@@ -443,51 +367,51 @@ const viewReport = (report) => {
   showReportModal.value = true;
 };
 
-const resolveReport = (report) => {
-  // In a real app, you would call an API to resolve the report
-  const index = reports.value.findIndex(r => r.id === report.id);
-  if (index !== -1) {
-    reports.value[index] = { 
-      ...report, 
-      status: 'resolved',
-      resolution: 'Report was reviewed and action was taken.'
-    };
+const resolveReport = async (report) => {
+  try {
+    await reportService.resolveReport(report.id, 'Report was reviewed and action was taken.');
+    toast.success('Report resolved successfully');
+    fetchReports(); // Refresh the reports list
+  } catch (error) {
+    toast.error('Failed to resolve report: ' + (error.response?.data?.message || error.message));
   }
 };
 
-const dismissReport = (report) => {
-  // In a real app, you would call an API to dismiss the report
-  const index = reports.value.findIndex(r => r.id === report.id);
-  if (index !== -1) {
-    reports.value[index] = { 
-      ...report, 
-      status: 'dismissed',
-      resolution: 'Report was reviewed and no action was needed.'
-    };
+const dismissReport = async (report) => {
+  try {
+    await reportService.dismissReport(report.id, 'Report was reviewed and no action was needed.');
+    toast.success('Report dismissed successfully');
+    fetchReports(); // Refresh the reports list
+  } catch (error) {
+    toast.error('Failed to dismiss report: ' + (error.response?.data?.message || error.message));
   }
 };
 
-const resolveReportWithNotes = () => {
-  const index = reports.value.findIndex(r => r.id === currentReport.value.id);
-  if (index !== -1) {
-    reports.value[index] = { 
-      ...currentReport.value, 
-      status: 'resolved',
-      resolution: resolutionNotes.value || 'Report was reviewed and action was taken.'
-    };
+const resolveReportWithNotes = async () => {
+  try {
+    await reportService.resolveReport(
+      currentReport.value.id, 
+      resolutionNotes.value || 'Report was reviewed and action was taken.'
+    );
+    toast.success('Report resolved successfully');
     showReportModal.value = false;
+    fetchReports(); // Refresh the reports list
+  } catch (error) {
+    toast.error('Failed to resolve report: ' + (error.response?.data?.message || error.message));
   }
 };
 
-const dismissReportWithNotes = () => {
-  const index = reports.value.findIndex(r => r.id === currentReport.value.id);
-  if (index !== -1) {
-    reports.value[index] = { 
-      ...currentReport.value, 
-      status: 'dismissed',
-      resolution: resolutionNotes.value || 'Report was reviewed and no action was needed.'
-    };
+const dismissReportWithNotes = async () => {
+  try {
+    await reportService.dismissReport(
+      currentReport.value.id, 
+      resolutionNotes.value || 'Report was reviewed and no action was needed.'
+    );
+    toast.success('Report dismissed successfully');
     showReportModal.value = false;
+    fetchReports(); // Refresh the reports list
+  } catch (error) {
+    toast.error('Failed to dismiss report: ' + (error.response?.data?.message || error.message));
   }
 };
 
@@ -497,9 +421,56 @@ const navigateToUser = () => {
   }
 };
 
+const banUser = async () => {
+  if (!currentReport.value.subject || currentReport.value.type !== 'user') return;
+  
+  try {
+    await reportService.banUser(
+      currentReport.value.subject.id, 
+      resolutionNotes.value || 'User banned due to report'
+    );
+    toast.success('User banned successfully');
+    await resolveReportWithNotes();
+  } catch (error) {
+    toast.error('Failed to ban user: ' + (error.response?.data?.message || error.message));
+  }
+};
+
+const suspendUser = async () => {
+  if (!currentReport.value.subject || currentReport.value.type !== 'user') return;
+  
+  try {
+    // Suspend for 7 days by default
+    await reportService.suspendUser(
+      currentReport.value.subject.id,
+      7,
+      resolutionNotes.value || 'User suspended due to report'
+    );
+    toast.success('User suspended successfully');
+    await resolveReportWithNotes();
+  } catch (error) {
+    toast.error('Failed to suspend user: ' + (error.response?.data?.message || error.message));
+  }
+};
+
 const navigateToItem = () => {
   if (currentReport.value.subject && currentReport.value.subject.id) {
     router.push(`/admin/items?id=${currentReport.value.subject.id}`);
+  }
+};
+
+const deleteItem = async () => {
+  if (!currentReport.value.subject || currentReport.value.type !== 'item') return;
+  
+  try {
+    await reportService.deleteItem(
+      currentReport.value.subject.id,
+      resolutionNotes.value || 'Item deleted due to report'
+    );
+    toast.success('Item deleted successfully');
+    await resolveReportWithNotes();
+  } catch (error) {
+    toast.error('Failed to delete item: ' + (error.response?.data?.message || error.message));
   }
 };
 
@@ -518,9 +489,33 @@ const formatDate = (dateString) => {
   return date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
 };
 
+// Fetch reports from the API
+const fetchReports = async () => {
+  try {
+    loading.value = true;
+    const response = await reportService.getReports({
+      search: searchQuery.value,
+      type: typeFilter.value === 'all' ? '' : typeFilter.value,
+      status: statusFilter.value === 'all' ? '' : statusFilter.value,
+      page: currentPage.value,
+      per_page: itemsPerPage
+    });
+    
+    reports.value = response.data.data;
+    totalItems.value = response.data.total;
+    currentPage.value = response.data.current_page;
+    loading.value = false;
+  } catch (error) {
+    console.error('Error fetching reports:', error);
+    toast.error('Failed to load reports');
+    loading.value = false;
+  }
+};
+
 // Load reports on component mount
 onMounted(() => {
-  // In a real app, you would fetch reports from an API
-  // fetchReports();
+  fetchReports();
 });
+
+
 </script>

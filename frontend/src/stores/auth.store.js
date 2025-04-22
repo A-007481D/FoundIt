@@ -45,13 +45,31 @@ export const useAuthStore = defineStore('auth', () => {
     } catch (err) {
       if (err.response && err.response.data) {
         // Handle specific error messages from the backend
-        if (err.response.data.errors && err.response.data.errors.email) {
-          error.value = err.response.data.errors.email[0];
-          
-          // Check if the error is about email verification
-          if (error.value.includes('not verified')) {
-            verificationStatus.value = 'pending';
-            localStorage.setItem('verification_status', 'pending');
+        if (err.response.data.errors) {
+          // Check for account ban or suspension first
+          if (err.response.data.errors.account) {
+            error.value = err.response.data.errors.account[0];
+            
+            // Prevent continuous retries for banned/suspended users
+            if (error.value.includes('banned') || error.value.includes('suspended')) {
+              localStorage.removeItem('token');
+              token.value = null;
+            }
+          }
+          // Then check email errors
+          else if (err.response.data.errors.email) {
+            error.value = err.response.data.errors.email[0];
+            
+            // Check if the error is about email verification
+            if (error.value.includes('not verified')) {
+              verificationStatus.value = 'pending';
+              localStorage.setItem('verification_status', 'pending');
+            }
+          }
+          // Handle any other validation errors
+          else {
+            const firstError = Object.values(err.response.data.errors)[0];
+            error.value = Array.isArray(firstError) ? firstError[0] : firstError;
           }
         } else if (err.response.data.message) {
           error.value = err.response.data.message;

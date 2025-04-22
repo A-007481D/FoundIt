@@ -7,6 +7,7 @@ import RegisterView from '@/views/auth/RegisterView.vue';
 import ForgotPasswordView from '@/views/auth/ForgotPasswordView.vue';
 import ResetPasswordView from '@/views/auth/ResetPasswordView.vue';
 import VerifyEmailView from '@/views/auth/VerifyEmailView.vue';
+import ProfileView from '@/views/auth/ProfileView.vue';
 
 // Page views
 import LandingView from '@/views/pages/LandingView.vue';
@@ -68,6 +69,12 @@ const routes = [
         path: '/my-items',
         name: 'MyItems',
         component: MyItemsView,
+        meta: { requiresAuth: true }
+    },
+    {
+        path: '/profile',
+        name: 'Profile',
+        component: ProfileView,
         meta: { requiresAuth: true }
     },
     {
