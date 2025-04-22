@@ -19,7 +19,7 @@ class ReportController extends Controller
         $query = Report::with(['reporter', 'reportable']);
         
         // Apply search filter
-        if ($request->has('search')) {
+        if ($request->has('search') && $request->search !== '') {
             $search = $request->search;
             $query->where(function($q) use ($search) {
                 $q->where('reason', 'like', "%{$search}%")
@@ -28,7 +28,7 @@ class ReportController extends Controller
         }
         
         // Apply type filter
-        if ($request->has('type') && $request->type !== 'all') {
+        if ($request->has('type') && $request->type !== 'all' && $request->type !== '') {
             if ($request->type === 'user') {
                 $query->where('reportable_type', User::class);
             } elseif ($request->type === 'item') {
@@ -37,7 +37,7 @@ class ReportController extends Controller
         }
         
         // Apply status filter
-        if ($request->has('status') && $request->status !== 'all') {
+        if ($request->has('status') && $request->status !== 'all' && $request->status !== '') {
             $query->where('status', $request->status);
         }
         
@@ -63,7 +63,9 @@ class ReportController extends Controller
                 $report->subject = [
                     'id' => $subject->id,
                     'title' => $subject->title,
-                    'image' => $subject->image
+                    'image' => $subject->image,
+                    'status' => $subject->status,
+                    'visible' => $subject->visible
                 ];
             }
             
@@ -153,6 +155,15 @@ class ReportController extends Controller
         $report->status = 'resolved';
         $report->resolution = $request->resolution;
         $report->save();
+        
+        // If this is an item report, make the item visible again but keep the reported status
+        if ($report->reportable_type === Item::class) {
+            $item = Item::find($report->reportable_id);
+            if ($item) {
+                $item->visible = true; // Make item visible again
+                $item->save();
+            }
+        }
 
         return response()->json([
             'message' => 'Report resolved successfully',
@@ -177,6 +188,15 @@ class ReportController extends Controller
         $report->status = 'dismissed';
         $report->resolution = $request->resolution;
         $report->save();
+        
+        // If this is an item report, make the item visible again but keep the reported status
+        if ($report->reportable_type === Item::class) {
+            $item = Item::find($report->reportable_id);
+            if ($item) {
+                $item->visible = true; // Make item visible again
+                $item->save();
+            }
+        }
 
         return response()->json([
             'message' => 'Report dismissed successfully',
@@ -224,9 +244,10 @@ class ReportController extends Controller
         $report->reportable_type = $reportableType;
         $report->save();
 
-        // If it's an item report, update the item status
+        // If it's an item report, update the item status and hide it
         if ($request->reportable_type === 'item') {
             $reportable->status = 'reported';
+            $reportable->visible = false; // Hide the item until the report is resolved
             $reportable->save();
         }
 
