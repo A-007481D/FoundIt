@@ -10,7 +10,6 @@ const axiosInstance = axios.create({
   }
 });
 
-// Add interceptor to add the JWT token to requests
 axiosInstance.interceptors.request.use(
     config => {
       const token = localStorage.getItem('token');
@@ -22,33 +21,34 @@ axiosInstance.interceptors.request.use(
     error => Promise.reject(error)
 );
 
-// Add interceptor to handle token expiration
 axiosInstance.interceptors.response.use(
     response => response,
     async error => {
       const originalRequest = error.config;
 
-      // If the error is due to an expired token (401) and we haven't already tried to refresh
+      if (error.response && error.response.data && error.response.data.errors && error.response.data.errors.account) {
+        const accountError = error.response.data.errors.account[0];
+        if (accountError.includes('banned') || accountError.includes('suspended')) {
+          localStorage.removeItem('token');
+          localStorage.removeItem('user');
+          return Promise.reject(error);
+        }
+      }
       if (error.response && error.response.status === 401 && !originalRequest._retry) {
         originalRequest._retry = true;
 
         try {
-          // Try to refresh the token
           const refreshResponse = await axiosInstance.post('/auth/refresh');
           const newToken = refreshResponse.data.token;
 
           if (newToken) {
-            // Store the new token
             localStorage.setItem('token', newToken);
 
-            // Update the Authorization header
             originalRequest.headers['Authorization'] = `Bearer ${newToken}`;
 
-            // Retry the original request
             return axiosInstance(originalRequest);
           }
         } catch (refreshError) {
-          // If refresh fails, clear auth data and redirect to login
           localStorage.removeItem('token');
           localStorage.removeItem('user');
           window.location.href = '/login';
