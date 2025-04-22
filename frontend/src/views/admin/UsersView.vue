@@ -37,8 +37,13 @@
       </div>
     </div>
 
+    <!-- Loading indicator -->
+    <div v-if="loading" class="flex justify-center items-center py-8">
+      <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+    </div>
+
     <!-- Users Table -->
-    <div class="bg-white rounded-lg shadow overflow-hidden">
+    <div v-else class="bg-white rounded-lg shadow overflow-hidden">
       <table class="min-w-full divide-y divide-gray-200">
         <thead class="bg-gray-50">
           <tr>
@@ -63,7 +68,7 @@
           </tr>
         </thead>
         <tbody class="bg-white divide-y divide-gray-200">
-          <tr v-for="user in filteredUsers" :key="user.id" class="hover:bg-gray-50">
+          <tr v-for="user in users" :key="user.id" class="hover:bg-gray-50">
             <td class="px-6 py-4 whitespace-nowrap">
               <div class="flex items-center">
                 <div class="h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center text-gray-600 mr-3">
@@ -110,10 +115,13 @@
                 <button v-if="user.status !== 'banned'" @click="confirmBanUser(user)" class="text-red-600 hover:text-red-900">
                   Ban
                 </button>
+                <button v-if="user.status === 'banned'" @click="confirmUnbanUser(user)" class="text-green-600 hover:text-green-900">
+                  Unban
+                </button>
               </div>
             </td>
           </tr>
-          <tr v-if="filteredUsers.length === 0">
+          <tr v-if="users.length === 0">
             <td colspan="6" class="px-6 py-4 text-center text-gray-500">
               No users found matching your criteria.
             </td>
@@ -215,65 +223,110 @@
         </div>
       </div>
     </div>
+
+    <!-- Suspension Dialog -->
+    <div v-if="showSuspensionDialog" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div class="bg-white rounded-lg shadow-xl max-w-md w-full p-6">
+        <div class="flex justify-between items-center mb-4">
+          <h3 class="text-lg font-medium">Suspend User</h3>
+          <button @click="showSuspensionDialog = false" class="text-gray-500 hover:text-gray-700">
+            <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+        
+        <div v-if="userToSuspend" class="space-y-4">
+          <p>You are about to suspend <strong>{{ userToSuspend.firstname }} {{ userToSuspend.lastname }}</strong>.</p>
+          
+          <div>
+            <label class="block text-sm font-medium text-gray-700">Suspension Length (Days)</label>
+            <input 
+              type="number" 
+              v-model="suspensionDays" 
+              min="1" 
+              max="365" 
+              class="mt-1 block w-full border rounded-md px-3 py-2 focus:ring-primary focus:border-primary"
+            />
+          </div>
+          
+          <div>
+            <label class="block text-sm font-medium text-gray-700">Reason (Optional)</label>
+            <textarea 
+              v-model="suspensionReason" 
+              rows="3"
+              class="mt-1 block w-full border rounded-md px-3 py-2 focus:ring-primary focus:border-primary"
+              placeholder="Explain why this user is being suspended..."
+            ></textarea>
+          </div>
+          
+          <div class="flex justify-end space-x-3 mt-6">
+            <button @click="showSuspensionDialog = false" class="px-4 py-2 border rounded-md hover:bg-gray-50">
+              Cancel
+            </button>
+            <button @click="submitSuspension" class="px-4 py-2 bg-yellow-600 text-white rounded-md hover:bg-yellow-700">
+              Suspend User
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Ban Dialog -->
+    <div v-if="showBanDialog" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div class="bg-white rounded-lg shadow-xl max-w-md w-full p-6">
+        <div class="flex justify-between items-center mb-4">
+          <h3 class="text-lg font-medium">Ban User</h3>
+          <button @click="showBanDialog = false" class="text-gray-500 hover:text-gray-700">
+            <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+        
+        <div v-if="userToBan" class="space-y-4">
+          <p class="text-red-600 font-medium">Warning: This action is permanent!</p>
+          <p>You are about to ban <strong>{{ userToBan.firstname }} {{ userToBan.lastname }}</strong> from the platform.</p>
+          
+          <div>
+            <label class="block text-sm font-medium text-gray-700">Reason (Optional)</label>
+            <textarea 
+              v-model="banReason" 
+              rows="3"
+              class="mt-1 block w-full border rounded-md px-3 py-2 focus:ring-primary focus:border-primary"
+              placeholder="Explain why this user is being banned..."
+            ></textarea>
+          </div>
+          
+          <div class="flex justify-end space-x-3 mt-6">
+            <button @click="showBanDialog = false" class="px-4 py-2 border rounded-md hover:bg-gray-50">
+              Cancel
+            </button>
+            <button @click="submitBan" class="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700">
+              Ban User
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
 <script setup>
 import { ref, computed, onMounted } from 'vue';
+import adminUserService from '@/services/admin.user.service';
+import { toast } from 'vue3-toastify';
 
-// Mock users data - replace with API calls in production
-const users = ref([
-  {
-    id: 1,
-    firstname: 'John',
-    lastname: 'Doe',
-    email: 'john@example.com',
-    email_verified_at: '2025-01-15T10:00:00',
-    role: 'admin',
-    status: 'active',
-    created_at: '2025-01-01T10:00:00'
-  },
-  {
-    id: 2,
-    firstname: 'Jane',
-    lastname: 'Smith',
-    email: 'jane@example.com',
-    email_verified_at: '2025-01-16T10:00:00',
-    role: 'user',
-    status: 'active',
-    created_at: '2025-01-02T10:00:00'
-  },
-  {
-    id: 3,
-    firstname: 'Robert',
-    lastname: 'Johnson',
-    email: 'robert@example.com',
-    email_verified_at: null,
-    role: 'user',
-    status: 'suspended',
-    created_at: '2025-01-03T10:00:00'
-  },
-  {
-    id: 4,
-    firstname: 'Emily',
-    lastname: 'Williams',
-    email: 'emily@example.com',
-    email_verified_at: '2025-01-18T10:00:00',
-    role: 'user',
-    status: 'banned',
-    created_at: '2025-01-04T10:00:00'
-  }
-]);
+// Users data
+const users = ref([]);
+const loading = ref(false);
+const totalUsers = ref(0);
 
 // Pagination
 const itemsPerPage = 10;
 const currentPage = ref(1);
-const totalUsers = computed(() => filteredUsers.value.length);
 const startIndex = computed(() => (currentPage.value - 1) * itemsPerPage);
 const endIndex = computed(() => Math.min(startIndex.value + itemsPerPage, totalUsers.value));
-const paginatedUsers = computed(() => {
-  return filteredUsers.value.slice(startIndex.value, endIndex.value);
-});
 
 // Filtering
 const searchQuery = ref('');
@@ -298,9 +351,46 @@ const filteredUsers = computed(() => {
   });
 });
 
+// Fetch users from API
+const fetchUsers = async () => {
+  try {
+    loading.value = true;
+    const response = await adminUserService.getUsers({
+      search: searchQuery.value,
+      role: roleFilter.value,
+      status: statusFilter.value,
+      page: currentPage.value,
+      per_page: itemsPerPage
+    });
+    
+    console.log('API Response:', response.data);
+    
+    // Handle the data based on the API response structure
+    if (response.data.data) {
+      // Laravel pagination response structure
+      users.value = response.data.data || [];
+      totalUsers.value = response.data.total || 0;
+      currentPage.value = response.data.current_page || 1;
+    } else {
+      // Simple array response
+      users.value = response.data || [];
+      totalUsers.value = response.data.length || 0;
+      currentPage.value = 1;
+    }
+    
+    loading.value = false;
+  } catch (error) {
+    console.error('Error fetching users:', error);
+    toast.error('Failed to load users');
+    loading.value = false;
+    users.value = [];
+  }
+};
+
 // Modal state
 const showUserModal = ref(false);
 const editingUser = ref({});
+const currentUser = ref({});
 const showConfirmModal = ref(false);
 const confirmTitle = ref('');
 const confirmMessage = ref('');
@@ -308,39 +398,65 @@ const confirmButtonText = ref('');
 const confirmButtonClass = ref('');
 const confirmCallback = ref(null);
 
+// Suspension dialog
+const showSuspensionDialog = ref(false);
+const userToSuspend = ref(null);
+const suspensionDays = ref(7);
+const suspensionReason = ref('');
+
+// Ban dialog
+const showBanDialog = ref(false);
+const userToBan = ref(null);
+const banReason = ref('');
+
 // Methods
 const handleSearch = () => {
   currentPage.value = 1; // Reset to first page on search
+  fetchUsers();
 };
 
 const filterUsers = () => {
   currentPage.value = 1; // Reset to first page on filter change
+  fetchUsers();
 };
 
 const prevPage = () => {
   if (currentPage.value > 1) {
     currentPage.value--;
+    fetchUsers();
   }
 };
 
 const nextPage = () => {
   if (endIndex.value < totalUsers.value) {
     currentPage.value++;
+    fetchUsers();
   }
 };
 
 const openUserModal = (user) => {
+  currentUser.value = { ...user }; // Store original for comparison
   editingUser.value = { ...user };
   showUserModal.value = true;
 };
 
 const saveUser = async () => {
-  // In a real app, you would call an API to update the user
-  const index = users.value.findIndex(u => u.id === editingUser.value.id);
-  if (index !== -1) {
-    users.value[index] = { ...editingUser.value };
+  try {
+    // Save changes to role and status
+    if (editingUser.value.role !== currentUser.value.role) {
+      await adminUserService.updateRole(editingUser.value.id, editingUser.value.role);
+    }
+    
+    if (editingUser.value.status !== currentUser.value.status) {
+      await adminUserService.updateStatus(editingUser.value.id, editingUser.value.status);
+    }
+    
+    toast.success('User updated successfully');
+    showUserModal.value = false;
+    fetchUsers(); // Refresh the list
+  } catch (error) {
+    toast.error('Failed to update user: ' + (error.response?.data?.message || error.message));
   }
-  showUserModal.value = false;
 };
 
 const confirmSuspendUser = (user) => {
@@ -370,6 +486,15 @@ const confirmBanUser = (user) => {
   showConfirmModal.value = true;
 };
 
+const confirmUnbanUser = (user) => {
+  confirmTitle.value = 'Unban User';
+  confirmMessage.value = `Are you sure you want to unban ${user.firstname} ${user.lastname}? This will allow them to access the platform again.`;
+  confirmButtonText.value = 'Unban';
+  confirmButtonClass.value = 'px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700';
+  confirmCallback.value = () => unbanUser(user);
+  showConfirmModal.value = true;
+};
+
 const confirmAction = () => {
   if (confirmCallback.value) {
     confirmCallback.value();
@@ -377,27 +502,43 @@ const confirmAction = () => {
   showConfirmModal.value = false;
 };
 
-const suspendUser = (user) => {
-  // In a real app, you would call an API to suspend the user
-  const index = users.value.findIndex(u => u.id === user.id);
-  if (index !== -1) {
-    users.value[index] = { ...user, status: 'suspended' };
+const suspendUser = async (user) => {
+  try {
+    // Show suspension dialog
+    showSuspensionDialog.value = true;
+    userToSuspend.value = user;
+  } catch (error) {
+    toast.error('Failed to prepare suspension: ' + (error.response?.data?.message || error.message));
   }
 };
 
-const reactivateUser = (user) => {
-  // In a real app, you would call an API to reactivate the user
-  const index = users.value.findIndex(u => u.id === user.id);
-  if (index !== -1) {
-    users.value[index] = { ...user, status: 'active' };
+const reactivateUser = async (user) => {
+  try {
+    await adminUserService.activateUser(user.id);
+    toast.success(`${user.firstname} ${user.lastname} has been reactivated`);
+    fetchUsers();
+  } catch (error) {
+    toast.error('Failed to reactivate user: ' + (error.response?.data?.message || error.message));
   }
 };
 
-const banUser = (user) => {
-  // In a real app, you would call an API to ban the user
-  const index = users.value.findIndex(u => u.id === user.id);
-  if (index !== -1) {
-    users.value[index] = { ...user, status: 'banned' };
+const banUser = async (user) => {
+  try {
+    // Show ban dialog
+    showBanDialog.value = true;
+    userToBan.value = user;
+  } catch (error) {
+    toast.error('Failed to prepare ban: ' + (error.response?.data?.message || error.message));
+  }
+};
+
+const unbanUser = async (user) => {
+  try {
+    await adminUserService.unbanUser(user.id);
+    toast.success(`${user.firstname} ${user.lastname} has been unbanned`);
+    fetchUsers();
+  } catch (error) {
+    toast.error('Failed to unban user: ' + (error.response?.data?.message || error.message));
   }
 };
 
@@ -423,9 +564,48 @@ const formatDate = (dateString) => {
   return date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
 };
 
+// Submit suspension
+const submitSuspension = async () => {
+  if (!userToSuspend.value) return;
+  
+  try {
+    await adminUserService.suspendUser(
+      userToSuspend.value.id, 
+      suspensionDays.value, 
+      suspensionReason.value
+    );
+    
+    toast.success(`${userToSuspend.value.firstname} ${userToSuspend.value.lastname} has been suspended for ${suspensionDays.value} days`);
+    showSuspensionDialog.value = false;
+    suspensionDays.value = 7;
+    suspensionReason.value = '';
+    fetchUsers();
+  } catch (error) {
+    toast.error('Failed to suspend user: ' + (error.response?.data?.message || error.message));
+  }
+};
+
+// Submit ban
+const submitBan = async () => {
+  if (!userToBan.value) return;
+  
+  try {
+    await adminUserService.banUser(
+      userToBan.value.id, 
+      banReason.value
+    );
+    
+    toast.success(`${userToBan.value.firstname} ${userToBan.value.lastname} has been banned`);
+    showBanDialog.value = false;
+    banReason.value = '';
+    fetchUsers();
+  } catch (error) {
+    toast.error('Failed to ban user: ' + (error.response?.data?.message || error.message));
+  }
+};
+
 // Load users on component mount
 onMounted(() => {
-  // In a real app, you would fetch users from an API
-  // fetchUsers();
+  fetchUsers();
 });
 </script>
