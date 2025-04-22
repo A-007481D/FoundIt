@@ -60,7 +60,7 @@ axiosInstance.interceptors.response.use(
     }
 );
 
-export const authService = {
+const authService = {
   async register(userData) {
     const response = await axiosInstance.post('/auth/register', userData);
     return response.data;
@@ -121,5 +121,16 @@ export const authService = {
   hasVerifiedEmail() {
     const user = this.getAuthUser();
     return user && user.email_verified_at;
+  },
+
+  updateStoredUser(userData) {
+    // Keep the existing user and only update provided fields
+    const currentUser = this.getAuthUser() || {};
+    const updatedUser = { ...currentUser, ...userData };
+    localStorage.setItem('user', JSON.stringify(updatedUser));
+    return updatedUser;
   }
 };
+
+export { authService };
+export default authService;
