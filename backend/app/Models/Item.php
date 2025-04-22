@@ -20,6 +20,7 @@ class Item extends Model
         'description',
         'type',
         'status',
+        'visible',
         'location',
         'image',
         'user_id',
@@ -36,6 +37,7 @@ class Item extends Model
     protected $casts = [
         'found_date' => 'datetime',
         'lost_date' => 'datetime',
+        'visible' => 'boolean',
     ];
 
     /**
