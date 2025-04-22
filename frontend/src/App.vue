@@ -1,14 +1,17 @@
 <template>
     <div class="app-container">
-        <!-- Always show navbar, the component will handle different states -->
         <NavbarView />
         
         <!-- Use transition for smooth page changes -->
-        <router-view v-slot="{ Component }">
-            <transition name="fade" mode="out-in">
-                <component :is="Component" :key="$route.fullPath" />
-            </transition>
-        </router-view>
+        <main class="flex-1">
+            <router-view v-slot="{ Component }">
+                <transition name="page" mode="out-in">
+                    <div class="page-wrapper" :key="$route.fullPath">
+                        <component :is="Component" />
+                    </div>
+                </transition>
+            </router-view>
+        </main>
     </div>
 </template>
 
@@ -33,14 +36,13 @@ const currentPath = computed(() => route.fullPath);
     flex-direction: column;
 }
 
-/* Transition effects */
-.fade-enter-active,
-.fade-leave-active {
-    transition: opacity 0.15s ease;
+main {
+    flex: 1;
 }
 
-.fade-enter-from,
-.fade-leave-to {
-    opacity: 0;
+.page-wrapper {
+    display: contents; /* This makes the div not affect layout */
 }
+
+/* We're now using the external transition.css file for transitions */
 </style>
