@@ -34,11 +34,23 @@
           <option value="archived">Archived</option>
           <option value="reported">Reported</option>
         </select>
+        <select 
+          v-model="visibilityFilter" 
+          class="border rounded-md px-3 py-2 focus:ring-2 focus:ring-primary focus:border-primary"
+          @change="filterItems"
+        >
+          <option value="all">All Visibility</option>
+          <option value="visible">Visible</option>
+          <option value="hidden">Hidden</option>
+        </select>
       </div>
     </div>
 
-    <!-- Items Table -->
-    <div class="bg-white rounded-lg shadow overflow-hidden">
+    <div v-if="loading" class="flex justify-center items-center py-8">
+      <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+    </div>
+
+    <div v-else class="bg-white rounded-lg shadow overflow-hidden">
       <table class="min-w-full divide-y divide-gray-200">
         <thead class="bg-gray-50">
           <tr>
@@ -63,7 +75,7 @@
           </tr>
         </thead>
         <tbody class="bg-white divide-y divide-gray-200">
-          <tr v-for="item in paginatedItems" :key="item.id" class="hover:bg-gray-50">
+          <tr v-for="item in items" :key="item.id" class="hover:bg-gray-50">
             <td class="px-6 py-4 whitespace-nowrap">
               <div class="flex items-center">
                 <div class="h-10 w-10 flex-shrink-0">
@@ -82,10 +94,18 @@
               </span>
             </td>
             <td class="px-6 py-4 whitespace-nowrap">
+              <div class="space-y-1">
               <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full" 
                 :class="getStatusClass(item.status)">
                 {{ item.status }}
               </span>
+              <span v-if="item.visible" class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">
+                Visible
+              </span>
+              <span v-else class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-gray-100 text-gray-800">
+                Hidden
+              </span>
+            </div>
             </td>
             <td class="px-6 py-4 whitespace-nowrap">
               <div class="text-sm text-gray-900">{{ item.user.name }}</div>
@@ -111,7 +131,7 @@
               </div>
             </td>
           </tr>
-          <tr v-if="paginatedItems.length === 0">
+          <tr v-if="items.length === 0">
             <td colspan="6" class="px-6 py-4 text-center text-gray-500">
               No items found matching your criteria.
             </td>
@@ -120,7 +140,6 @@
       </table>
     </div>
 
-    <!-- Pagination -->
     <div class="flex justify-between items-center mt-4">
       <div class="text-sm text-gray-700">
         Showing <span class="font-medium">{{ startIndex + 1 }}</span> to <span class="font-medium">{{ endIndex }}</span> of <span class="font-medium">{{ totalItems }}</span> items
@@ -145,7 +164,6 @@
       </div>
     </div>
 
-    <!-- Item View Modal -->
     <div v-if="showItemModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
       <div class="bg-white rounded-lg shadow-xl max-w-3xl w-full p-6">
         <div class="flex justify-between items-center mb-4">
@@ -203,9 +221,20 @@
           <button @click="showItemModal = false" class="px-4 py-2 border rounded-md hover:bg-gray-50">
             Close
           </button>
-          <button v-if="currentItem.status === 'reported'" @click="approveItem(currentItem)" class="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700">
-            Approve Item
-          </button>
+          <div class="flex flex-col space-y-4">
+            <button 
+              v-if="currentItem.status === 'reported' && !currentItem.visible" 
+              @click="makeItemVisible(currentItem)" 
+              class="px-4 py-2 bg-green-600 hover:bg-green-700 text-white font-medium rounded-md">
+              Make Item Visible
+            </button>
+            <button 
+              v-if="currentItem.status === 'reported' && currentItem.visible" 
+              @click="makeItemHidden(currentItem)" 
+              class="px-4 py-2 bg-yellow-600 hover:bg-yellow-700 text-white font-medium rounded-md">
+              Hide Item
+            </button>
+          </div>
           <button v-if="currentItem.status === 'active'" @click="confirmArchiveItem(currentItem)" class="px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700">
             Archive
           </button>
@@ -216,7 +245,6 @@
       </div>
     </div>
 
-    <!-- Confirmation Modal -->
     <div v-if="showConfirmModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
       <div class="bg-white rounded-lg shadow-xl max-w-md w-full p-6">
         <div class="mb-4">
@@ -238,90 +266,66 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue';
+import adminItemService from '@/services/admin.item.service';
+import { toast } from 'vue3-toastify';
 
-// Mock items data - replace with API calls in production
-const items = ref([
-  {
-    id: 1,
-    title: 'MacBook Pro 16"',
-    description: 'Silver MacBook Pro with stickers on the lid. Last seen in the library.',
-    type: 'lost',
-    status: 'active',
-    location: 'University Library, 3rd Floor',
-    image: 'https://images.unsplash.com/photo-1517336714731-489689fd1ca8?ixlib=rb-1.2.1&auto=format&fit=crop&w=1000&q=80',
-    user: { id: 2, name: 'Jane Smith', email: 'jane@example.com' },
-    created_at: '2025-03-15T10:00:00'
-  },
-  {
-    id: 2,
-    title: 'iPhone 14 Pro',
-    description: 'Black iPhone with red case. Found near the cafeteria.',
-    type: 'found',
-    status: 'active',
-    location: 'Student Center Cafeteria',
-    image: 'https://images.unsplash.com/photo-1592286927505-1def25115611?ixlib=rb-1.2.1&auto=format&fit=crop&w=1000&q=80',
-    user: { id: 1, name: 'John Doe', email: 'john@example.com' },
-    created_at: '2025-03-16T14:30:00'
-  },
-  {
-    id: 3,
-    title: 'Car Keys with Red Keychain',
-    description: 'Set of car keys with a distinctive red keychain. Lost somewhere on campus.',
-    type: 'lost',
-    status: 'reported',
-    location: 'Campus Parking Lot B',
-    image: 'https://images.unsplash.com/photo-1581088387864-699a20fbb0fe?ixlib=rb-1.2.1&auto=format&fit=crop&w=1000&q=80',
-    user: { id: 3, name: 'Robert Johnson', email: 'robert@example.com' },
-    created_at: '2025-03-17T09:15:00',
-    report_reason: 'Suspicious listing - possible scam'
-  },
-  {
-    id: 4,
-    title: 'Blue Backpack',
-    description: 'Blue North Face backpack with textbooks inside.',
-    type: 'found',
-    status: 'archived',
-    location: 'Science Building, Room 302',
-    image: 'https://images.unsplash.com/photo-1553062407-98eeb64c6a62?ixlib=rb-1.2.1&auto=format&fit=crop&w=1000&q=80',
-    user: { id: 4, name: 'Emily Williams', email: 'emily@example.com' },
-    created_at: '2025-03-10T16:45:00'
-  }
-]);
+const items = ref([]);
+
+const loading = ref(false);
 
 // Pagination
 const itemsPerPage = 10;
 const currentPage = ref(1);
+const totalItems = ref(0);
+
+// Filters
 const searchQuery = ref('');
 const typeFilter = ref('all');
 const statusFilter = ref('all');
+const visibilityFilter = ref('all');
 
-// Filtered items
-const filteredItems = computed(() => {
-  return items.value.filter(item => {
-    // Apply search filter
-    const searchLower = searchQuery.value.toLowerCase();
-    const matchesSearch = searchQuery.value === '' || 
-      item.title.toLowerCase().includes(searchLower) ||
-      item.description.toLowerCase().includes(searchLower) ||
-      item.location.toLowerCase().includes(searchLower);
+// Fetch items from API
+const fetchItems = async () => {
+  try {
+    loading.value = true;
+    const response = await adminItemService.getItems({
+      search: searchQuery.value,
+      type: typeFilter.value,
+      status: statusFilter.value,
+      visibility: visibilityFilter.value,
+      page: currentPage.value,
+      per_page: itemsPerPage
+    });
     
-    // Apply type filter
-    const matchesType = typeFilter.value === 'all' || item.type === typeFilter.value;
+    console.log('API Response:', response.data);
     
-    // Apply status filter
-    const matchesStatus = statusFilter.value === 'all' || item.status === statusFilter.value;
+    // Handle the data based on the API response structure
+    if (response.data.data) {
+      // Laravel pagination response structure
+      items.value = response.data.data || [];
+      totalItems.value = response.data.total || 0;
+      currentPage.value = response.data.current_page || 1;
+    } else {
+      // Simple array response
+      items.value = response.data || [];
+      totalItems.value = response.data.length || 0;
+      currentPage.value = 1;
+    }
     
-    return matchesSearch && matchesType && matchesStatus;
-  });
-});
+    loading.value = false;
+  } catch (error) {
+    console.error('Error fetching items:', error);
+    toast.error('Failed to load items');
+    loading.value = false;
+    items.value = [];
+  }
+};
+
+// We don't need this local filtering anymore as we're using server-side filtering
 
 // Computed values for pagination
-const totalItems = computed(() => filteredItems.value.length);
 const startIndex = computed(() => (currentPage.value - 1) * itemsPerPage);
 const endIndex = computed(() => Math.min(startIndex.value + itemsPerPage, totalItems.value));
-const paginatedItems = computed(() => {
-  return filteredItems.value.slice(startIndex.value, endIndex.value);
-});
 
 // Modal state
 const showItemModal = ref(false);
@@ -336,21 +340,25 @@ const confirmCallback = ref(null);
 // Methods
 const handleSearch = () => {
   currentPage.value = 1; // Reset to first page on search
+  fetchItems();
 };
 
 const filterItems = () => {
   currentPage.value = 1; // Reset to first page on filter change
+  fetchItems();
 };
 
 const prevPage = () => {
   if (currentPage.value > 1) {
     currentPage.value--;
+    fetchItems();
   }
 };
 
 const nextPage = () => {
   if (endIndex.value < totalItems.value) {
     currentPage.value++;
+    fetchItems();
   }
 };
 
@@ -364,12 +372,37 @@ const reviewItem = (item) => {
   showItemModal.value = true;
 };
 
-const approveItem = (item) => {
-  // In a real app, you would call an API to approve the item
-  const index = items.value.findIndex(i => i.id === item.id);
-  if (index !== -1) {
-    items.value[index] = { ...item, status: 'active' };
-    currentItem.value = { ...items.value[index] };
+const makeItemVisible = async (item) => {
+  try {
+    const response = await adminItemService.updateVisibility(item.id, true);
+    toast.success('Item is now visible to users');
+    
+    // Update both visibility and status in the current view
+    if (response.data && response.data.item) {
+      currentItem.value = { ...response.data.item };
+    } else {
+      // If response doesn't include the updated item, update manually
+      currentItem.value = { 
+        ...currentItem.value, 
+        visible: true, 
+        status: 'active' // Status will change to active on the backend
+      };
+    }
+    
+    fetchItems();
+  } catch (error) {
+    toast.error('Failed to update item visibility: ' + (error.response?.data?.message || error.message));
+  }
+};
+
+const makeItemHidden = async (item) => {
+  try {
+    await adminItemService.updateVisibility(item.id, false);
+    toast.success('Item is now hidden from users');
+    currentItem.value = { ...currentItem.value, visible: false };
+    fetchItems();
+  } catch (error) {
+    toast.error('Failed to update item visibility: ' + (error.response?.data?.message || error.message));
   }
 };
 
@@ -400,19 +433,23 @@ const confirmAction = () => {
   showConfirmModal.value = false;
 };
 
-const archiveItem = (item) => {
-  // In a real app, you would call an API to archive the item
-  const index = items.value.findIndex(i => i.id === item.id);
-  if (index !== -1) {
-    items.value[index] = { ...item, status: 'archived' };
+const archiveItem = async (item) => {
+  try {
+    await adminItemService.archiveItem(item.id);
+    toast.success('Item archived successfully');
+    fetchItems();
+  } catch (error) {
+    toast.error('Failed to archive item: ' + (error.response?.data?.message || error.message));
   }
 };
 
-const deleteItem = (item) => {
-  // In a real app, you would call an API to delete the item
-  const index = items.value.findIndex(i => i.id === item.id);
-  if (index !== -1) {
-    items.value[index] = { ...item, status: 'deleted' };
+const deleteItem = async (item) => {
+  try {
+    await adminItemService.deleteItem(item.id);
+    toast.success('Item deleted successfully');
+    fetchItems();
+  } catch (error) {
+    toast.error('Failed to delete item: ' + (error.response?.data?.message || error.message));
   }
 };
 
@@ -434,7 +471,6 @@ const formatDate = (dateString) => {
 
 // Load items on component mount
 onMounted(() => {
-  // In a real app, you would fetch items from an API
-  // fetchItems();
+  fetchItems();
 });
 </script>
