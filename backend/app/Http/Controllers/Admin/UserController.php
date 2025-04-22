@@ -4,8 +4,10 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Models\Report;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
+use Carbon\Carbon;
 
 class UserController extends Controller
 {
@@ -114,5 +116,111 @@ class UserController extends Controller
         ];
 
         return response()->json($stats);
+    }
+
+    /**
+     * Ban a user
+     */
+    public function ban(Request $request, $id)
+    {
+        $validator = Validator::make($request->all(), [
+            'reason' => 'nullable|string|max:1000',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['errors' => $validator->errors()], 422);
+        }
+
+        $user = User::findOrFail($id);
+        $user->status = 'banned';
+        $user->banned_reason = $request->reason;
+        $user->banned_at = now();
+        $user->save();
+
+        // If this was from a report, resolve any pending reports against this user
+        if ($request->has('report_id')) {
+            $report = Report::find($request->report_id);
+            if ($report && $report->status === 'pending') {
+                $report->status = 'resolved';
+                $report->resolution = $request->reason ?? 'User was banned';
+                $report->save();
+            }
+        }
+
+        return response()->json([
+            'message' => 'User banned successfully',
+            'user' => $user
+        ]);
+    }
+
+    /**
+     * Suspend a user for a specific number of days
+     */
+    public function suspend(Request $request, $id)
+    {
+        $validator = Validator::make($request->all(), [
+            'days' => 'required|integer|min:1|max:365',
+            'reason' => 'nullable|string|max:1000',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['errors' => $validator->errors()], 422);
+        }
+
+        $user = User::findOrFail($id);
+        $user->status = 'suspended';
+        $user->suspended_reason = $request->reason;
+        $user->suspended_at = now();
+        $user->suspension_end = Carbon::now()->addDays($request->days);
+        $user->save();
+
+        // If this was from a report, resolve any pending reports against this user
+        if ($request->has('report_id')) {
+            $report = Report::find($request->report_id);
+            if ($report && $report->status === 'pending') {
+                $report->status = 'resolved';
+                $report->resolution = $request->reason ?? "User was suspended for {$request->days} days";
+                $report->save();
+            }
+        }
+
+        return response()->json([
+            'message' => "User suspended for {$request->days} days",
+            'user' => $user
+        ]);
+    }
+    
+    /**
+     * Unban a user
+     */
+    public function unban($id)
+    {
+        $user = User::findOrFail($id);
+        
+        if ($user->status !== 'banned') {
+            return response()->json(['message' => 'User is not banned'], 400);
+        }
+        
+        $user->status = 'active';
+        $user->banned_reason = null;
+        $user->banned_at = null;
+        $user->save();
+        
+        // If this was from a report, mark any pending reports against this user as dismissed
+        $reports = Report::where('reportable_type', 'user')
+            ->where('reportable_id', $user->id)
+            ->where('status', 'pending')
+            ->get();
+            
+        foreach ($reports as $report) {
+            $report->status = 'dismissed';
+            $report->resolution = 'User was unbanned';
+            $report->save();
+        }
+
+        return response()->json([
+            'message' => 'User unbanned successfully',
+            'user' => $user
+        ]);
     }
 }
