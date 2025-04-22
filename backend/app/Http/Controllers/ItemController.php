@@ -16,9 +16,8 @@ class ItemController extends Controller
      */
     public function index(Request $request)
     {
-        $query = Item::with(['user', 'category'])->where('status', 'active');
+        $query = Item::with(['user', 'category'])->where('status', 'active')->where('visible', true);
         
-        // Apply search filter
         if ($request->has('search')) {
             $search = $request->search;
             $query->where(function($q) use ($search) {
