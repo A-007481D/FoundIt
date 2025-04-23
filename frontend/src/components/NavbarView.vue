@@ -46,6 +46,21 @@
 
         <!-- Authenticated -->
         <template v-if="isAuthenticated">
+          <!-- Chat -->
+          <router-link 
+            to="/chat" 
+            class="relative h-9 w-9 rounded-full flex items-center justify-center hover:bg-muted/50 transition-colors text-primary"
+            :class="{ 'text-primary': route.path.startsWith('/chat') }"
+          >
+            <MessageSquare class="h-5 w-5" />
+            <span 
+              v-if="unreadMessagesCount > 0" 
+              class="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center"
+            >
+              {{ unreadMessagesCount }}
+            </span>
+          </router-link>
+
           <!-- Notifications dropdown -->
           <div class="relative" ref="notifDropdownRef">
             <button @click="toggleNotif" class="relative h-9 w-9 rounded-full flex items-center justify-center hover:bg-muted/50 transition-colors">
@@ -158,29 +173,34 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onUnmounted, nextTick } from 'vue'
-import { useAuthStore } from '@/stores/auth.store'
+import { ref, computed, onMounted, onBeforeUnmount, nextTick } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
-import { MapPin, User, Bell as BellIcon, Menu as MenuIcon } from 'lucide-vue-next'
+import { useAuthStore } from '@/stores/auth.store'
+import { useChatStore } from '@/stores/chat.store'
+import { MapPin, User, Bell as BellIcon, Menu as MenuIcon, MessageSquare } from 'lucide-vue-next'
 
-// reactive toggles
+// stores
+const authStore = useAuthStore()
+const chatStore = useChatStore()
+
+// state
 const showMobile = ref(false)
 const showNotif = ref(false)
 const showDropdown = ref(false)
 const search = ref('')
-
-// refs for click outside handling
-const dropdownRef = ref(null)
 const notifDropdownRef = ref(null)
+const dropdownRef = ref(null)
 
 // router hooks
 const router = useRouter()
 const route = useRoute()
 
-// auth store
-const authStore = useAuthStore()
-
-// nav items - different for authenticated vs unauthenticated users
+// computed properties
+const isAuthenticated = computed(() => authStore.isAuthenticated)
+const user = computed(() => authStore.user)
+const isAdmin = computed(() => authStore.isAdmin)
+const showNavLinks = computed(() => isAuthenticated.value || route.path === '/')
+const showSearch = computed(() => isAuthenticated.value || route.path === '/')
 const navItems = computed(() => {
   if (isAuthenticated.value) {
     return [
@@ -195,28 +215,6 @@ const navItems = computed(() => {
       { name: 'FAQ', to: '/#faq' },
     ];
   }
-})
-
-// computed properties
-const isAuthenticated = computed(() => {
-  return !!authStore.token && !!authStore.user
-})
-
-// Check if user is admin
-const isAdmin = computed(() => {
-  return authStore.isAdmin
-})
-
-// Determine if we should show navigation links
-const showNavLinks = computed(() => {
-  // Hide nav links on login and register pages
-  return !['Login', 'Register', 'ForgotPassword', 'ResetPassword'].includes(route.name);
-})
-
-// Determine if we should show search
-const showSearch = computed(() => {
-  // Show search when authenticated or on landing page
-  return isAuthenticated.value || route.path === '/' || route.path === '/home';
 })
 
 const unreadCount = computed(() => {
@@ -249,6 +247,10 @@ const userInitials = computed(() => {
   }
   
   return '?'
+})
+
+const unreadMessagesCount = computed(() => {
+  return chatStore.conversations.reduce((total, conv) => total + conv.unread_count, 0)
 })
 
 // actions
@@ -288,13 +290,16 @@ const handleClickOutside = (event) => {
   }
 }
 
-// Add event listener when component is mounted
-onMounted(() => {
+// lifecycle hooks
+onMounted(async () => {
+  if (isAuthenticated.value) {
+    await chatStore.fetchConversations()
+  }
+  
   document.addEventListener('click', handleClickOutside)
 })
 
-// Remove event listener when component is unmounted
-onUnmounted(() => {
+onBeforeUnmount(() => {
   document.removeEventListener('click', handleClickOutside)
 })
 </script>
