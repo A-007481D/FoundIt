@@ -1,11 +1,15 @@
 <template>
     <div class="app-container">
-        <!-- Always show navbar, the component will handle different states -->
         <NavbarView />
         
-        <!-- Simple routing without transitions to prevent blank page issues -->
         <main class="flex-1">
-            <router-view></router-view>
+            <router-view v-slot="{ Component }">
+                <transition name="page" mode="out-in">
+                    <div class="page-wrapper" :key="$route.fullPath">
+                        <component :is="Component" />
+                    </div>
+                </transition>
+            </router-view>
         </main>
     </div>
 </template>
@@ -33,10 +37,6 @@ const currentPath = computed(() => route.fullPath);
 
 main {
     flex: 1;
-}
-
-.page-wrapper {
-    display: contents; /* This makes the div not affect layout */
 }
 
 /* We're now using the external transition.css file for transitions */
