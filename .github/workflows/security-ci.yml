@@ -31,14 +31,14 @@ jobs:
 
   container-scan:
     name: Container CVE Scan
-    runs-on: ubuntu-latest
     needs: terraform-scan
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - name: Build Docker image
         run: docker build -t foundit-backend:latest ./backend
       - name: Trivy CVE scan
-        uses: aquasecurity/trivy-action@v0.30.0
+        uses: aquasecurity/trivy-action@0.30.0    # ← correct tag (no “v”) 
         with:
           image-ref: foundit-backend:latest
           format: table
