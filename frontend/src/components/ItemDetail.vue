@@ -287,8 +287,14 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue';
 import { useAuthStore } from '@/stores/auth.store';
+import { useChatStore } from '@/stores/chat.store';
+import { useRouter } from 'vue-router';
 import { format } from 'date-fns';
 import itemService from '@/services/item.service';
+
+const router = useRouter();
+const authStore = useAuthStore();
+const chatStore = useChatStore();
 
 const props = defineProps({
   itemId: {
@@ -300,7 +306,6 @@ const props = defineProps({
 const emit = defineEmits(['close', 'edit', 'update']);
 
 // State
-const authStore = useAuthStore();
 const item = ref(null);
 const loading = ref(true);
 const error = ref(null);
@@ -381,9 +386,16 @@ const getStatusClass = (status) => {
 };
 
 // Contact owner
-const contactOwner = () => {
-  // In a real app, this would open a messaging interface or show contact info
-  alert(`Contact functionality would be implemented here. You would be able to message ${item.value.user.firstname} about this item.`);
+const contactOwner = async () => {
+  try {
+    // Create or get existing conversation
+    const conversationId = await chatStore.createConversation(item.value.user.id);
+    // Navigate to chat with this conversation open
+    router.push(`/chat/${conversationId}`);
+  } catch (error) {
+    console.error('Error starting conversation:', error);
+    alert('Failed to start conversation. Please try again later.');
+  }
 };
 
 // Submit report

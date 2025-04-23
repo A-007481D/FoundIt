@@ -14,6 +14,7 @@ import LandingView from '@/views/pages/LandingView.vue';
 import DiscoverView from "@/views/pages/DiscoverView.vue";
 import MatchesView from "@/views/pages/MatchesView.vue";
 import MyItemsView from "@/views/pages/MyItemsView.vue";
+import ChatView from "@/views/chat/ChatView.vue";
 
 // Admin views
 import AdminLayout from '@/views/admin/AdminLayout.vue';
@@ -54,6 +55,12 @@ const routes = [
         meta: { guest: true }
     },
     {
+        path: '/',
+        name: 'Landing',
+        component: LandingView,
+        meta: { guest: true }
+    },
+    {
         path: '/discover',
         name: 'Discover',
         component: DiscoverView,
@@ -78,46 +85,35 @@ const routes = [
         meta: { requiresAuth: true }
     },
     {
-        path: '/',
-        name: 'Home',
-        component: LandingView,
-        meta: { guest: true }
+        path: '/chat/:conversationId?',
+        name: 'Chat',
+        component: ChatView,
+        meta: { requiresAuth: true }
     },
-    {
-        path: '/home',
-        name: 'HomePage',
-        component: LandingView,
-        meta: { guest: true }
-    },
-    // Admin routes
     {
         path: '/admin',
         component: AdminLayout,
-        meta: { requiresAuth: true, adminOnly: true },
+        meta: { requiresAuth: true, requiresAdmin: true },
         children: [
             {
                 path: '',
                 name: 'AdminDashboard',
-                component: AdminDashboard,
-                meta: { requiresAuth: true, adminOnly: true }
+                component: AdminDashboard
             },
             {
                 path: 'users',
                 name: 'AdminUsers',
-                component: AdminUsers,
-                meta: { requiresAuth: true, adminOnly: true }
+                component: AdminUsers
             },
             {
                 path: 'items',
                 name: 'AdminItems',
-                component: AdminItems,
-                meta: { requiresAuth: true, adminOnly: true }
+                component: AdminItems
             },
             {
                 path: 'reports',
                 name: 'AdminReports',
-                component: AdminReports,
-                meta: { requiresAuth: true, adminOnly: true }
+                component: AdminReports
             }
         ]
     },

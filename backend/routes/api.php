@@ -4,6 +4,9 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\ChatController;
+use App\Http\Controllers\MessageReportController;
+use App\Http\Controllers\MessageNotificationController;
 
 /*
 |--------------------------------------------------------------------------
@@ -40,6 +43,24 @@ Route::middleware(['auth:api', 'verified'])->group(function () {
     Route::post('/auth/logout', [AuthController::class, 'logout']);
     Route::post('/auth/refresh', [AuthController::class, 'refresh']);
     Route::get('/auth/user', [AuthController::class, 'getAuthUser']);
+
+    // Chat routes
+    Route::prefix('chat')->group(function () {
+        Route::get('/conversations', [ChatController::class, 'getConversations']);
+        Route::post('/conversations', [ChatController::class, 'createConversation']);
+        Route::get('/conversations/{conversationId}/messages', [ChatController::class, 'getMessages']);
+        Route::post('/conversations/{conversationId}/messages', [ChatController::class, 'sendMessage']);
+    });
+
+    // Message reports
+    Route::post('/messages/{messageId}/report', [MessageReportController::class, 'report']);
+
+    // Message notifications
+    Route::prefix('notifications')->group(function () {
+        Route::get('/', [MessageNotificationController::class, 'index']);
+        Route::post('/{notificationId}/read', [MessageNotificationController::class, 'markAsRead']);
+        Route::post('/read-all', [MessageNotificationController::class, 'markAllAsRead']);
+    });
 
     // Item routes for all authenticated users
     Route::prefix('items')->group(function () {

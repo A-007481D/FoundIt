@@ -11,6 +11,27 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:14
+        env:
+          POSTGRES_USER: root
+          POSTGRES_PASSWORD: root
+          POSTGRES_DB: foundit_tests
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U root"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    env:
+      DB_CONNECTION: pgsql
+      DB_HOST: 127.0.0.1
+      DB_PORT: 5432
+      DB_DATABASE: foundit_tests
+      DB_USERNAME: root
+      DB_PASSWORD: root
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -18,7 +39,7 @@ jobs:
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
         with:
-          php-version: '8.1'
+          php-version: '8.2'
           extensions: mbstring, bcmath, xml, curl
 
       - name: Validate composer.json
@@ -33,6 +54,21 @@ jobs:
         run: cp .env.example .env
         working-directory: backend
 
+      - name: Setup testing environment
+        run: |
+          cp .env.example .env.testing
+          echo "DB_CONNECTION=pgsql" >> .env.testing
+          echo "DB_HOST=127.0.0.1" >> .env.testing
+          echo "DB_PORT=5432" >> .env.testing
+          echo "DB_DATABASE=foundit_tests" >> .env.testing
+          echo "DB_USERNAME=root" >> .env.testing
+          echo "DB_PASSWORD=root" >> .env.testing
+        working-directory: backend
+
+      - name: Generate testing app key
+        run: php artisan key:generate --env=testing --ansi
+        working-directory: backend
+
       - name: Generate app key
         run: php artisan key:generate --ansi
         working-directory: backend
@@ -42,5 +78,5 @@ jobs:
         working-directory: backend
 
       - name: Run tests
-        run: php artisan test --env=testing --no-interaction --verbose
+        run: php artisan test --env=testing
         working-directory: backend
