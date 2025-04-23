@@ -44,4 +44,3 @@ class Message extends Model
         return $this->hasMany(MessageNotification::class);
     }
 }
-
