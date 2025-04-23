@@ -20,7 +20,7 @@ jobs:
         uses: hashicorp/setup-terraform@v2
         with:
           terraform_version: '1.5.0'
-      - name: Check Terraform formatting
+      - name: Terraform fmt check
         run: terraform fmt -check -diff
       - name: tfsec scan
         uses: aquasecurity/tfsec-action@v1.0.3
@@ -31,14 +31,14 @@ jobs:
 
   container-scan:
     name: Container CVE Scan
-    needs: terraform-scan
     runs-on: ubuntu-latest
+    needs: terraform-scan
     steps:
       - uses: actions/checkout@v4
       - name: Build Docker image
         run: docker build -t foundit-backend:latest ./backend
       - name: Trivy CVE scan
-        uses: aquasecurity/trivy-action@v0.9.0
+        uses: aquasecurity/trivy-action@v0.30.0
         with:
           image-ref: foundit-backend:latest
           format: table
