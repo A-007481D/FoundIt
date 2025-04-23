@@ -1,9 +1,14 @@
+permissions:
+  actions: read
+  contents: read
+  security-events: write
+
 name: Security & IaC Scan
 on:
   push:
-    branches: [ main ]
+    branches: [ ci-test ]
   pull_request:
-    branches: [ main ]
+    branches: [ ci-test ]
 
 jobs:
   terraform-scan:
@@ -15,19 +20,19 @@ jobs:
         uses: hashicorp/setup-terraform@v2
         with:
           terraform_version: '1.5.0'
-      - name: terraform fmt check
+      - name: Check Terraform formatting
         run: terraform fmt -check -diff
       - name: tfsec scan
-        uses: aquasecurity/tfsec-action@v1
+        uses: aquasecurity/tfsec-action@v1.0.3
         with:
           version: latest
-      - name: tflint
-        uses: terraform-linters/tflint-action@v1
+      - name: TFLint
+        uses: terraform-linters/setup-tflint@v1
 
   container-scan:
     name: Container CVE Scan
-    runs-on: ubuntu-latest
     needs: terraform-scan
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - name: Build Docker image
@@ -36,15 +41,39 @@ jobs:
         uses: aquasecurity/trivy-action@v0.9.0
         with:
           image-ref: foundit-backend:latest
-          format: 'table'
+          format: table
+
+  php-static-analysis:
+    name: Laravel Static Analysis
+    needs: container-scan
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.1'
+          tools: composer
+      - name: Install dependencies
+        run: composer install --prefer-dist --no-progress --no-suggest
+      - name: Run PHPStan
+        uses: php-actions/phpstan@v3
+        with:
+          path: app,config,routes,resources/views
+      - name: Psalm Security Scan
+        uses: docker://ghcr.io/psalm/psalm-security-scan
+        with:
+          security_analysis: true
+          report_file: results.sarif
 
   codeql:
-    name: CodeQL Analysis
+    name: CodeQL Analysis (Vue.js)
+    needs: php-static-analysis
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
-        language: [ 'javascript', 'php' ]
+        language: [ 'javascript' ]
     steps:
       - uses: actions/checkout@v4
       - name: Initialize CodeQL
