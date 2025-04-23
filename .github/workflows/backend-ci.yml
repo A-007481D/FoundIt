@@ -74,7 +74,5 @@ jobs:
         working-directory: backend
 
       - name: Run tests
-        run: php artisan test --env=testing --verbose
+        run: php artisan test --env=testing
         working-directory: backend
-
-   
