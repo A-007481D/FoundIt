@@ -1,0 +1,57 @@
+name: Security & IaC Scan
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  terraform-scan:
+    name: Terraform Scan
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_version: '1.5.0'
+      - name: terraform fmt check
+        run: terraform fmt -check -diff
+      - name: tfsec scan
+        uses: aquasecurity/tfsec-action@v2
+        with:
+          version: latest
+      - name: tflint
+        uses: terraform-linters/tflint-action@v1
+
+  container-scan:
+    name: Container CVE Scan
+    runs-on: ubuntu-latest
+    needs: terraform-scan
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build Docker image
+        run: docker build -t foundit-backend:latest ./backend
+      - name: Trivy CVE scan
+        uses: aquasecurity/trivy-action@v0.9.0
+        with:
+          image-ref: foundit-backend:latest
+          format: 'table'
+
+  codeql:
+    name: CodeQL Analysis
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        language: [ 'javascript', 'php' ]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v2
+        with:
+          languages: ${{ matrix.language }}
+      - name: Autobuild
+        uses: github/codeql-action/autobuild@v2
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v2
