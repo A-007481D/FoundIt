@@ -65,6 +65,10 @@ jobs:
           echo "DB_PASSWORD=root" >> .env.testing
         working-directory: backend
 
+      - name: Generate testing app key
+        run: php artisan key:generate --env=testing --ansi
+        working-directory: backend
+
       - name: Generate app key
         run: php artisan key:generate --ansi
         working-directory: backend
