@@ -13,7 +13,7 @@
                     <div class="flex flex-col gap-2">
                         <h1 class="text-3xl font-bold tracking-tight">Recent Matches</h1>
                         <p class="text-muted-foreground">
-                            Notre algorithme a trouvé des correspondances potentielles entre objets perdus et trouvés
+                            Our algorithm found potential matches between lost and found items
                         </p>
                     </div>
 
@@ -24,7 +24,7 @@
                                 <path d="M5 12h14"></path>
                                 <path d="M12 5v14"></path>
                             </svg>
-                            Nouvelle annonce
+                            New Listing
                         </button>
                     </a>
                 </div>
@@ -36,18 +36,18 @@
                             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-4 w-4">
                                 <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
                             </svg>
-                            Filtres
+                            Filters
                         </button>
                     </div>
 
                     <div class="flex items-center gap-2 ml-auto">
-                        <span class="text-sm text-muted-foreground hidden sm:inline">Trier par:</span>
+                        <span class="text-sm text-muted-foreground hidden sm:inline">Sort by:</span>
                         <div class="relative">
                             <select v-model="sortBy" class="h-9 w-[180px] rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50">
-                                <option value="match-score">Score de correspondance</option>
-                                <option value="date-new">Date (Plus récent)</option>
-                                <option value="date-old">Date (Plus ancien)</option>
-                                <option value="status">Statut</option>
+                                <option value="match-score">Match Score</option>
+                                <option value="date-new">Date (Newest)</option>
+                                <option value="date-old">Date (Oldest)</option>
+                                <option value="status">Status</option>
                             </select>
                         </div>
                     </div>
@@ -58,14 +58,14 @@
                     <div class="p-6">
                         <div class="grid gap-6 md:grid-cols-3">
                             <div class="space-y-2">
-                                <h3 class="text-sm font-medium">Statut</h3>
+                                <h3 class="text-sm font-medium">Status</h3>
                                 <div class="grid grid-cols-3 gap-2">
                                     <div class="flex items-center space-x-2">
                                         <div class="relative inline-flex h-4 w-8 items-center rounded-full bg-muted transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 data-[state=checked]:bg-primary" :class="{ 'bg-primary': filters.status.new }">
                                             <span class="inline-block h-3 w-3 rounded-full bg-white transition-transform data-[state=checked]:translate-x-4" :class="{ 'translate-x-4': filters.status.new }" @click="filters.status.new = !filters.status.new"></span>
                                         </div>
                                         <label class="text-sm cursor-pointer" @click="filters.status.new = !filters.status.new">
-                                            Nouveau
+                                            New
                                         </label>
                                     </div>
                                     <div class="flex items-center space-x-2">
@@ -73,7 +73,7 @@
                                             <span class="inline-block h-3 w-3 rounded-full bg-white transition-transform data-[state=checked]:translate-x-4" :class="{ 'translate-x-4': filters.status.inProgress }" @click="filters.status.inProgress = !filters.status.inProgress"></span>
                                         </div>
                                         <label class="text-sm cursor-pointer" @click="filters.status.inProgress = !filters.status.inProgress">
-                                            En cours
+                                            In Progress
                                         </label>
                                     </div>
                                     <div class="flex items-center space-x-2">
@@ -81,14 +81,14 @@
                                             <span class="inline-block h-3 w-3 rounded-full bg-white transition-transform data-[state=checked]:translate-x-4" :class="{ 'translate-x-4': filters.status.resolved }" @click="filters.status.resolved = !filters.status.resolved"></span>
                                         </div>
                                         <label class="text-sm cursor-pointer" @click="filters.status.resolved = !filters.status.resolved">
-                                            Résolu
+                                            Resolved
                                         </label>
                                     </div>
                                 </div>
                             </div>
 
                             <div class="space-y-2">
-                                <h3 class="text-sm font-medium">Score de correspondance</h3>
+                                <h3 class="text-sm font-medium">Match Score</h3>
                                 <input type="range" min="0" max="100" step="5" v-model="filters.matchScore" class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer">
                                 <div class="flex justify-between text-xs text-muted-foreground">
                                     <span>0%</span>
@@ -98,14 +98,14 @@
                             </div>
 
                             <div class="space-y-2">
-                                <h3 class="text-sm font-medium">Catégories</h3>
+                                <h3 class="text-sm font-medium">Categories</h3>
                                 <div class="relative">
                                     <select v-model="filters.category" class="w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50">
-                                        <option value="all">Toutes les catégories</option>
-                                        <option value="electronics">Électronique</option>
-                                        <option value="jewelry">Bijoux</option>
-                                        <option value="accessories">Accessoires</option>
-                                        <option value="bags">Sacs</option>
+                                        <option value="all">All categories</option>
+                                        <option value="electronics">Electronics</option>
+                                        <option value="jewelry">Jewelry</option>
+                                        <option value="accessories">Accessories</option>
+                                        <option value="bags">Bags</option>
                                         <option value="documents">Documents</option>
                                     </select>
                                 </div>
@@ -114,10 +114,10 @@
 
                         <div class="mt-4 flex justify-end gap-2">
                             <button @click="resetFilters" class="inline-flex items-center justify-center rounded-md border border-input bg-background px-4 py-2 text-sm font-medium shadow-sm transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 h-8">
-                                Réinitialiser
+                                Reset
                             </button>
                             <button class="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-white shadow transition-colors hover:bg-primary-dark focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 h-8">
-                                Appliquer les filtres
+                                Apply Filters
                             </button>
                         </div>
                     </div>
@@ -143,7 +143,7 @@
                     <div class="rounded-lg border bg-card text-card-foreground shadow-sm">
                         <div class="p-4 flex items-center justify-between">
                             <div>
-                                <p class="text-sm text-muted-foreground">Nouveaux</p>
+                                <p class="text-sm text-muted-foreground">New</p>
                                 <p class="text-2xl font-bold">42</p>
                             </div>
                             <div class="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center text-primary">
@@ -157,7 +157,7 @@
                     <div class="rounded-lg border bg-card text-card-foreground shadow-sm">
                         <div class="p-4 flex items-center justify-between">
                             <div>
-                                <p class="text-sm text-muted-foreground">En cours</p>
+                                <p class="text-sm text-muted-foreground">In Progress</p>
                                 <p class="text-2xl font-bold">54</p>
                             </div>
                             <div class="h-12 w-12 rounded-full bg-orange-500/10 flex items-center justify-center text-orange-500">
@@ -172,7 +172,7 @@
                     <div class="rounded-lg border bg-card text-card-foreground shadow-sm">
                         <div class="p-4 flex items-center justify-between">
                             <div>
-                                <p class="text-sm text-muted-foreground">Résolus</p>
+                                <p class="text-sm text-muted-foreground">Resolved</p>
                                 <p class="text-2xl font-bold">141</p>
                             </div>
                             <div class="h-12 w-12 rounded-full bg-secondary/10 flex items-center justify-center text-secondary">
@@ -222,7 +222,7 @@
 
                     <div class="mt-8 flex justify-center">
                         <button class="inline-flex items-center justify-center rounded-md border border-input bg-background px-4 py-2 text-sm font-medium shadow-sm transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 gap-2">
-                            <span>Voir plus de correspondances</span>
+                            <span>View more matches</span>
                         </button>
                     </div>
                 </div>
@@ -244,40 +244,39 @@
                             <span class="text-xl">FoundIt!</span>
                         </div>
                         <p class="text-sm text-muted-foreground">
-                            FoundIt! est une plateforme qui aide les gens à retrouver leurs objets perdus en connectant les
-                            déclarations d'objets perdus et trouvés.
+                            FoundIt! is a platform that helps people find their lost items by connecting lost and found item reports.
                         </p>
                     </div>
 
                     <div class="grid grid-cols-2 md:grid-cols-3 gap-8">
                         <div class="space-y-3">
-                            <h3 class="font-medium">Plateforme</h3>
+                            <h3 class="font-medium">Platform</h3>
                             <ul class="space-y-2">
                                 <li>
                                     <a href="/dashboard" class="text-sm text-muted-foreground hover:text-foreground transition-colors">
-                                        Tableau de bord
+                                        Dashboard
                                     </a>
                                 </li>
                                 <li>
                                     <a href="/search" class="text-sm text-muted-foreground hover:text-foreground transition-colors">
-                                        Rechercher
+                                        Search
                                     </a>
                                 </li>
                                 <li>
                                     <a href="/matches" class="text-sm text-muted-foreground hover:text-foreground transition-colors">
-                                        Correspondances
+                                        Matches
                                     </a>
                                 </li>
                                 <li>
                                     <a href="/dashboard/new-item" class="text-sm text-muted-foreground hover:text-foreground transition-colors">
-                                        Déclarer un objet
+                                        Report an item
                                     </a>
                                 </li>
                             </ul>
                         </div>
 
                         <div class="space-y-3">
-                            <h3 class="font-medium">Ressources</h3>
+                            <h3 class="font-medium">Resources</h3>
                             <ul class="space-y-2">
                                 <li>
                                     <a href="/faq" class="text-sm text-muted-foreground hover:text-foreground transition-colors">
@@ -286,7 +285,7 @@
                                 </li>
                                 <li>
                                     <a href="/guide" class="text-sm text-muted-foreground hover:text-foreground transition-colors">
-                                        Guide d'utilisation
+                                        User Guide
                                     </a>
                                 </li>
                                 <li>
@@ -303,21 +302,21 @@
                         </div>
 
                         <div class="space-y-3 col-span-2 md:col-span-1">
-                            <h3 class="font-medium">Légal</h3>
+                            <h3 class="font-medium">Legal</h3>
                             <ul class="space-y-2">
                                 <li>
                                     <a href="/terms" class="text-sm text-muted-foreground hover:text-foreground transition-colors">
-                                        Conditions d'utilisation
+                                        Terms of Service
                                     </a>
                                 </li>
                                 <li>
                                     <a href="/privacy" class="text-sm text-muted-foreground hover:text-foreground transition-colors">
-                                        Politique de confidentialité
+                                        Privacy Policy
                                     </a>
                                 </li>
                                 <li>
                                     <a href="/cookies" class="text-sm text-muted-foreground hover:text-foreground transition-colors">
-                                        Politique de cookies
+                                        Cookie Policy
                                     </a>
                                 </li>
                             </ul>
@@ -326,7 +325,7 @@
                 </div>
 
                 <div class="mt-8 pt-8 border-t flex flex-col md:flex-row items-center justify-between gap-4">
-                    <p class="text-sm text-muted-foreground">© {{ new Date().getFullYear() }} FoundIt! Tous droits réservés.</p>
+                    <p class="text-sm text-muted-foreground"> 2023 FoundIt! All rights reserved.</p>
 
                     <div class="flex items-center gap-4">
                         <a href="#" class="text-muted-foreground hover:text-foreground">
@@ -379,9 +378,9 @@ onMounted(async () => {
 // Status label helper function
 function statusLabel(status) {
   switch (status) {
-    case 'new': return 'Nouvelle correspondance';
-    case 'in-progress': return 'En cours';
-    case 'resolved': return 'Résolu';
+    case 'new': return 'New match';
+    case 'in-progress': return 'In Progress';
+    case 'resolved': return 'Resolved';
     default: return '';
   }
 }
@@ -420,7 +419,7 @@ export default {
                         'text-orange-500': match.matchScore >= 70 && match.matchScore < 80,
                         'text-red-500': match.matchScore < 70
                       }">
-                  {{ match.matchScore }}% Correspondance
+                  {{ match.matchScore }}% Match
                 </span>
                 <div class="h-2 w-14 rounded-full bg-gray-200 overflow-hidden">
                   <div class="h-full rounded-full"
@@ -442,7 +441,7 @@ export default {
             <div class="p-4 border-b md:border-b-0 md:border-r">
               <div class="flex items-center gap-2 mb-3">
                 <div class="inline-flex items-center rounded-md border px-2.5 py-0.5 text-xs font-semibold bg-red-500/10 text-red-500 border-red-500/20">
-                  Perdu
+                  Lost
                 </div>
                 <div class="inline-flex items-center rounded-md border px-2.5 py-0.5 text-xs font-semibold border-input">
                   {{ match.lostItem.category }}
@@ -462,7 +461,7 @@ export default {
               <p class="text-sm line-clamp-2 text-muted-foreground mb-3">{{ match.lostItem.description }}</p>
 
               <div class="text-xs text-muted-foreground mb-3">
-                {{ formatDate(match.lostItem.date) }} à {{ match.lostItem.time }}
+                {{ formatDate(match.lostItem.date) }} at {{ match.lostItem.time }}
               </div>
 
               <div class="flex items-center gap-2">
@@ -480,7 +479,7 @@ export default {
             <div class="p-4">
               <div class="flex items-center gap-2 mb-3">
                 <div class="inline-flex items-center rounded-md border px-2.5 py-0.5 text-xs font-semibold bg-secondary/10 text-secondary border-secondary/20">
-                  Trouvé
+                  Found
                 </div>
                 <div class="inline-flex items-center rounded-md border px-2.5 py-0.5 text-xs font-semibold border-input">
                   {{ match.foundItem.category }}
@@ -500,7 +499,7 @@ export default {
               <p class="text-sm line-clamp-2 text-muted-foreground mb-3">{{ match.foundItem.description }}</p>
 
               <div class="text-xs text-muted-foreground mb-3">
-                {{ formatDate(match.foundItem.date) }} à {{ match.foundItem.time }}
+                {{ formatDate(match.foundItem.date) }} at {{ match.foundItem.time }}
               </div>
 
               <div class="flex items-center gap-2">
@@ -518,7 +517,7 @@ export default {
           <!-- Matching attributes -->
           <div class="px-4 py-3 bg-muted/50">
             <div class="flex flex-wrap gap-2">
-              <span class="text-xs text-muted-foreground">Attributs correspondants:</span>
+              <span class="text-xs text-muted-foreground">Matching Attributes:</span>
               <div v-for="(attr, idx) in match.matchingAttributes" :key="idx"
                    class="inline-flex items-center rounded-md border px-2.5 py-0.5 text-xs font-semibold bg-primary/10 text-primary border-primary/20">
                 {{ attr }}
@@ -529,13 +528,13 @@ export default {
           <div class="flex justify-between p-4 border-t">
             <div class="flex gap-2">
               <button class="inline-flex items-center justify-center rounded-md border border-input bg-background px-3 py-2 text-xs font-medium h-8 shadow-sm transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50">
-                <span>Détails</span>
+                <span>Details</span>
               </button>
               <button class="inline-flex items-center justify-center rounded-md border border-input bg-background px-3 py-2 text-xs font-medium h-8 shadow-sm transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 gap-1">
                 <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-3 w-3">
                   <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
                 </svg>
-                <span>Contacter</span>
+                <span>Contact</span>
               </button>
             </div>
 
@@ -554,13 +553,13 @@ export default {
                 </button>
               </template>
               <button v-if="match.status === 'in-progress'" class="inline-flex items-center justify-center rounded-md border border-input bg-background px-3 py-2 text-xs font-medium h-8 shadow-sm transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50">
-                <span>Marquer comme résolu</span>
+                <span>Mark as Resolved</span>
               </button>
               <button v-if="match.status === 'resolved'" class="inline-flex items-center justify-center rounded-md text-xs h-8 px-3 gap-1 text-secondary">
                 <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-3 w-3">
                   <path d="M20 6 9 17l-5-5"></path>
                 </svg>
-                <span>Résolu</span>
+                <span>Resolved</span>
               </button>
             </div>
           </div>
@@ -569,9 +568,9 @@ export default {
             methods: {
                 statusLabel(status) {
                     switch (status) {
-                        case 'new': return 'Nouvelle correspondance';
-                        case 'in-progress': return 'En cours';
-                        case 'resolved': return 'Résolu';
+                        case 'new': return 'New match';
+                        case 'in-progress': return 'In Progress';
+                        case 'resolved': return 'Resolved';
                         default: return '';
                     }
                 },
@@ -589,10 +588,10 @@ export default {
             activeTab: 'all',
             sortBy: 'match-score',
             tabs: [
-                { value: 'all', label: 'Toutes' },
-                { value: 'new', label: 'Nouvelles' },
-                { value: 'in-progress', label: 'En cours' },
-                { value: 'resolved', label: 'Résolues' }
+                { value: 'all', label: 'All' },
+                { value: 'new', label: 'New' },
+                { value: 'in-progress', label: 'In Progress' },
+                { value: 'resolved', label: 'Resolved' }
             ],
             filters: {
                 status: {
