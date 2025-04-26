@@ -70,7 +70,7 @@ jobs:
         working-directory: backend
 
       - name: Generate app key
-        run: php artisan key:generate --ansi
+        run: php artisan key:generate --ansi 
         working-directory: backend
 
       - name: Run migrations
