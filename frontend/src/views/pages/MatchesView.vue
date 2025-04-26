@@ -393,6 +393,8 @@ function formatDate(dateString) {
 </script>
 
 <script>
+import MatchService from '@/services/match.service';
+
 export default {
     name: 'MatchesPage',
     components: {
@@ -601,188 +603,13 @@ export default {
                 matchScore: 60,
                 category: 'all'
             },
-            matchedItems: [
-                {
-                    id: 1,
-                    matchScore: 92,
-                    status: "new", // new, in-progress, resolved
-                    lostItem: {
-                        id: 101,
-                        title: "iPhone 13 Pro with Blue Case",
-                        location: "Centre-ville",
-                        date: "2023-04-10",
-                        time: "14:30",
-                        category: "Électronique",
-                        description:
-                            "iPhone 13 Pro avec coque silicone bleue foncée. A une petite fissure dans le coin supérieur droit de l'écran. Perdu pendant le jogging.",
-                        user: {
-                            name: "Ahmed H.",
-                            avatar: "/placeholder.svg?height=40&width=40",
-                            initials: "AH",
-                        },
-                    },
-                    foundItem: {
-                        id: 201,
-                        title: "iPhone avec coque bleue trouvé",
-                        location: "Centre-ville, Entrée Est",
-                        date: "2023-04-10",
-                        time: "16:45",
-                        category: "Électronique",
-                        description:
-                            "Trouvé un iPhone avec coque bleue près de la fontaine de l'entrée est. L'écran présente quelques dommages. Éteint quand trouvé.",
-                        user: {
-                            name: "Sara L.",
-                            avatar: "/placeholder.svg?height=40&width=40",
-                            initials: "SL",
-                        },
-                    },
-                    matchingAttributes: ["Proximité géographique", "Période", "Description", "Caractéristiques distinctives"],
-                },
-                {
-                    id: 2,
-                    matchScore: 87,
-                    status: "in-progress",
-                    lostItem: {
-                        id: 102,
-                        title: "Bague en or avec petit diamant",
-                        location: "Campus YouCode, Salle principale",
-                        date: "2023-04-08",
-                        time: "18:15",
-                        category: "Bijoux",
-                        description:
-                            "Petite bague en or avec un seul diamant. A une gravure 'Pour toujours' à l'intérieur. Valeur sentimentale extrême.",
-                        user: {
-                            name: "Yasmine K.",
-                            avatar: "/placeholder.svg?height=40&width=40",
-                            initials: "YK",
-                        },
-                    },
-                    foundItem: {
-                        id: 202,
-                        title: "Bague en or trouvée",
-                        location: "Campus YouCode, Près de la cafétéria",
-                        date: "2023-04-09",
-                        time: "08:30",
-                        category: "Bijoux",
-                        description:
-                            "Trouvé une bague en or avec une petite pierre, possiblement un diamant. A des inscriptions à l'intérieur mais je n'ai pas regardé de près.",
-                        user: {
-                            name: "Anass M.",
-                            avatar: "/placeholder.svg?height=40&width=40",
-                            initials: "AM",
-                        },
-                    },
-                    matchingAttributes: ["Proximité géographique", "Description", "Matériau", "Caractéristiques distinctives"],
-                },
-                {
-                    id: 3,
-                    matchScore: 78,
-                    status: "resolved",
-                    lostItem: {
-                        id: 103,
-                        title: "Portefeuille en cuir noir",
-                        location: "Bibliothèque",
-                        date: "2023-04-05",
-                        time: "13:20",
-                        category: "Accessoires",
-                        description:
-                            "Portefeuille en cuir noir avec carte d'identité, cartes de crédit et environ 400 dirhams. A une petite égratignure sur le devant.",
-                        user: {
-                            name: "Mohammed R.",
-                            avatar: "/placeholder.svg?height=40&width=40",
-                            initials: "MR",
-                        },
-                    },
-                    foundItem: {
-                        id: 203,
-                        title: "Portefeuille trouvé à la bibliothèque",
-                        location: "Bibliothèque, Près de l'entrée",
-                        date: "2023-04-05",
-                        time: "15:10",
-                        category: "Accessoires",
-                        description:
-                            "Trouvé un portefeuille noir avec carte d'identité et cartes. Remis à la sécurité de la bibliothèque avec tout le contenu intact.",
-                        user: {
-                            name: "Fatima Z.",
-                            avatar: "/placeholder.svg?height=40&width=40",
-                            initials: "FZ",
-                        },
-                    },
-                    matchingAttributes: ["Proximité géographique", "Même jour", "Type d'objet", "Contenu"],
-                },
-                {
-                    id: 4,
-                    matchScore: 75,
-                    status: "new",
-                    lostItem: {
-                        id: 104,
-                        title: "Lunettes de vue avec étui rouge",
-                        location: "Cafétéria",
-                        date: "2023-04-11",
-                        time: "11:45",
-                        category: "Accessoires",
-                        description:
-                            "Lunettes de vue à monture noire dans un étui rigide rouge. Marque Ray-Ban. Désespérément nécessaires pour le travail.",
-                        user: {
-                            name: "Karim T.",
-                            avatar: "/placeholder.svg?height=40&width=40",
-                            initials: "KT",
-                        },
-                    },
-                    foundItem: {
-                        id: 204,
-                        title: "Étui à lunettes trouvé",
-                        location: "Cafétéria, Zone des ordinateurs",
-                        date: "2023-04-11",
-                        time: "14:20",
-                        category: "Accessoires",
-                        description: "Trouvé un étui à lunettes rouge avec des lunettes noires à l'intérieur. Laissé à l'accueil.",
-                        user: {
-                            name: "Nadia B.",
-                            avatar: "/placeholder.svg?height=40&width=40",
-                            initials: "NB",
-                        },
-                    },
-                    matchingAttributes: ["Lieu", "Même jour", "Description", "Correspondance de marque"],
-                },
-                {
-                    id: 5,
-                    matchScore: 70,
-                    status: "in-progress",
-                    lostItem: {
-                        id: 105,
-                        title: "Sac à dos bleu avec ordinateur portable",
-                        location: "Campus YouCode, Salle 3",
-                        date: "2023-04-09",
-                        time: "08:30",
-                        category: "Sacs",
-                        description:
-                            "Sac à dos bleu marine contenant un ordinateur portable HP, chargeur et cahiers. A un porte-clés avec une mini Tour Eiffel.",
-                        user: {
-                            name: "Omar G.",
-                            avatar: "/placeholder.svg?height=40&width=40",
-                            initials: "OG",
-                        },
-                    },
-                    foundItem: {
-                        id: 205,
-                        title: "Sac à dos trouvé au campus",
-                        location: "Bureau des objets trouvés",
-                        date: "2023-04-09",
-                        time: "10:15",
-                        category: "Sacs",
-                        description:
-                            "Sac à dos bleu remis par un étudiant. Contient un ordinateur portable et des effets personnels. A un porte-clés distinctif.",
-                        user: {
-                            name: "Administration",
-                            avatar: "/placeholder.svg?height=40&width=40",
-                            initials: "AD",
-                        },
-                    },
-                    matchingAttributes: ["Correspondance de date", "Contenu", "Couleur", "Caractéristique distinctive"],
-                },
-            ]
+            matchedItems: []
         }
+    },
+    created() {
+        MatchService.getMatches()
+            .then(response => { this.matchedItems = response.data; })
+            .catch(error => console.error('Error loading matches:', error));
     },
     computed: {
         newMatches() {
