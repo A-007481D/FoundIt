@@ -62,12 +62,12 @@ class MatchingService
              + $descScore * $this->weights['description'];
     }
 
-    protected function scoreCategory(Item $a, Item $b): float
+    public function scoreCategory(Item $a, Item $b): float
     {
         return $a->category_id === $b->category_id ? 1.0 : 0.0;
     }
 
-    protected function scoreLocation(Item $a, Item $b): float
+    public function scoreLocation(Item $a, Item $b): float
     {
         try {
             [$lat1, $lon1] = explode(',', $a->location);
@@ -91,7 +91,7 @@ class MatchingService
         }
     }
 
-    protected function scoreTimeframe(Item $a, Item $b): float
+    public function scoreTimeframe(Item $a, Item $b): float
     {
         $dateA = $a->type === 'lost' ? $a->lost_date : $a->found_date;
         $dateB = $b->type === 'found' ? $b->found_date : $b->lost_date;
@@ -106,7 +106,7 @@ class MatchingService
         return 1.0 - ($diff / $this->timeframeWindowDays);
     }
 
-    protected function scoreDescription(Item $a, Item $b): float
+    public function scoreDescription(Item $a, Item $b): float
     {
         $descA = strtolower($a->description);
         $descB = strtolower($b->description);
