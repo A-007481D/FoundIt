@@ -75,6 +75,8 @@ Route::middleware(['auth:api', 'verified'])->group(function () {
     
     // Categories for item creation/filtering
     Route::get('/categories', [\App\Http\Controllers\ItemController::class, 'getCategories']);
+    // Match routes
+    Route::get('/matches', [\App\Http\Controllers\MatchController::class, 'index']);
     
     // Report routes for all authenticated users
     Route::post('/reports', [\App\Http\Controllers\Admin\ReportController::class, 'store']);
