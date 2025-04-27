@@ -1,6 +1,7 @@
 <?php
 
 return [
+    'engine' => env('MATCH_ENGINE', 'legacy'),
     // weights for each matching criterion, max sum should equal 1
     'weights' => [
         'category' => 0.3,
@@ -10,7 +11,7 @@ return [
     ],
 
     // min score to consider a match
-    'threshold' => 0.7,
+    'threshold' => env('MATCH_THRESHOLD', 0.7),
 
     'timeframe_window_days' => 30,
 

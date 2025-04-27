@@ -28,6 +28,7 @@ class DatabaseSeeder extends Seeder
         // Run other seeders
         $this->call([
             CategorySeeder::class,
+            MatchTestSeeder::class,
         ]);
     }
 }
