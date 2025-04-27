@@ -178,6 +178,8 @@ import { ref, computed, onMounted, onBeforeUnmount, nextTick } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useAuthStore } from '@/stores/auth.store'
 import { useChatStore } from '@/stores/chat.store'
+import axios from 'axios'
+import authHeader from '@/services/auth-header'
 import { MapPin, User, Bell as BellIcon, Menu as MenuIcon, MessageSquare } from 'lucide-vue-next'
 
 // stores
@@ -289,9 +291,20 @@ const handleClickOutside = (event) => {
 // lifecycle hooks
 onMounted(async () => {
   if (isAuthenticated.value) {
+    // fetch chat conversations
     await chatStore.fetchConversations()
+    // fetch existing notifications
+    try {
+      const { data } = await axios.get(
+        `${import.meta.env.VITE_API_URL}/notifications`,
+        { headers: { ...authHeader(), 'Accept': 'application/json' } }
+      )
+      notifications.value = data
+    } catch (err) {
+      console.error('Notifications fetch error:', err)
+    }
   }
-  
+
   document.addEventListener('click', handleClickOutside)
   
   if (isAuthenticated.value) {
