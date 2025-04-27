@@ -204,8 +204,8 @@ const showSearch = computed(() => isAuthenticated.value || route.path === '/')
 const navItems = computed(() => {
   if (isAuthenticated.value) {
     return [
-      { name: 'Découvrir', to: '/discover' },
-      { name: 'Matches', to: '/matches' },
+      { name: 'Discover', to: '/discover' },
+      { name: 'Recent Matches', to: '/matches' },
       { name: 'My Items', to: '/my-items' },
     ];
   } else {

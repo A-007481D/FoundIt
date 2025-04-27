@@ -15,6 +15,12 @@ class EventServiceProvider extends ServiceProvider
      * @var array<class-string, array<int, class-string>>
      */
     protected $listen = [
+        \App\Events\ItemCreated::class => [
+            \App\Jobs\ProcessItemMatching::class,
+        ],
+        \App\Events\ItemUpdated::class => [
+            \App\Jobs\ProcessItemMatching::class,
+        ],
         Registered::class => [
             SendEmailVerificationNotification::class,
         ],

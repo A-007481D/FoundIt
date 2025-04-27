@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\Item;
 use App\Models\Category;
+use App\Events\ItemCreated;
+use App\Events\ItemUpdated;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
@@ -132,6 +134,7 @@ class ItemController extends Controller
         }
         
         $item->save();
+        event(new ItemCreated($item));
 
         return response()->json([
             'message' => 'Item created successfully',
@@ -206,6 +209,7 @@ class ItemController extends Controller
         }
         
         $item->save();
+        event(new ItemUpdated($item));
 
         return response()->json([
             'message' => 'Item updated successfully',
