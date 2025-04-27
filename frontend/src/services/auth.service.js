@@ -34,18 +34,24 @@ axiosInstance.interceptors.response.use(
           return Promise.reject(error);
         }
       }
+      // Prevent infinite refresh loop for refresh or logout endpoints
+      if (originalRequest.url.includes('/auth/refresh') || originalRequest.url.includes('/auth/logout')) {
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        window.location.href = '/login';
+        return Promise.reject(error);
+      }
       if (error.response && error.response.status === 401 && !originalRequest._retry) {
         originalRequest._retry = true;
 
         try {
-          const refreshResponse = await axiosInstance.post('/auth/refresh');
+          const refreshResponse = await axios.post(`${API_URL}/auth/refresh`);
           const newToken = refreshResponse.data.token;
 
           if (newToken) {
+            // Update stored token and retry original request with new token
             localStorage.setItem('token', newToken);
-
             originalRequest.headers['Authorization'] = `Bearer ${newToken}`;
-
             return axiosInstance(originalRequest);
           }
         } catch (refreshError) {
