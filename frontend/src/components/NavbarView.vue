@@ -79,15 +79,16 @@
                   <div class="py-2 text-center text-muted-foreground" v-if="!hasNotifications">
                     No new notifications
                   </div>
-                  <!-- Sample notification -->
-                  <div v-else class="border-b py-3">
-                    <div class="flex gap-3">
-                      <div class="h-8 w-8 rounded-full bg-muted flex items-center justify-center text-muted-foreground">
-                        <MapPin class="h-4 w-4" />
-                      </div>
-                      <div>
-                        <p>A new item matches your search</p>
-                        <p class="text-xs text-muted-foreground mt-1">2 hours ago</p>
+                  <div v-else>
+                    <div v-for="notif in notifications" :key="notif.id" class="border-b py-3">
+                      <div class="flex gap-3">
+                        <div class="h-8 w-8 rounded-full bg-muted flex items-center justify-center text-muted-foreground">
+                          <MapPin class="h-4 w-4" />
+                        </div>
+                        <div>
+                          <p v-if="notif.type === 'App\\Notifications\\NewMatchFound'">Match found for your item.</p>
+                          <p class="text-xs text-muted-foreground mt-1">{{ new Date(notif.created_at).toLocaleString() }}</p>
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -177,6 +178,8 @@ import { ref, computed, onMounted, onBeforeUnmount, nextTick } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useAuthStore } from '@/stores/auth.store'
 import { useChatStore } from '@/stores/chat.store'
+import axios from 'axios'
+import authHeader from '@/services/auth-header'
 import { MapPin, User, Bell as BellIcon, Menu as MenuIcon, MessageSquare } from 'lucide-vue-next'
 
 // stores
@@ -190,6 +193,7 @@ const showDropdown = ref(false)
 const search = ref('')
 const notifDropdownRef = ref(null)
 const dropdownRef = ref(null)
+const notifications = ref([])
 
 // router hooks
 const router = useRouter()
@@ -217,15 +221,9 @@ const navItems = computed(() => {
   }
 })
 
-const unreadCount = computed(() => {
-  // Replace with actual notification count from your store when available
-  return 0
-})
+const unreadCount = computed(() => notifications.value.length)
 
-const hasNotifications = computed(() => {
-  // Replace with actual logic to check if there are notifications
-  return false
-})
+const hasNotifications = computed(() => notifications.value.length > 0)
 
 const userInitials = computed(() => {
   if (!authStore.user) return ''
@@ -293,10 +291,28 @@ const handleClickOutside = (event) => {
 // lifecycle hooks
 onMounted(async () => {
   if (isAuthenticated.value) {
+    // fetch chat conversations
     await chatStore.fetchConversations()
+    // fetch existing notifications
+    try {
+      const { data } = await axios.get(
+        `${import.meta.env.VITE_API_URL}/notifications`,
+        { headers: { ...authHeader(), 'Accept': 'application/json' } }
+      )
+      notifications.value = data
+    } catch (err) {
+      console.error('Notifications fetch error:', err)
+    }
   }
-  
+
   document.addEventListener('click', handleClickOutside)
+  
+  if (isAuthenticated.value) {
+    window.Echo.private(`App.Models.User.${user.value.id}`)
+      .notification((notif) => {
+        notifications.value.unshift(notif)
+      })
+  }
 })
 
 onBeforeUnmount(() => {

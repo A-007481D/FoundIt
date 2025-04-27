@@ -2,6 +2,9 @@
 
 return [
 
+    'default' => env('BROADCAST_DRIVER', 'null'),
+    'guard' => 'api',
+
     /*
     |--------------------------------------------------------------------------
     | Default Broadcaster
@@ -12,19 +15,6 @@ return [
     | any of the connections defined in the "connections" array below.
     |
     | Supported: "pusher", "ably", "redis", "log", "null"
-    |
-    */
-
-    'default' => env('BROADCAST_DRIVER', 'null'),
-
-    /*
-    |--------------------------------------------------------------------------
-    | Broadcast Connections
-    |--------------------------------------------------------------------------
-    |
-    | Here you may define all of the broadcast connections that will be used
-    | to broadcast events to other systems or over websockets. Samples of
-    | each available type of connection are provided inside this array.
     |
     */
 
@@ -45,6 +35,7 @@ return [
             'client_options' => [
                 // Guzzle client options: https://docs.guzzlephp.org/en/stable/request-options.html
             ],
+            'guard' => ['api'],
         ],
 
         'ably' => [
