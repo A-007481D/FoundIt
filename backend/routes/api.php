@@ -21,8 +21,8 @@ use App\Http\Controllers\NotificationController;
 |
 */
 
-// Broadcast channels auth endpoint
-Broadcast::routes(['middleware' => ['jwt.broadcast']]);
+// re-Broadcast channels auth endpoint (JWT via auth:api guard)
+Broadcast::routes(['middleware' => ['auth:api']]);
 
 // Public routes
 Route::prefix('auth')->group(function () {
