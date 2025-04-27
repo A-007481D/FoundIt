@@ -61,8 +61,8 @@ Route::middleware(['auth:api', 'verified'])->group(function () {
     Route::post('/messages/{messageId}/report', [MessageReportController::class, 'report']);
 
     // Message notifications
-    Route::prefix('notifications')->group(function () {
-        Route::get('/', [MessageNotificationController::class, 'index']);
+    Route::prefix('message-notifications')->group(function () {
+        Route::get('/', [MessageNotificationController::class, 'getNotifications']);
         Route::post('/{notificationId}/read', [MessageNotificationController::class, 'markAsRead']);
         Route::post('/read-all', [MessageNotificationController::class, 'markAllAsRead']);
     });

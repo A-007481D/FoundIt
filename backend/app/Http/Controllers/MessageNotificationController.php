@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Models\MessageNotification;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 
 class MessageNotificationController extends Controller
 {
@@ -38,23 +40,32 @@ class MessageNotificationController extends Controller
     {
         $user = Auth::user();
         
-        $notification = MessageNotification::where('id', $notificationId)
-            ->where('user_id', $user->id)
-            ->firstOrFail();
-            
-        $notification->update(['read' => true]);
-        
-        return response()->json(['message' => 'Notification marked as read']);
+        try {
+            $notification = MessageNotification::where('id', $notificationId)
+                ->where('user_id', $user->id)
+                ->firstOrFail();
+            $notification->update(['read' => true]);
+            return response()->json(['message' => 'Notification marked as read']);
+        } catch (ModelNotFoundException $e) {
+            return response()->json(['message' => 'Notification not found'], 404);
+        } catch (\Exception $e) {
+            Log::error('MessageNotificationController@markAsRead error: ' . $e->getMessage());
+            return response()->json(['message' => 'Could not mark notification as read'], 500);
+        }
     }
 
     public function markAllAsRead()
     {
         $user = Auth::user();
         
-        MessageNotification::where('user_id', $user->id)
-            ->where('read', false)
-            ->update(['read' => true]);
-            
-        return response()->json(['message' => 'All notifications marked as read']);
+        try {
+            MessageNotification::where('user_id', $user->id)
+                ->where('read', false)
+                ->update(['read' => true]);
+            return response()->json(['message' => 'All notifications marked as read']);
+        } catch (\Exception $e) {
+            Log::error('MessageNotificationController@markAllAsRead error: ' . $e->getMessage());
+            return response()->json(['message' => 'Could not mark all notifications as read'], 500);
+        }
     }
 }

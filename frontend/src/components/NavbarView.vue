@@ -74,13 +74,13 @@
                 <div class="p-4 text-sm">
                   <div class="flex items-center justify-between mb-2">
                     <h3 class="font-semibold">Notifications</h3>
-                    <button class="text-xs text-primary hover:underline">Mark all as read</button>
+                    <button @click="markAllRead" class="text-xs text-primary hover:underline">Mark all as read</button>
                   </div>
                   <div class="py-2 text-center text-muted-foreground" v-if="!hasNotifications">
                     No new notifications
                   </div>
                   <div v-else>
-                    <div v-for="notif in notifications" :key="notif.id" class="border-b py-3">
+                    <div v-for="notif in notifications" :key="notif.id" class="border-b py-3 cursor-pointer hover:bg-muted/10" @click="markNotificationRead(notif.id)">
                       <div class="flex gap-3">
                         <div class="h-8 w-8 rounded-full bg-muted flex items-center justify-center text-muted-foreground">
                           <MapPin class="h-4 w-4" />
@@ -275,6 +275,34 @@ const logout = async () => {
   // Force a navigation to login page after logout
   await nextTick()
   router.replace('/login')
+}
+
+// Mark a single notification as read
+const markNotificationRead = async (id) => {
+  try {
+    await axios.post(
+      `${import.meta.env.VITE_API_URL}/notifications/${id}/read`,
+      {},
+      { headers: { ...authHeader(), 'Accept': 'application/json' } }
+    )
+    notifications.value = notifications.value.filter(n => n.id !== id)
+  } catch (err) {
+    console.error('Error marking notification read:', err)
+  }
+}
+
+// Mark all notifications as read
+const markAllRead = async () => {
+  try {
+    await axios.post(
+      `${import.meta.env.VITE_API_URL}/notifications/read-all`,
+      {},
+      { headers: { ...authHeader(), 'Accept': 'application/json' } }
+    )
+    notifications.value = []
+  } catch (err) {
+    console.error('Error marking all notifications read:', err)
+  }
 }
 
 // Close dropdowns when clicking outside

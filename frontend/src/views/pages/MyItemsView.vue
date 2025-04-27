@@ -101,16 +101,14 @@
     </div>
     
     <!-- Create/Edit Item Modal -->
-    <div v-if="showCreateForm || showEditForm" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4 overflow-y-auto">
-      <div class="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-        <div class="p-6">
-          <ItemForm 
-            :item="editingItem" 
-            :isEdit="showEditForm" 
-            @submit="handleFormSubmit" 
-            @cancel="closeForm"
-          />
-        </div>
+    <div v-if="showCreateForm || showEditForm" class="fixed inset-0 flex items-center justify-center p-6 bg-black bg-opacity-50 z-50">
+      <div class="bg-white rounded-lg shadow-xl w-full max-w-lg max-h-[85vh] overflow-auto p-6">
+        <ItemForm 
+          :item="editingItem" 
+          :isEdit="showEditForm" 
+          @submit="handleFormSubmit" 
+          @cancel="closeForm"
+        />
       </div>
     </div>
   </div>
@@ -118,6 +116,7 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue';
+import { useRoute } from 'vue-router';
 import { useAuthStore } from '@/stores/auth.store';
 import ItemCard from '@/components/ItemCard.vue';
 import ItemDetail from '@/components/ItemDetail.vue';
@@ -156,10 +155,17 @@ const filteredItems = computed(() => {
   return items.value;
 });
 
+const route = useRoute();
+
 // Lifecycle
 onMounted(async () => {
   try {
     await fetchItems();
+    const editId = route.query.editItemId;
+    if (editId) {
+      const itemToEdit = items.value.find(item => item.id.toString() === editId);
+      if (itemToEdit) editItem(itemToEdit);
+    }
   } catch (error) {
     console.error('Error in mounted hook:', error);
     isLoading.value = false;
