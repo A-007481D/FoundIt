@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\Item;
 use App\Models\ItemMatch;
+use App\Notifications\NewMatchFound;
 
 class MatchingService
 {
@@ -37,10 +38,14 @@ class MatchingService
             $score = $this->calculateScore($item, $candidate);
 
             if ($score >= $this->threshold) {
-                ItemMatch::updateOrCreate(
+                $match = ItemMatch::updateOrCreate(
                     ['lost_item_id' => $lostId, 'found_item_id' => $foundId],
                     ['score' => $score]
                 );
+                if ($match->wasRecentlyCreated) {
+                    $match->lostItem->user->notify(new NewMatchFound($match));
+                    $match->foundItem->user->notify(new NewMatchFound($match));
+                }
             } else {
                 ItemMatch::where('lost_item_id', $lostId)
                          ->where('found_item_id', $foundId)
@@ -69,10 +74,20 @@ class MatchingService
 
     public function scoreLocation(Item $a, Item $b): float
     {
+        // skip if location is not "lat,lon" format
+        if (strpos($a->location, ',') === false || strpos($b->location, ',') === false) {
+            return 0.0;
+        }
         try {
-            [$lat1, $lon1] = explode(',', $a->location);
-            [$lat2, $lon2] = explode(',', $b->location);
+            // parse and cast latitude/longitude to floats
+            [$lat1_str, $lon1_str] = explode(',', $a->location);
+            [$lat2_str, $lon2_str] = explode(',', $b->location);
+            $lat1 = floatval(trim($lat1_str));
+            $lon1 = floatval(trim($lon1_str));
+            $lat2 = floatval(trim($lat2_str));
+            $lon2 = floatval(trim($lon2_str));
             $earthRadius = 6371; // km
+            // compute deltas in radians
             $dLat = deg2rad($lat2 - $lat1);
             $dLon = deg2rad($lon2 - $lon1);
             $lat1 = deg2rad($lat1);
@@ -86,7 +101,8 @@ class MatchingService
                 return 0.0;
             }
             return 1.0 - ($distance / $this->locationRadiusKm);
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
+            // fallback if parsing or math fails
             return 0.0;
         }
     }
