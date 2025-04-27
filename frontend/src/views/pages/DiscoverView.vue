@@ -189,25 +189,24 @@
         </main>
 
         <!-- Item Detail Modal -->
-        <div v-if="showItemDetail" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4 overflow-y-auto">
-            <div class="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+        <div v-if="showItemDetail" class="fixed inset-0 flex items-center justify-center p-6 bg-black bg-opacity-50 z-50">
+            <div class="bg-white rounded-lg shadow-xl w-full max-w-4xl max-h-[85vh] overflow-auto p-8">
                 <ItemDetail 
                     :itemId="selectedItemId" 
                     @close="closeItemDetail" 
-                    @update="fetchItems"
+                    @update="fetchItems" 
+                    @edit="navigateToEdit"
                 />
             </div>
         </div>
         
         <!-- Create Item Modal -->
-        <div v-if="showCreateForm" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4 overflow-y-auto">
-            <div class="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-                <div class="p-6">
-                    <ItemForm 
-                        @submit="handleItemCreated" 
-                        @cancel="closeCreateForm"
-                    />
-                </div>
+        <div v-if="showCreateForm" class="fixed inset-0 flex items-center justify-center p-6 bg-black bg-opacity-50 z-50">
+            <div class="bg-white rounded-lg shadow-xl w-full max-w-3xl max-h-[85vh] overflow-auto p-8">
+                <ItemForm 
+                    @submit="handleItemCreated" 
+                    @cancel="closeCreateForm"
+                />
             </div>
         </div>
     </div>
@@ -215,7 +214,7 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import ItemCard from '@/components/ItemCard.vue'
 import ItemDetail from '@/components/ItemDetail.vue'
 import ItemForm from '@/components/ItemForm.vue'
@@ -223,6 +222,7 @@ import itemService from '@/services/item.service'
 import categoryService from '@/services/category.service'
 
 const route = useRoute()
+const router = useRouter()
 const items = ref([])
 const isLoading = ref(true)
 const isLoaded = ref(false)
@@ -408,6 +408,10 @@ const closeCreateForm = () => {
 const handleItemCreated = () => {
   fetchItems()
   closeCreateForm()
+}
+
+const navigateToEdit = (item) => {
+  router.push({ name: 'MyItems', query: { editItemId: item.id } });
 }
 
 const enableLocation = () => {
