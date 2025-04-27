@@ -143,11 +143,19 @@
                                         <h2 class="text-xl font-semibold mb-4">Recent Items</h2>
                                         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                                             <ItemCard 
-                                                v-for="item in recentItems" 
+                                                v-for="item in visibleRecentItems" 
                                                 :key="item.id" 
                                                 :item="item" 
                                                 @click="openItemDetail(item.id)" 
                                             />
+                                        </div>
+                                        <div class="flex justify-center mt-6">
+                                            <button 
+                                                v-if="visibleCount < recentItems.length" 
+                                                @click="visibleCount += 6" 
+                                                class="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-white shadow transition-colors hover:bg-primary-dark focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2">
+                                                Show More Items
+                                            </button>
                                         </div>
                                     </div>
                                 </div>
@@ -247,6 +255,8 @@ const lostItems = computed(() => items.value.filter(item => item.type === 'lost'
 const foundItems = computed(() => items.value.filter(item => item.type === 'found'))
 const featuredItems = computed(() => items.value.filter(item => item.featured))
 const recentItems = computed(() => items.value.filter(item => !item.featured))
+const visibleCount = ref(6)
+const visibleRecentItems = computed(() => recentItems.value.slice(0, visibleCount.value))
 
 // Fetch initial data
 onMounted(async () => {
