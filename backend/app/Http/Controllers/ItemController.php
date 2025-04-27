@@ -10,6 +10,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Log;
+use App\Services\MatchService;
 
 class ItemController extends Controller
 {
@@ -134,7 +136,17 @@ class ItemController extends Controller
         }
         
         $item->save();
-        event(new ItemCreated($item));
+        try {
+            event(new ItemCreated($item));
+        } catch (\Throwable $e) {
+            Log::warning('ItemCreated matching failed', ['error' => $e->getMessage()]);
+        }
+        // Run matching immediately to write Meili results inline
+        try {
+            app(MatchService::class)->process($item);
+        } catch (\Throwable $e) {
+            Log::warning('Immediate matching failed', ['error' => $e->getMessage()]);
+        }
 
         return response()->json([
             'message' => 'Item created successfully',
