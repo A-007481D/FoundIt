@@ -4,7 +4,8 @@
 #     branches: [ main ]
 #   pull_request:
 #     branches: [ main ]
-
+#
+#
 # jobs:
 #   terraform-scan:
 #     name: Terraform Scan
@@ -23,7 +24,7 @@
 #           version: latest
 #       - name: tflint
 #         uses: terraform-linters/tflint-action@v1
-
+#
 #   container-scan:
 #     name: Container CVE Scan
 #     runs-on: ubuntu-latest
@@ -37,7 +38,7 @@
 #         with:
 #           image-ref: foundit-backend:latest
 #           format: 'table'
-
+#
 #   codeql:
 #     name: CodeQL Analysis
 #     runs-on: ubuntu-latest
