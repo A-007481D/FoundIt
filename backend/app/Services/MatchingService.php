@@ -5,8 +5,9 @@ namespace App\Services;
 use App\Models\Item;
 use App\Models\ItemMatch;
 use App\Notifications\NewMatchFound;
+use App\Repositories\Contracts\MatcherInterface;
 
-class MatchingService
+class MatchingService implements MatcherInterface
 {
     protected array $weights;
     protected float $threshold;
