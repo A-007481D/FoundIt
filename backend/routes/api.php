@@ -2,11 +2,13 @@
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Broadcast;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ChatController;
 use App\Http\Controllers\MessageReportController;
 use App\Http\Controllers\MessageNotificationController;
+use App\Http\Controllers\NotificationController;
 
 /*
 |--------------------------------------------------------------------------
@@ -18,6 +20,9 @@ use App\Http\Controllers\MessageNotificationController;
 | be assigned to the "api" middleware group. Make something great!
 |
 */
+
+// Broadcast channels auth endpoint
+Broadcast::routes(['middleware' => ['jwt.broadcast']]);
 
 // Public routes
 Route::prefix('auth')->group(function () {
@@ -61,6 +66,11 @@ Route::middleware(['auth:api', 'verified'])->group(function () {
         Route::post('/{notificationId}/read', [MessageNotificationController::class, 'markAsRead']);
         Route::post('/read-all', [MessageNotificationController::class, 'markAllAsRead']);
     });
+
+    // notifications
+    Route::get('/notifications', [NotificationController::class, 'index']);
+    Route::post('/notifications/{id}/read', [NotificationController::class, 'markRead']);
+    Route::post('/notifications/read-all', [NotificationController::class, 'markAllRead']);
 
     // Item routes for all authenticated users
     Route::prefix('items')->group(function () {
