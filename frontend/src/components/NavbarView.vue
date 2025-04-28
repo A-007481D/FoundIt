@@ -105,9 +105,14 @@
           <!-- User menu -->
           <div class="relative" ref="dropdownRef">
             <button @click="toggleUserMenu" class="h-8 w-8 rounded-full hover:ring-2 hover:ring-muted">
-              <div class="h-8 w-8 rounded-full bg-gray-200 flex items-center justify-center text-gray-600">
-                {{ userInitials }}
-              </div>
+              <template v-if="user.profile_photo">
+                <img :src="getAvatarUrl(user.profile_photo)" alt="Profile" class="h-8 w-8 rounded-full object-cover" />
+              </template>
+              <template v-else>
+                <div class="h-8 w-8 rounded-full bg-gray-200 flex items-center justify-center text-gray-600">
+                  {{ userInitials }}
+                </div>
+              </template>
             </button>
             <transition name="fade">
               <div v-show="showDropdown" class="absolute right-0 mt-2 w-56 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 z-50">
@@ -187,6 +192,7 @@ import axios from 'axios'
 import authHeader from '@/services/auth-header'
 import { MapPin, User, Bell as BellIcon, Menu as MenuIcon, MessageSquare } from 'lucide-vue-next'
 import { useNotificationStore } from '@/stores/notification.store'
+import { API_BASE_URL } from '@/config'
 
 // stores
 const authStore = useAuthStore()
@@ -257,6 +263,13 @@ const userInitials = computed(() => {
 const unreadMessagesCount = computed(() => {
   return chatStore.conversations.reduce((total, conv) => total + conv.unread_count, 0)
 })
+
+// build storage base URL from API_BASE_URL
+const storageBase = API_BASE_URL.replace(/\/api$/, '')
+
+function getAvatarUrl(photo) {
+  return photo ? `${storageBase}/storage/${photo}` : null
+}
 
 // actions
 const toggleNotif = () => {

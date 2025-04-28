@@ -17,7 +17,7 @@
             >
               <div class="flex items-center gap-4">
                 <img
-                  :src="conversation.other_user.photo || '/default-avatar.png'"
+                  :src="getAvatarUrl(conversation.other_user.photo)"
                   :alt="conversation.other_user.name"
                   class="w-12 h-12 rounded-full object-cover"
                 />
@@ -42,7 +42,7 @@
             <div class="p-4 border-b flex items-center justify-between">
               <div class="flex items-center gap-4">
                 <img
-                  :src="currentConversation.other_user.photo || '/default-avatar.png'"
+                  :src="getAvatarUrl(currentConversation.other_user.photo)"
                   :alt="currentConversation.other_user.name"
                   class="w-12 h-12 rounded-full object-cover"
                 />
@@ -157,6 +157,7 @@ import { useRoute } from 'vue-router';
 import { useAuthStore } from '@/stores/auth.store';
 import { useChatStore } from '@/stores/chat.store';
 import { MessageSquare } from 'lucide-vue-next';
+import { API_BASE_URL } from '@/config';
 
 const route = useRoute();
 const authStore = useAuthStore();
@@ -167,6 +168,14 @@ const newMessage = ref('');
 const showReportModal = ref(false);
 const reportReason = ref('');
 const messageToReport = ref(null);
+
+const storageBase = API_BASE_URL.replace(/\/api$/, '');
+function getAvatarUrl(photo) {
+  if (!photo) return '/img/default-profile.png';
+  if (photo.startsWith('http')) return photo;
+  if (photo.startsWith('/storage')) return `${storageBase}${photo}`;
+  return `${storageBase}/storage/${photo}`;
+}
 
 const currentUser = computed(() => authStore.user);
 const sortedConversations = computed(() => chatStore.sortedConversations);

@@ -34,6 +34,7 @@ class ReportCreated extends Notification implements ShouldQueue
             'reporter' => [
                 'id' => $this->report->reporter->id,
                 'name' => $this->report->reporter->firstname . ' ' . $this->report->reporter->lastname,
+                'photo' => $this->report->reporter->profile_photo,
             ],
         ];
     }
