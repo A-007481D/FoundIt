@@ -95,12 +95,14 @@ const authService = {
   },
 
   async forgotPassword(email) {
-    const response = await axiosInstance.post('/auth/forgot-password', { email });
+    // sending reset link
+    const response = await axiosInstance.post('/auth/password/email', { email });
     return response.data;
   },
 
   async resetPassword(resetData) {
-    const response = await axiosInstance.post('/auth/reset-password', resetData);
+    // resetting password
+    const response = await axiosInstance.post('/auth/password/reset', resetData);
     return response.data;
   },
 
