@@ -73,7 +73,7 @@
               <div v-show="showNotif" class="absolute right-0 mt-2 w-80 rounded-md bg-background shadow-lg ring-1 ring-black ring-opacity-5 z-50">
                 <div class="p-4 text-sm">
                   <div class="flex items-center justify-between mb-2">
-                    <h3 class="font-semibold">Notifications</h3>
+                    <router-link to="/notifications" class="font-semibold hover:text-primary">Notifications</router-link>
                     <button @click="markAllRead" class="text-xs text-primary hover:underline">Mark all as read</button>
                   </div>
                   <div class="py-2 text-center text-muted-foreground" v-if="!hasNotifications">
@@ -335,10 +335,19 @@ onMounted(async () => {
   document.addEventListener('click', handleClickOutside)
   
   if (isAuthenticated.value) {
-    window.Echo.private(`App.Models.User.${user.value.id}`)
-      .notification((notif) => {
-        notificationStore.notifications.unshift(notif)
-      })
+    const channel = window.Echo.private(`App.Models.User.${user.value.id}`)
+    channel.notification((notif) => {
+      notificationStore.notifications.unshift(notif)
+    })
+    channel.listen('ChatEvent', (e) => {
+      const conv = chatStore.conversations.find(c => c.id === e.conversation_id)
+      if (conv) {
+        conv.last_message = { id: e.id, content: e.content, created_at: e.created_at, sender: e.sender }
+        conv.unread_count = (conv.unread_count || 0) + 1
+      } else {
+        chatStore.fetchConversations()
+      }
+    })
   }
 })
 
