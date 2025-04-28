@@ -7,8 +7,8 @@
                     <div class="p-6">
                         <!-- Title -->
                         <div class="space-y-1 mb-6 text-center">
-                            <h2 class="text-2xl font-bold text-gray-900">Connexion</h2>
-                            <p class="text-gray-600">Entrez vos identifiants pour accéder à votre compte</p>
+                            <h2 class="text-2xl font-bold text-gray-900">Login</h2>
+                            <p class="text-gray-600">Enter your credentials to log in</p>
                         </div>
 
                         <!-- Error Message -->
@@ -25,7 +25,7 @@
                                     <input
                                         id="email"
                                         v-model="email"
-                                        placeholder="nom@exemple.com"
+                                        placeholder="name@example.com"
                                         type="email"
                                         class="pl-10 w-full py-2 px-3 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-purple-500 focus:border-purple-500"
                                         required
@@ -36,8 +36,8 @@
                             <!-- Password -->
                             <div class="space-y-2">
                                 <div class="flex items-center justify-between">
-                                    <label for="password" class="block text-sm font-medium text-gray-700">Mot de passe</label>
-                                    <router-link to="/forgot-password" class="text-xs text-purple-600 hover:underline">Mot de passe oublié?</router-link>
+                                    <label for="password" class="block text-sm font-medium text-gray-700">Password</label>
+                                    <router-link to="/forgot-password" class="text-xs text-purple-600 hover:underline">Forgot password?</router-link>
                                 </div>
                                 <div class="relative">
                                     <Lock class="absolute left-3 top-3 h-4 w-4 text-gray-400" />
@@ -64,7 +64,7 @@
                                     v-model="rememberMe"
                                     class="h-4 w-4 text-purple-600 focus:ring-purple-500 border-gray-300 rounded"
                                 />
-                                <label for="remember" class="text-sm font-medium text-gray-700">Se souvenir de moi</label>
+                                <label for="remember" class="text-sm font-medium text-gray-700">Remember me</label>
                             </div>
 
                             <!-- Submit -->
@@ -78,18 +78,18 @@
                     <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" />
                     <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4h-4z" />
                   </svg>
-                  Connexion...
+                  Logging in...
                 </span>
                                 <span v-else class="flex items-center">
-                  <LogIn class="mr-2 h-4 w-4" /> Se connecter
+                  <LogIn class="mr-2 h-4 w-4" /> Log in
                 </span>
                             </button>
                         </form>
                     </div>
 
                     <div class="px-6 py-4 bg-gray-50 border-t border-gray-200 text-center text-sm text-gray-600">
-                        Pas encore de compte?
-                        <router-link to="/register" class="text-purple-600 hover:underline font-medium">Créer un compte</router-link>
+                        Don't have an account?
+                        <router-link to="/register" class="text-purple-600 hover:underline font-medium">Sign up</router-link>
                     </div>
                 </div>
             </div>
@@ -98,7 +98,7 @@
         <!-- Footer ... same as before -->
         <footer class="border-t py-4 bg-gray-50">
             <div class="container mx-auto px-4 text-sm text-gray-500 text-center">
-                © {{ new Date().getFullYear() }} FoundIt! Tous droits réservés.
+                &copy; {{ new Date().getFullYear() }} FoundIt! All rights reserved.
             </div>
         </footer>
     </div>
