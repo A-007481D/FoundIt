@@ -58,4 +58,17 @@ window.Echo = new Echo({
   })
 })
 
+import { useNotificationStore } from '@/stores/notification.store'
+const notificationStore = useNotificationStore()
+notificationStore.fetchNotifications()
+if (notificationStore.notifications) {
+  const user = JSON.parse(localStorage.getItem('user'))
+  if (user && user.id) {
+    window.Echo.private(`App.Models.User.${user.id}`)
+      .notification(notification => {
+        notificationStore.addNotification(notification)
+      })
+  }
+}
+
 app.mount('#app')
