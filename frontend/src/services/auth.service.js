@@ -41,6 +41,10 @@ axiosInstance.interceptors.response.use(
         window.location.href = '/login';
         return Promise.reject(error);
       }
+      // Skip token refresh for login errors to allow front-end error handling
+      if (originalRequest.url.includes('/auth/login')) {
+        return Promise.reject(error);
+      }
       if (error.response && error.response.status === 401 && !originalRequest._retry) {
         originalRequest._retry = true;
 
