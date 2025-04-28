@@ -10,6 +10,7 @@ use App\Repositories\EloquentItemRepository;
 use App\Repositories\EloquentItemMatchRepository;
 use App\Services\MatchingService;
 use App\Services\SearchMatcher;
+use App\Services\AttributeScorer;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -18,6 +19,10 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
+        $this->app->singleton(AttributeScorer::class, function() {
+            return new AttributeScorer();
+        });
+
         $this->app->bind(MatcherInterface::class, function ($app) {
             return config('matching.engine', 'legacy') === 'search'
                 ? $app->make(SearchMatcher::class)

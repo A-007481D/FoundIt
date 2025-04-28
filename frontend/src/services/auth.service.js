@@ -41,6 +41,10 @@ axiosInstance.interceptors.response.use(
         window.location.href = '/login';
         return Promise.reject(error);
       }
+      // Skip token refresh for login errors to allow front-end error handling
+      if (originalRequest.url.includes('/auth/login')) {
+        return Promise.reject(error);
+      }
       if (error.response && error.response.status === 401 && !originalRequest._retry) {
         originalRequest._retry = true;
 
@@ -95,12 +99,14 @@ const authService = {
   },
 
   async forgotPassword(email) {
-    const response = await axiosInstance.post('/auth/forgot-password', { email });
+    // sending reset link
+    const response = await axiosInstance.post('/auth/password/email', { email });
     return response.data;
   },
 
   async resetPassword(resetData) {
-    const response = await axiosInstance.post('/auth/reset-password', resetData);
+    // resetting password
+    const response = await axiosInstance.post('/auth/password/reset', resetData);
     return response.data;
   },
 

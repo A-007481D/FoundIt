@@ -12,6 +12,7 @@ use App\Repositories\AuthRepository;
 use Illuminate\Auth\Events\Registered;
 use Tymon\JWTAuth\Facades\JWTAuth;
 use Carbon\Carbon;
+use App\Notifications\ResetPasswordNotification;
 
 class AuthService extends AuthRepository
 {
@@ -38,9 +39,15 @@ class AuthService extends AuthRepository
     {
         $user = $this->findByEmail($data['email']);
 
-        if (!$user || !Hash::check($data['password'], $user->password)) {
+        // Distinguish between non-existent email and wrong password
+        if (!$user) {
             throw ValidationException::withMessages([
-                'email' => ['The provided credentials are incorrect.'],
+                'email' => ['No user found with that email address.'],
+            ]);
+        }
+        if (!Hash::check($data['password'], $user->password)) {
+            throw ValidationException::withMessages([
+                'password' => ['The provided password is incorrect.'],
             ]);
         }
         if (!$user->hasVerifiedEmail()) {
@@ -87,18 +94,23 @@ class AuthService extends AuthRepository
     }
 
     /**
+     * Generate a reset token, send notification, and return the token
+     *
      * @throws ValidationException
      */
-    public function sendResetLink(array $data): true
+    public function sendResetLink(array $data): string
     {
-        $status = Password::sendResetLink($data);
-
-        if($status !== Password::RESET_LINK_SENT) {
+        $user = $this->findByEmail($data['email']);
+        if (! $user) {
             throw ValidationException::withMessages([
-                'email' => ['Could not send password reset link.'],
+                'email' => ['No user found with that email address.'],
             ]);
         }
-        return true;
+        // generate token and persist to password_reset_tokens table
+        $token = Password::broker()->createToken($user);
+        // send notification via custom class
+        $user->notify(new ResetPasswordNotification($token));
+        return $token;
     }
 
     public function resetPassword(array $data): true

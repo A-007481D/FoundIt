@@ -6,6 +6,7 @@ use App\Models\Item;
 use App\Models\ItemMatch;
 use App\Notifications\NewMatchFound;
 use App\Repositories\Contracts\MatcherInterface;
+use App\Services\AttributeScorer;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Log;
 
@@ -14,6 +15,13 @@ use Illuminate\Support\Facades\Log;
  */
 class SearchMatcher implements MatcherInterface
 {
+    protected AttributeScorer $scorer;
+
+    public function __construct(AttributeScorer $scorer)
+    {
+        $this->scorer = $scorer;
+    }
+
     public function matchItem(Item $item): void
     {
         Log::info("SearchMatcher.matchItem start: item={$item->id}, type={$item->type}");
@@ -40,11 +48,11 @@ class SearchMatcher implements MatcherInterface
             if (! $otherItem) {
                 continue;
             }
-            // compute weighted attribute scores
-            $scoreCategory    = $this->scoreCategory($item, $otherItem);
-            $scoreDescription = $this->scoreDescription($item, $otherItem);
-            $scoreTimeframe   = $this->scoreTimeframe($item, $otherItem);
-            $scoreLocation    = $this->scoreLocation($item, $otherItem);
+            // compute weighted attribute scores via AttributeScorer
+            $scoreCategory    = $this->scorer->rawCategory($item, $otherItem) * $weights['category'];
+            $scoreDescription = $this->scorer->rawDescription($item, $otherItem) * $weights['description'];
+            $scoreTimeframe   = $this->scorer->rawTimeframe($item, $otherItem) * $weights['timeframe'];
+            $scoreLocation    = $this->scorer->rawLocation($item, $otherItem) * $weights['location'];
             $score = $scoreCategory + $scoreDescription + $scoreTimeframe + $scoreLocation;
             Log::info(sprintf(
                 'SearchMatcher.matchItem scoring: cat=%.2f desc=%.2f time=%.2f loc=%.2f total=%.2f',

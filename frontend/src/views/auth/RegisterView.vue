@@ -6,8 +6,8 @@
                 <div class="bg-white rounded-lg shadow-lg border border-gray-200 overflow-hidden">
                     <div class="p-6">
                         <div class="space-y-1 mb-6">
-                            <h2 class="text-2xl font-bold text-center text-gray-900">Créer un compte</h2>
-                            <p class="text-center text-gray-600">Inscrivez-vous pour commencer à utiliser FoundIt!</p>
+                            <h2 class="text-2xl font-bold text-center text-gray-900">Sign Up</h2>
+                            <p class="text-center text-gray-600">Sign up to start using FoundIt!</p>
                         </div>
 
                         <div class="space-y-4">
@@ -44,7 +44,7 @@
                                     <span class="w-full border-t border-gray-300" />
                                 </div>
                                 <div class="relative flex justify-center text-xs uppercase">
-                                    <span class="bg-white px-2 text-gray-500">Ou inscrivez-vous avec</span>
+                                    <span class="bg-white px-2 text-gray-500">Or sign up with</span>
                                 </div>
                             </div>
 
@@ -52,7 +52,7 @@
                                 <div class="grid grid-cols-2 gap-4">
                                     <div class="space-y-2">
                                         <label for="firstName" class="block text-sm font-medium text-gray-700">
-                                            Prénom
+                                            First Name
                                         </label>
                                         <div class="relative">
                                             <User class="absolute left-3 top-3 h-4 w-4 text-gray-400" />
@@ -67,7 +67,7 @@
                                     </div>
                                     <div class="space-y-2">
                                         <label for="lastName" class="block text-sm font-medium text-gray-700">
-                                            Nom
+                                            Last Name
                                         </label>
                                         <div class="relative">
                                             <User class="absolute left-3 top-3 h-4 w-4 text-gray-400" />
@@ -90,7 +90,7 @@
                                         <input
                                             id="email"
                                             v-model="email"
-                                            placeholder="nom@exemple.com"
+                                            placeholder="name@example.com"
                                             type="email"
                                             class="pl-10 w-full py-2 px-3 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-purple-500 focus:border-purple-500"
                                             required
@@ -99,7 +99,7 @@
                                 </div>
                                 <div class="space-y-2">
                                     <label for="password" class="block text-sm font-medium text-gray-700">
-                                        Mot de passe
+                                        Password
                                     </label>
                                     <div class="relative">
                                         <Lock class="absolute left-3 top-3 h-4 w-4 text-gray-400" />
@@ -136,16 +136,16 @@
                                         </div>
                                         <ul class="text-xs space-y-1 text-gray-500">
                                             <li :class="{ 'text-green-600': password.length >= 8 }">
-                                                • Au moins 8 caractères
+                                                • At least 8 characters
                                             </li>
                                             <li :class="{ 'text-green-600': /[A-Z]/.test(password) }">
-                                                • Au moins une majuscule
+                                                • At least one uppercase letter
                                             </li>
                                             <li :class="{ 'text-green-600': /[0-9]/.test(password) }">
-                                                • Au moins un chiffre
+                                                • At least one number
                                             </li>
                                             <li :class="{ 'text-green-600': /[^A-Za-z0-9]/.test(password) }">
-                                                • Au moins un caractère spécial
+                                                • At least one special character
                                             </li>
                                         </ul>
                                     </div>
@@ -158,15 +158,8 @@
                                         class="h-4 w-4 text-purple-600 focus:ring-purple-500 border-gray-300 rounded"
                                         required
                                     />
-                                    <label for="terms" class="text-sm text-gray-700">
-                                        J'accepte les
-                                        <router-link to="/terms" class="text-purple-600 hover:underline">
-                                            conditions d'utilisation
-                                        </router-link>
-                                        et la
-                                        <router-link to="/privacy" class="text-purple-600 hover:underline">
-                                            politique de confidentialité
-                                        </router-link>
+                                    <label for="terms" class="text-sm text-gray-700">I accept the
+                                        <router-link to="/terms" class="text-purple-600 hover:underline">Terms of Service</router-link> and <router-link to="/privacy" class="text-purple-600 hover:underline">Privacy Policy</router-link>
                                     </label>
                                 </div>
                                 <button
@@ -195,23 +188,18 @@
                                                 d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
                                             ></path>
                                         </svg>
-                                        Inscription en cours...
+                                        Signing up...
                                     </div>
                                     <div v-else class="flex items-center">
                                         <UserPlus class="mr-2 h-4 w-4" />
-                                        S'inscrire
+                                        Sign Up
                                     </div>
                                 </button>
                             </form>
                         </div>
                     </div>
                     <div class="px-6 py-4 bg-gray-50 border-t border-gray-200">
-                        <p class="text-center text-sm text-gray-600">
-                            Déjà inscrit?
-                            <router-link to="/login" class="text-purple-600 hover:underline font-medium">
-                                Se connecter
-                            </router-link>
-                        </p>
+                        <p class="text-center text-sm text-gray-600">Already have an account? <router-link to="/login" class="text-purple-600 hover:underline font-medium">Login</router-link></p>
                     </div>
                 </div>
             </div>
@@ -221,13 +209,13 @@
         <footer class="border-t py-4 bg-gray-50">
             <div class="container mx-auto px-4">
                 <div class="flex flex-col md:flex-row items-center justify-between gap-4">
-                    <p class="text-sm text-gray-500">© {{ new Date().getFullYear() }} FoundIt! Tous droits réservés.</p>
+                    <p class="text-sm text-gray-500"> 2023 FoundIt! All rights reserved.</p>
                     <div class="flex items-center gap-4 text-sm text-gray-500">
                         <router-link to="/terms" class="hover:text-gray-700 transition-colors">
-                            Conditions d'utilisation
+                            Terms of Service
                         </router-link>
                         <router-link to="/privacy" class="hover:text-gray-700 transition-colors">
-                            Confidentialité
+                            Privacy Policy
                         </router-link>
                         <router-link to="/contact" class="hover:text-gray-700 transition-colors">
                             Contact
@@ -276,11 +264,11 @@ const passwordStrength = computed(() => {
 
 function getPasswordStrengthText() {
     const strength = passwordStrength.value
-    if (strength === 100) return 'Très fort'
-    if (strength >= 80) return 'Fort'
-    if (strength >= 60) return 'Moyen'
-    if (strength >= 40) return 'Faible'
-    return 'Très faible'
+    if (strength === 100) return 'Very Strong'
+    if (strength >= 80) return 'Strong'
+    if (strength >= 60) return 'Medium'
+    if (strength >= 40) return 'Weak'
+    return 'Very Weak'
 }
 
 function getPasswordStrengthColorClass() {
@@ -319,7 +307,7 @@ const handleSubmit = async () => {
             errorMessage.value = authStore.error
         }
     } catch (error) {
-        errorMessage.value = 'Erreur lors de l\'inscription. Veuillez réessayer.'
+        errorMessage.value = 'Error signing up. Please try again.'
         console.error('Registration error:', error)
     } finally {
         isLoading.value = false

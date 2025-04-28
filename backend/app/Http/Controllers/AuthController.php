@@ -164,8 +164,11 @@ class AuthController extends Controller
         ]);
 
         try {
-            $this->authService->sendResetLink($validated);
-            return response()->json(['message' => 'Password reset link sent']);
+            $token = $this->authService->sendResetLink($validated);
+            return response()->json([
+                'message' => 'Password reset link sent',
+                'token'   => $token,
+            ]);
         } catch (ValidationException $e) {
             return response()->json([
                 'message' => $e->getMessage(),
