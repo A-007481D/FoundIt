@@ -18,4 +18,13 @@ export default defineConfig({
       'vue': 'vue/dist/vue.esm-bundler.js', // BUILDS TEMPLATES AT RUNTIME
     },
   },
+  server: {
+    proxy: {
+      '/api': {
+        target: 'http://localhost:8000',
+        changeOrigin: true,
+        secure: false
+      }
+    }
+  }
 })
