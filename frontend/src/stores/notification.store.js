@@ -5,7 +5,7 @@ export const useNotificationStore = defineStore('notification', {
   state: () => ({
     notifications: [],
     page: 1,
-    perPage: 20,
+    perPage: 100,
     hasMore: true
   }),
   getters: {

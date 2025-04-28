@@ -9,17 +9,19 @@ use Illuminate\Broadcasting\PrivateChannel;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
+use App\Models\Message;
 
-class ChatEvent
+class ChatEvent implements ShouldBroadcast
 {
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
-    /**
-     * Create a new event instance.
-     */
-    public function __construct()
+    public $message;
+    public $recipientId;
+
+    public function __construct(Message $message, int $recipientId)
     {
-        //
+        $this->message = $message;
+        $this->recipientId = $recipientId;
     }
 
     /**
@@ -29,8 +31,20 @@ class ChatEvent
      */
     public function broadcastOn(): array
     {
+        return [ new PrivateChannel('App.Models.User.' . $this->recipientId) ];
+    }
+
+    public function broadcastWith(): array
+    {
         return [
-            new PrivateChannel('channel-name'),
+            'conversation_id' => $this->message->conversation_id,
+            'id' => $this->message->id,
+            'content' => $this->message->content,
+            'sender' => [
+                'id' => $this->message->sender->id,
+                'name' => $this->message->sender->firstname . ' ' . $this->message->sender->lastname,
+            ],
+            'created_at' => $this->message->created_at->toDateTimeString(),
         ];
     }
 }

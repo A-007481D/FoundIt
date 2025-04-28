@@ -21,7 +21,7 @@ class ReportCreated extends Notification implements ShouldQueue
 
     public function via($notifiable)
     {
-        return ['database'];
+        return ['database', 'broadcast'];
     }
 
     public function toDatabase($notifiable)
@@ -36,5 +36,10 @@ class ReportCreated extends Notification implements ShouldQueue
                 'name' => $this->report->reporter->firstname . ' ' . $this->report->reporter->lastname,
             ],
         ];
+    }
+
+    public function toArray($notifiable)
+    {
+        return $this->toDatabase($notifiable);
     }
 }
