@@ -65,7 +65,7 @@
               >
                 <div class="group relative">
                   <div
-                    class="max-w-[70%] rounded-lg p-3"
+                    class="max-w-full rounded-lg p-3"
                     :class="{
                       'bg-blue-500 text-white': message.sender.id === currentUser.id,
                       'bg-gray-100': message.sender.id !== currentUser.id
@@ -185,6 +185,19 @@ onMounted(async () => {
       selectConversation(conversation);
     }
   }
+
+  window.Echo.private(`App.Models.User.${currentUser.value.id}`)
+    .listen('ChatEvent', (e) => {
+      if (e.conversation_id === currentConversation.value.id) {
+        chatStore.messages.push({
+          id: e.id,
+          content: e.content,
+          sender: e.sender,
+          created_at: e.created_at
+        });
+        nextTick(scrollToBottom);
+      }
+    });
 });
 
 const selectConversation = async (conversation) => {

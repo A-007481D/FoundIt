@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Services\AuthService;
+use App\Http\Requests\RegisterRequest;
+use App\Http\Requests\LoginRequest;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\ValidationException;
@@ -25,18 +27,13 @@ class AuthController extends Controller
     /**
      * Register a new user
      * 
-     * @param Request $request
+     * @param RegisterRequest $request
      * @return \Illuminate\Http\JsonResponse
      */
-    public function register(Request $request)
+    public function register(RegisterRequest $request)
     {
-        $validated = $request->validate([
-            'firstname' => 'required|string|max:255',
-            'lastname' => 'required|string|max:255',
-            'email' => 'required|email|max:255|unique:users,email',
-            'password' => 'required|string|min:8',
-        ]);
-
+        $validated = $request->validated();
+        
         try {
             $user = $this->authService->register($validated);
             
@@ -59,16 +56,13 @@ class AuthController extends Controller
     /**
      * Login user and create token
      *
-     * @param Request $request
+     * @param LoginRequest $request
      * @return \Illuminate\Http\JsonResponse
      */
-    public function login(Request $request)
+    public function login(LoginRequest $request)
     {
-        $validated = $request->validate([
-            'email' => 'required|email',
-            'password' => 'required|string',
-        ]);
-
+        $validated = $request->validated();
+        
         try {
             $token = $this->authService->login($validated);
             $user = $this->authService->findByEmail($validated['email']);

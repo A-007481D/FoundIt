@@ -1,16 +1,10 @@
-import axios from 'axios';
-import authHeader from './auth-header';
-
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api';
+import axiosInstance from '@/services/apiClient';
 
 class ItemService {
   // Get all items with filtering
   async getItems(params = {}) {
     try {
-      const response = await axios.get(`${API_URL}/items`, { 
-        headers: authHeader(),
-        params
-      });
+      const response = await axiosInstance.get('/items', { params });
       return response;
     } catch (error) {
       console.error('Error in getItems:', error);
@@ -22,10 +16,7 @@ class ItemService {
   // Get user's items
   async getUserItems(params = {}) {
     try {
-      const response = await axios.get(`${API_URL}/items/my-items`, { 
-        headers: authHeader(),
-        params
-      });
+      const response = await axiosInstance.get('/items/my-items', { params });
       return response;
     } catch (error) {
       console.error('Error in getUserItems:', error);
@@ -38,7 +29,7 @@ class ItemService {
   async getItem(id) {
     try {
       console.log(`Fetching item details for ID: ${id}`);
-      const response = await axios.get(`${API_URL}/items/${id}`, { headers: authHeader() });
+      const response = await axiosInstance.get(`/items/${id}`);
       console.log('Item details response:', response);
       return response;
     } catch (error) {
@@ -81,12 +72,7 @@ class ItemService {
         console.log(pair[0] + ': ' + pair[1]);
       }
       
-      const response = await axios.post(`${API_URL}/items`, formData, { 
-        headers: {
-          ...authHeader(),
-          'Content-Type': 'multipart/form-data'
-        }
-      });
+      const response = await axiosInstance.post('/items', formData, { headers: { 'Content-Type': 'multipart/form-data' } });
       
       return response;
     } catch (error) {
@@ -109,41 +95,27 @@ class ItemService {
       }
     });
     
-    return axios.post(`${API_URL}/items/${id}?_method=PUT`, formData, { 
-      headers: {
-        ...authHeader(),
-        'Content-Type': 'multipart/form-data'
-      }
-    });
+    return axiosInstance.post(`/items/${id}?_method=PUT`, formData, { headers: { 'Content-Type': 'multipart/form-data' } });
   }
 
   // Archive an item
   archiveItem(id) {
-    return axios.patch(`${API_URL}/items/${id}/archive`, {}, { headers: authHeader() });
+    return axiosInstance.patch(`/items/${id}/archive`);
   }
 
   // Restore an archived item
   restoreItem(id) {
-    return axios.patch(`${API_URL}/items/${id}/restore`, {}, { headers: authHeader() });
+    return axiosInstance.patch(`/items/${id}/restore`);
   }
 
   // Get all categories
   getCategories() {
-    return axios.get(`${API_URL}/categories`, { headers: authHeader() });
+    return axiosInstance.get('/categories');
   }
 
   // Report an item
   reportItem(itemId, reason, details = null) {
-    return axios.post(
-      `${API_URL}/reports`, 
-      { 
-        reportable_type: 'item', 
-        reportable_id: itemId,
-        reason,
-        details
-      }, 
-      { headers: authHeader() }
-    );
+    return axiosInstance.post('/reports', { reportable_type: 'item', reportable_id: itemId, reason, details });
   }
 }
 

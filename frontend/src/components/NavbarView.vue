@@ -73,7 +73,7 @@
               <div v-show="showNotif" class="absolute right-0 mt-2 w-80 rounded-md bg-background shadow-lg ring-1 ring-black ring-opacity-5 z-50">
                 <div class="p-4 text-sm">
                   <div class="flex items-center justify-between mb-2">
-                    <h3 class="font-semibold">Notifications</h3>
+                    <router-link to="/notifications" class="font-semibold hover:text-primary">Notifications</router-link>
                     <button @click="markAllRead" class="text-xs text-primary hover:underline">Mark all as read</button>
                   </div>
                   <div class="py-2 text-center text-muted-foreground" v-if="!hasNotifications">
@@ -86,7 +86,12 @@
                           <MapPin class="h-4 w-4" />
                         </div>
                         <div>
-                          <p v-if="notif.type === 'App\\Notifications\\NewMatchFound'">Match found for your item.</p>
+                          <p v-if="notif.type === 'App\\Notifications\\ReportCreated'">
+                            <strong>{{ notif.data.reporter.name }}</strong> reported 
+                            <span v-if="notif.data.reportable_type === 'User'">user</span>
+                            <span v-else>item</span> #{{ notif.data.reportable_id }} — "{{ notif.data.reason }}"
+                          </p>
+                          <p v-else-if="notif.type === 'App\\Notifications\\NewMatchFound'">Match found for your item.</p>
                           <p class="text-xs text-muted-foreground mt-1">{{ new Date(notif.created_at).toLocaleString() }}</p>
                         </div>
                       </div>
@@ -181,10 +186,12 @@ import { useChatStore } from '@/stores/chat.store'
 import axios from 'axios'
 import authHeader from '@/services/auth-header'
 import { MapPin, User, Bell as BellIcon, Menu as MenuIcon, MessageSquare } from 'lucide-vue-next'
+import { useNotificationStore } from '@/stores/notification.store'
 
 // stores
 const authStore = useAuthStore()
 const chatStore = useChatStore()
+const notificationStore = useNotificationStore()
 
 // state
 const showMobile = ref(false)
@@ -193,7 +200,7 @@ const showDropdown = ref(false)
 const search = ref('')
 const notifDropdownRef = ref(null)
 const dropdownRef = ref(null)
-const notifications = ref([])
+const notifications = computed(() => notificationStore.notifications)
 
 // router hooks
 const router = useRouter()
@@ -221,9 +228,9 @@ const navItems = computed(() => {
   }
 })
 
-const unreadCount = computed(() => notifications.value.length)
+const unreadCount = computed(() => notificationStore.unreadCount)
 
-const hasNotifications = computed(() => notifications.value.length > 0)
+const hasNotifications = computed(() => notificationStore.notifications.length > 0)
 
 const userInitials = computed(() => {
   if (!authStore.user) return ''
@@ -285,7 +292,7 @@ const markNotificationRead = async (id) => {
       {},
       { headers: { ...authHeader(), 'Accept': 'application/json' } }
     )
-    notifications.value = notifications.value.filter(n => n.id !== id)
+    notificationStore.notifications = notificationStore.notifications.filter(n => n.id !== id)
   } catch (err) {
     console.error('Error marking notification read:', err)
   }
@@ -299,7 +306,7 @@ const markAllRead = async () => {
       {},
       { headers: { ...authHeader(), 'Accept': 'application/json' } }
     )
-    notifications.value = []
+    notificationStore.notifications = []
   } catch (err) {
     console.error('Error marking all notifications read:', err)
   }
@@ -321,25 +328,26 @@ onMounted(async () => {
   if (isAuthenticated.value) {
     // fetch chat conversations
     await chatStore.fetchConversations()
-    // fetch existing notifications
-    try {
-      const { data } = await axios.get(
-        `${import.meta.env.VITE_API_URL}/notifications`,
-        { headers: { ...authHeader(), 'Accept': 'application/json' } }
-      )
-      notifications.value = data
-    } catch (err) {
-      console.error('Notifications fetch error:', err)
-    }
+    // fetch all notifications
+    await notificationStore.fetchNotifications()
   }
 
   document.addEventListener('click', handleClickOutside)
   
   if (isAuthenticated.value) {
-    window.Echo.private(`App.Models.User.${user.value.id}`)
-      .notification((notif) => {
-        notifications.value.unshift(notif)
-      })
+    const channel = window.Echo.private(`App.Models.User.${user.value.id}`)
+    channel.notification((notif) => {
+      notificationStore.notifications.unshift(notif)
+    })
+    channel.listen('ChatEvent', (e) => {
+      const conv = chatStore.conversations.find(c => c.id === e.conversation_id)
+      if (conv) {
+        conv.last_message = { id: e.id, content: e.content, created_at: e.created_at, sender: e.sender }
+        conv.unread_count = (conv.unread_count || 0) + 1
+      } else {
+        chatStore.fetchConversations()
+      }
+    })
   }
 })
 

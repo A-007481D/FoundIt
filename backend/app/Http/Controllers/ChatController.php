@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Conversation;
 use App\Models\Message;
 use App\Models\User;
+use App\Events\ChatEvent;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -101,6 +102,8 @@ class ChatController extends Controller
             'user_id' => $otherUserId,
             'read' => false
         ]);
+        
+        event(new ChatEvent($message, $otherUserId));
         
         return response()->json([
             'id' => $message->id,

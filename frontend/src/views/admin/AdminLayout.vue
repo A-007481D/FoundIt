@@ -1,49 +1,9 @@
 <template>
   <div class="admin-layout bg-gray-100 min-h-screen">
-    <!-- Admin Navbar -->
-<!--    <header class="bg-white border-b border-gray-200 shadow-sm">-->
-<!--      <div class="container mx-auto px-4 sm:px-6 lg:px-8">-->
-<!--        <div class="flex justify-between h-16 items-center">-->
-<!--          <div class="flex items-center">-->
-<!--            <router-link to="/admin" class="flex items-center gap-2 font-bold">-->
-<!--              <div class="h-8 w-8 rounded-full bg-primary flex items-center justify-center text-white">-->
-<!--                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">-->
-<!--                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />-->
-<!--                </svg>-->
-<!--              </div>-->
-<!--              <span class="text-xl">Admin</span>-->
-<!--            </router-link>-->
-<!--          </div>-->
-
-<!--          <div class="flex items-center gap-4">-->
-<!--            <span class="text-sm text-gray-600">{{ userFullName }}</span>-->
-<!--            <div class="relative" ref="dropdownRef">-->
-<!--              <button @click="toggleUserMenu" class="h-8 w-8 rounded-full hover:ring-2 hover:ring-muted">-->
-<!--                <div class="h-8 w-8 rounded-full bg-gray-200 flex items-center justify-center text-gray-600">-->
-<!--                  {{ userInitials }}-->
-<!--                </div>-->
-<!--              </button>-->
-<!--              <transition name="fade">-->
-<!--                <div v-show="showUserMenu" class="absolute right-0 mt-2 w-48 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 z-50">-->
-<!--                  <div class="py-1">-->
-<!--                    <router-link to="/" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">-->
-<!--                      Main Site-->
-<!--                    </router-link>-->
-<!--                    <div class="border-t my-1"></div>-->
-<!--                    <button-->
-<!--                      @click="logout"-->
-<!--                      class="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-100"-->
-<!--                    >-->
-<!--                      Log out-->
-<!--                    </button>-->
-<!--                  </div>-->
-<!--                </div>-->
-<!--              </transition>-->
-<!--            </div>-->
-<!--          </div>-->
-<!--        </div>-->
-<!--      </div>-->
-<!--    </header>-->
+    <!-- Using shared Navbar -->
+    <header class="hidden">
+    </header>
+    
 
     <div class="flex">
       <!-- Sidebar -->
@@ -241,6 +201,7 @@
 import { ref, computed, onMounted, onUnmounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { useAuthStore } from '@/stores/auth.store';
+import NavbarView from '@/components/NavbarView.vue'
 
 // Refs
 const showUserMenu = ref(false);
