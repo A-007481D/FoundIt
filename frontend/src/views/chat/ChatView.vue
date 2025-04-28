@@ -185,6 +185,19 @@ onMounted(async () => {
       selectConversation(conversation);
     }
   }
+
+  window.Echo.private(`App.Models.User.${currentUser.value.id}`)
+    .listen('ChatEvent', (e) => {
+      if (e.conversation_id === currentConversation.value.id) {
+        chatStore.messages.push({
+          id: e.id,
+          content: e.content,
+          sender: e.sender,
+          created_at: e.created_at
+        });
+        nextTick(scrollToBottom);
+      }
+    });
 });
 
 const selectConversation = async (conversation) => {
