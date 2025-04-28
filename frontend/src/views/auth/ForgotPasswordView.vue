@@ -11,28 +11,28 @@
                             </router-link>
                         </div>
                         <div class="space-y-1 mb-6">
-                            <h2 class="text-2xl font-bold text-center text-gray-900">Mot de passe oublié</h2>
-                            <p class="text-center text-gray-600">Entrez votre adresse email pour réinitialiser votre mot de passe</p>
+                            <h2 class="text-2xl font-bold text-center text-gray-900">Forgot Password</h2>
+                            <p class="text-center text-gray-600">Enter your email to reset your password</p>
                         </div>
 
                         <div v-if="isSubmitted" class="text-center space-y-4">
                             <div class="mx-auto h-12 w-12 rounded-full bg-purple-100 flex items-center justify-center text-purple-600 mb-4">
                                 <Mail class="h-6 w-6" />
                             </div>
-                            <h3 class="text-lg font-medium">Email envoyé!</h3>
+                            <h3 class="text-lg font-medium">Email Sent!</h3>
                             <p class="text-gray-600">
-                                Si un compte existe avec l'adresse <strong>{{ email }}</strong>, vous recevrez un email avec les
-                                instructions pour réinitialiser votre mot de passe.
+                                If an account exists for <strong>{{ email }}</strong>, you'll receive an email with instructions to reset your password.
                             </p>
                             <p class="text-sm text-gray-500 mt-2">
-                                N'oubliez pas de vérifier votre dossier de spam si vous ne trouvez pas l'email.
+                                Be sure to check your spam folder if you don't see the email.
                             </p>
                             <router-link to="/login" class="mt-4 inline-block text-purple-600 hover:underline">
-                                Retour à la page de connexion
+                                Back to Login
                             </router-link>
                         </div>
 
                         <form v-else @submit.prevent="handleSubmit" class="space-y-4">
+                            <div v-if="errorMessage" class="mb-4 text-sm text-red-600 text-center">{{ errorMessage }}</div>
                             <div class="space-y-2">
                                 <label for="email" class="block text-sm font-medium text-gray-700">
                                     Email
@@ -42,7 +42,7 @@
                                     <input
                                         id="email"
                                         v-model="email"
-                                        placeholder="nom@exemple.com"
+                                        placeholder="name@example.com"
                                         type="email"
                                         class="pl-10 w-full py-2 px-3 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-purple-500 focus:border-purple-500"
                                         required
@@ -75,20 +75,20 @@
                                             d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
                                         ></path>
                                     </svg>
-                                    Envoi en cours...
+                                    Sending...
                                 </div>
                                 <div v-else class="flex items-center">
                                     <Send class="mr-2 h-4 w-4" />
-                                    Envoyer les instructions
+                                    Send Instructions
                                 </div>
                             </button>
                         </form>
                     </div>
                     <div v-if="!isSubmitted" class="px-6 py-4 bg-gray-50 border-t border-gray-200">
                         <p class="text-center text-sm text-gray-600">
-                            Vous vous souvenez de votre mot de passe?
+                            Remember your password?
                             <router-link to="/login" class="text-purple-600 hover:underline font-medium">
-                                Se connecter
+                                Login
                             </router-link>
                         </p>
                     </div>
@@ -100,13 +100,13 @@
         <footer class="border-t py-4 bg-gray-50">
             <div class="container mx-auto px-4">
                 <div class="flex flex-col md:flex-row items-center justify-between gap-4">
-                    <p class="text-sm text-gray-500">© {{ new Date().getFullYear() }} FoundIt! Tous droits réservés.</p>
+                    <p class="text-sm text-gray-500"> {{ new Date().getFullYear() }} FoundIt! All rights reserved.</p>
                     <div class="flex items-center gap-4 text-sm text-gray-500">
                         <router-link to="/terms" class="hover:text-gray-700 transition-colors">
-                            Conditions d'utilisation
+                            Terms of Service
                         </router-link>
                         <router-link to="/privacy" class="hover:text-gray-700 transition-colors">
-                            Confidentialité
+                            Privacy Policy
                         </router-link>
                         <router-link to="/contact" class="hover:text-gray-700 transition-colors">
                             Contact
@@ -121,6 +121,7 @@
 <script>
 import { ref } from 'vue'
 import { ArrowLeft, Mail, MapPin, Send } from 'lucide-vue-next'
+import { authService } from '@/services/auth.service'
 
 export default {
     name: 'ForgotPassword',
@@ -134,21 +135,26 @@ export default {
         const email = ref('')
         const isLoading = ref(false)
         const isSubmitted = ref(false)
+        const errorMessage = ref(null)
 
-        const handleSubmit = () => {
+        const handleSubmit = async () => {
             isLoading.value = true
-
-            // Simulate API call
-            setTimeout(() => {
-                isLoading.value = false
+            errorMessage.value = null
+            try {
+                await authService.forgotPassword(email.value)
                 isSubmitted.value = true
-            }, 1500)
+            } catch (error) {
+                errorMessage.value = error.response?.data?.message || 'Failed to send password reset email.'
+            } finally {
+                isLoading.value = false
+            }
         }
 
         return {
             email,
             isLoading,
             isSubmitted,
+            errorMessage,
             handleSubmit
         }
     }
