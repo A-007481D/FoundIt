@@ -65,7 +65,7 @@
               >
                 <div class="group relative">
                   <div
-                    class="max-w-[70%] rounded-lg p-3"
+                    class="max-w-full rounded-lg p-3"
                     :class="{
                       'bg-blue-500 text-white': message.sender.id === currentUser.id,
                       'bg-gray-100': message.sender.id !== currentUser.id

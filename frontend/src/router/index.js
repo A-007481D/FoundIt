@@ -15,6 +15,7 @@ import DiscoverView from "@/views/pages/DiscoverView.vue";
 import MatchesView from "@/views/pages/MatchesView.vue";
 import MyItemsView from "@/views/pages/MyItemsView.vue";
 import ChatView from "@/views/chat/ChatView.vue";
+import NotificationsView from '@/views/pages/NotificationsView.vue';
 
 // Admin views
 import AdminLayout from '@/views/admin/AdminLayout.vue';
@@ -82,6 +83,12 @@ const routes = [
         path: '/profile',
         name: 'Profile',
         component: ProfileView,
+        meta: { requiresAuth: true }
+    },
+    {
+        path: '/notifications',
+        name: 'Notifications',
+        component: () => import('@/views/pages/NotificationsView.vue'),
         meta: { requiresAuth: true }
     },
     {

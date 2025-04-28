@@ -4,8 +4,6 @@ namespace App\Notifications;
 
 use Illuminate\Bus\Queueable;
 use Illuminate\Notifications\Notification;
-use Illuminate\Notifications\Messages\BroadcastMessage;
-use Illuminate\Broadcasting\PrivateChannel;
 use Illuminate\Notifications\Messages\DatabaseMessage;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use App\Models\Report;
@@ -23,7 +21,7 @@ class ReportCreated extends Notification implements ShouldQueue
 
     public function via($notifiable)
     {
-        return ['database', 'broadcast'];
+        return ['database'];
     }
 
     public function toDatabase($notifiable)
@@ -38,15 +36,5 @@ class ReportCreated extends Notification implements ShouldQueue
                 'name' => $this->report->reporter->firstname . ' ' . $this->report->reporter->lastname,
             ],
         ];
-    }
-
-    public function toBroadcast($notifiable)
-    {
-        return new BroadcastMessage($this->toDatabase($notifiable));
-    }
-
-    public function broadcastOn($notifiable)
-    {
-        return new PrivateChannel('App.Models.User.' . $notifiable->id);
     }
 }

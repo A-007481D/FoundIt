@@ -11,10 +11,15 @@ use Illuminate\Notifications\DatabaseNotification;
 class NotificationController extends Controller
 {
     // fetch all notifications
-    public function index()
+    public function index(Request $request)
     {
         $user = Auth::user();
-        $notifications = $user->notifications()->orderBy('created_at', 'desc')->get();
+        // Only show notifications from the past 30 days, paginated
+        $perPage = $request->get('per_page', 20);
+        $notifications = $user->notifications()
+            ->where('created_at', '>=', now()->subDays(30))
+            ->orderBy('created_at', 'desc')
+            ->paginate($perPage);
         return response()->json($notifications);
     }
 

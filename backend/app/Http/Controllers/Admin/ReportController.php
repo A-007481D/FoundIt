@@ -8,6 +8,8 @@ use App\Models\User;
 use App\Models\Item;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Notification;
+use App\Notifications\ReportCreated;
 
 class ReportController extends Controller
 {
@@ -243,6 +245,9 @@ class ReportController extends Controller
         $report->reportable_id = $request->reportable_id;
         $report->reportable_type = $reportableType;
         $report->save();
+
+        // Notify all admins of the new report
+        Notification::send(User::where('role', 'admin')->get(), new ReportCreated($report));
 
         // If it's an item report, update the item status and hide it
         if ($request->reportable_type === 'item') {
