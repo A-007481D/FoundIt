@@ -26,7 +26,9 @@ export const useItemDetectiveStore = defineStore('itemDetective', {
       brand: null,
       matchPercentage: 0
     },
-    serverSideOnly: false // Flag to bypass TensorFlow.js entirely
+    serverSideOnly: false, // Flag to bypass TensorFlow.js entirely
+    tfErrorCount: 0, // Track TensorFlow.js errors
+    maxTfErrors: 2  // After this many errors, switch to server-side only permanently
   }),
   
   actions: {
@@ -95,72 +97,86 @@ export const useItemDetectiveStore = defineStore('itemDetective', {
         
         console.log('Processing image...');
         
-        // If server-side only mode is enabled, skip TensorFlow.js processing
-        if (this.serverSideOnly) {
+        // If server-side only mode is enabled or we've had too many TensorFlow errors, 
+        // skip TensorFlow.js processing
+        if (this.serverSideOnly || this.tfErrorCount >= this.maxTfErrors) {
           console.log('Using server-side only processing...');
           await this.serverSideProcessing(imageFile);
           return;
         }
         
-        // Load model if not loaded
-        if (!this.model) {
-          console.log('Model not loaded yet, loading...');
-          const model = await this.loadModel();
-          
-          // If model loading failed, switch to server-side processing
-          if (!model) {
-            console.log('Model loading failed, switching to server-side only...');
-            await this.serverSideProcessing(imageFile);
-            return;
-          }
-        }
-        
-        // Convert the file to an image element
-        console.log('Converting file to image element...');
-        const imageElement = await this.fileToImage(imageFile);
-        
-        console.log('Running inference with MobileNet...');
-        // First just try classification which is more reliable
-        const classifications = await this.model.classify(imageElement);
-        console.log('Classifications:', classifications);
-        
-        // Then try getting the feature vector
-        console.log('Extracting feature vector...');
-        const activation = await this.model.infer(imageElement, true);
-        const featureVector = Array.from(activation.dataSync());
-        console.log('Feature vector extracted, length:', featureVector.length);
-        
-        // Analyze the image for category and color based on classification
-        this.analyzeImage(classifications);
-        
-        // Store feature vector for API call
-        this.imageFeatures = {
-          vector: featureVector,
-          classifications: classifications,
-          rawFile: imageFile
-        };
-        
-        // Search for matching items
-        await this.searchSimilarItems();
-        
-        return {
-          featureVector,
-          classifications
-        };
-      } catch (error) {
-        console.error('Error processing image with TensorFlow.js:', error);
-        
-        // Try server-side processing as fallback
+        // Try TensorFlow.js processing with error handling
         try {
-          console.log('Falling back to server-side processing...');
+          // Load model if not loaded
+          if (!this.model) {
+            console.log('Model not loaded yet, loading...');
+            const model = await this.loadModel();
+            
+            // If model loading failed, switch to server-side processing
+            if (!model) {
+              console.log('Model loading failed, switching to server-side...');
+              this.tfErrorCount++;
+              await this.serverSideProcessing(imageFile);
+              return;
+            }
+          }
+          
+          // Convert the file to an image element
+          console.log('Converting file to image element...');
+          const imageElement = await this.fileToImage(imageFile);
+          
+          console.log('Running inference with MobileNet...');
+          // First just try classification which is more reliable
+          const classifications = await this.model.classify(imageElement);
+          console.log('Classifications:', classifications);
+          
+          // Then try getting the feature vector
+          console.log('Extracting feature vector...');
+          const activation = await this.model.infer(imageElement, true);
+          const featureVector = Array.from(activation.dataSync());
+          console.log('Feature vector extracted, length:', featureVector.length);
+          
+          // Analyze the image for category and color based on classification
+          this.analyzeImage(classifications);
+          
+          // Store feature vector for API call
+          this.imageFeatures = {
+            vector: featureVector,
+            classifications: classifications,
+            rawFile: imageFile
+          };
+          
+          // Search for matching items
+          await this.searchSimilarItems();
+          
+          // Reset error count since TensorFlow.js worked
+          this.tfErrorCount = 0;
+          
+          return {
+            featureVector,
+            classifications
+          };
+        } catch (tfError) {
+          // Increment error count
+          this.tfErrorCount++;
+          console.log(`TensorFlow.js error (${this.tfErrorCount}/${this.maxTfErrors}), falling back to server-side`);
+          
+          // If we've had too many errors, permanently switch to server-side only
+          if (this.tfErrorCount >= this.maxTfErrors) {
+            console.log('Too many TensorFlow.js errors, permanently switching to server-side only mode');
+            this.serverSideOnly = true;
+          }
+          
+          // Fall back to server-side processing without showing error in console
           await this.serverSideProcessing(imageFile);
-        } catch (fallbackError) {
-          console.error('Server-side fallback also failed:', fallbackError);
-          this.errorMessage = 'Error processing image. Please try with a different image or browser.';
-          this.searchStatus = 'error';
-          this.isProcessing = false;
-          throw fallbackError;
         }
+      } catch (error) {
+        // This is only for errors in the overall process or server-side fallback
+        console.error('Error processing image:', error);
+        this.errorMessage = 'Error processing image. Please try with a different image or browser.';
+        this.searchStatus = 'error';
+        this.isProcessing = false;
+        throw error;
       }
     },
     
