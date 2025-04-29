@@ -63,7 +63,7 @@
 
           <!-- Notifications dropdown -->
           <div class="relative" ref="notifDropdownRef">
-            <button @click="toggleNotif" class="relative h-9 w-9 rounded-full flex items-center justify-center hover:bg-muted/50 transition-colors">
+            <button @click.stop="toggleNotif" class="relative h-9 w-9 rounded-full flex items-center justify-center hover:bg-muted/50 transition-colors">
               <BellIcon class="h-5 w-5"/>
               <span v-if="unreadCount" class="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-primary text-[10px] text-primary-foreground">
                 {{ unreadCount }}
@@ -74,15 +74,18 @@
                 <div class="p-4 text-sm">
                   <div class="flex items-center justify-between mb-2">
                     <router-link to="/notifications" class="font-semibold hover:text-primary">Notifications</router-link>
-                    <button @click="markAllRead" class="text-xs text-primary hover:underline">Mark all as read</button>
+                    <button @click.stop="markAllRead" class="text-xs text-primary hover:underline">Mark all as read</button>
                   </div>
                   <div class="py-2 text-center text-muted-foreground" v-if="!hasNotifications">
                     No new notifications
                   </div>
                   <div v-else>
-                    <div v-for="notif in notifications" :key="notif.id" class="border-b py-3 cursor-pointer hover:bg-muted/10" @click="markNotificationRead(notif.id)">
+                    <div v-for="notif in notifications" :key="notif.id" class="border-b py-3 cursor-pointer hover:bg-muted/10" @click.stop="markNotificationRead(notif.id)">
                       <div class="flex gap-3">
-                        <div class="h-8 w-8 rounded-full bg-muted flex items-center justify-center text-muted-foreground">
+                        <div v-if="notif.data.reporter?.photo" class="h-8 w-8 rounded-full overflow-hidden aspect-square">
+                          <img :src="getAvatarUrl(notif.data.reporter.photo)" alt="Reporter" class="h-full w-full object-cover rounded-full" />
+                        </div>
+                        <div v-else class="h-8 w-8 rounded-full bg-muted flex items-center justify-center text-muted-foreground aspect-square">
                           <MapPin class="h-4 w-4" />
                         </div>
                         <div>
@@ -105,9 +108,14 @@
           <!-- User menu -->
           <div class="relative" ref="dropdownRef">
             <button @click="toggleUserMenu" class="h-8 w-8 rounded-full hover:ring-2 hover:ring-muted">
-              <div class="h-8 w-8 rounded-full bg-gray-200 flex items-center justify-center text-gray-600">
-                {{ userInitials }}
-              </div>
+              <template v-if="user.profile_photo">
+                <img :src="getAvatarUrl(user.profile_photo)" alt="Profile" class="h-8 w-8 rounded-full object-cover" />
+              </template>
+              <template v-else>
+                <div class="h-8 w-8 rounded-full bg-gray-200 flex items-center justify-center text-gray-600">
+                  {{ userInitials }}
+                </div>
+              </template>
             </button>
             <transition name="fade">
               <div v-show="showDropdown" class="absolute right-0 mt-2 w-56 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 z-50">
@@ -187,6 +195,7 @@ import axios from 'axios'
 import authHeader from '@/services/auth-header'
 import { MapPin, User, Bell as BellIcon, Menu as MenuIcon, MessageSquare } from 'lucide-vue-next'
 import { useNotificationStore } from '@/stores/notification.store'
+import { API_BASE_URL } from '@/config'
 
 // stores
 const authStore = useAuthStore()
@@ -218,6 +227,7 @@ const navItems = computed(() => {
       { name: 'Discover', to: '/discover' },
       { name: 'Recent Matches', to: '/matches' },
       { name: 'My Items', to: '/my-items' },
+      { name: 'Item Detective', to: '/item-detective' },
     ];
   } else {
     return [
@@ -257,6 +267,13 @@ const userInitials = computed(() => {
 const unreadMessagesCount = computed(() => {
   return chatStore.conversations.reduce((total, conv) => total + conv.unread_count, 0)
 })
+
+// build storage base URL from API_BASE_URL
+const storageBase = API_BASE_URL.replace(/\/api$/, '')
+
+function getAvatarUrl(photo) {
+  return photo ? `${storageBase}/storage/${photo}` : null
+}
 
 // actions
 const toggleNotif = () => {

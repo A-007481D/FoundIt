@@ -368,16 +368,26 @@
 import { ref, reactive, onMounted, computed } from 'vue';
 import ProfileService from '@/services/profile.service';
 import authService from '@/services/auth.service';
+import { API_BASE_URL } from '@/config';
 
 export default {
   name: 'ProfileView',
   setup() {
+    // storage URL helper
+    const storageBase = API_BASE_URL.replace(/\/api$/, '');
+    function getAvatarUrl(photo) {
+      if (!photo) return '/img/default-profile.png';
+      if (photo.startsWith('http')) return photo;
+      if (photo.startsWith('/storage')) return `${storageBase}${photo}`;
+      return `${storageBase}/storage/${photo}`;
+    }
+
     // State
     const user = ref({});
     const isSaving = ref(false);
     const activeTab = ref('basic');
     const photoInput = ref(null);
-    const profilePhotoUrl = ref('/img/default-profile.png');
+    const profilePhotoUrl = ref(getAvatarUrl(null));
     const canChangeEmail = ref(true);
     const emailChangeRestriction = ref('');
     const photoChangeRestriction = ref('');
@@ -423,10 +433,8 @@ export default {
         const response = await ProfileService.getProfile();
         user.value = response.data.user;
         
-        // Update profile photo URL if available
-        if (user.value.profile_photo) {
-          profilePhotoUrl.value = 'http://localhost:8000/storage/' + user.value.profile_photo;
-        }
+        // set avatar URL
+        profilePhotoUrl.value = getAvatarUrl(user.value.profile_photo);
         
         // Check email change restrictions
         canChangeEmail.value = response.data.can_change_email;
@@ -516,8 +524,8 @@ export default {
         isSaving.value = true;
         const response = await ProfileService.updateProfilePhoto(file);
         
-        // Update profile photo
-        profilePhotoUrl.value = response.data.photo_path;
+        // update avatar URL
+        profilePhotoUrl.value = getAvatarUrl(response.data.photo_path);
         
         // Update photo change restriction
         const now = new Date();
@@ -636,6 +644,7 @@ export default {
       privacyForm,
       photoInput,
       profilePhotoUrl,
+      getAvatarUrl,
       canChangeEmail,
       emailChangeRestriction,
       photoChangeRestriction,
@@ -644,11 +653,12 @@ export default {
       alertTitle,
       alertType,
       lastUpdateText,
-      openPhotoUpload,
-      handlePhotoChange,
+      fetchProfile,
       updateProfileInfo,
       updateNotifications,
-      updatePrivacy
+      updatePrivacy,
+      openPhotoUpload,
+      handlePhotoChange,
     };
   }
 };

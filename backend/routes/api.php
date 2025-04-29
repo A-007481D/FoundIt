@@ -9,6 +9,7 @@ use App\Http\Controllers\ChatController;
 use App\Http\Controllers\MessageReportController;
 use App\Http\Controllers\MessageNotificationController;
 use App\Http\Controllers\NotificationController;
+use App\Http\Controllers\ItemDetectiveController;
 
 /*
 |--------------------------------------------------------------------------
@@ -32,6 +33,16 @@ Route::prefix('auth')->group(function () {
     Route::post('/password/reset', [AuthController::class, 'resetPassword']);
     Route::get('/email/verify/{id}/{hash}', [AuthController::class, 'verifyEmail'])->name('verification.verify');
 });
+
+// Basic connectivity test
+Route::get('/ping', function() {
+    return response()->json(['message' => 'pong']);
+});
+
+// Item Detective public routes
+Route::post('/item-detective/search', [ItemDetectiveController::class, 'search']);
+Route::post('/item-detective/save-query', [ItemDetectiveController::class, 'saveQuery']);
+Route::get('/item-detective/debug', [ItemDetectiveController::class, 'debug']);
 
 // Protected routes
 Route::middleware(['auth:api', 'verified'])->group(function () {
@@ -64,13 +75,16 @@ Route::middleware(['auth:api', 'verified'])->group(function () {
     Route::prefix('message-notifications')->group(function () {
         Route::get('/', [MessageNotificationController::class, 'getNotifications']);
         Route::post('/{notificationId}/read', [MessageNotificationController::class, 'markAsRead']);
-        Route::post('/read-all', [MessageNotificationController::class, 'markAllAsRead']);
+        Route::post('/read-all', [MessageNotificationController::class, 'markAllRead']);
     });
 
     // notifications
     Route::get('/notifications', [NotificationController::class, 'index']);
     Route::post('/notifications/{id}/read', [NotificationController::class, 'markRead']);
     Route::post('/notifications/read-all', [NotificationController::class, 'markAllRead']);
+
+    // Item Detective routes (authenticated)
+    // Route::post('/item-detective/search', [ItemDetectiveController::class, 'search']); // Moved to public routes
 
     // Item routes for all authenticated users
     Route::prefix('items')->group(function () {

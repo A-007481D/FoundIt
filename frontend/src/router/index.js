@@ -125,6 +125,15 @@ const routes = [
         ]
     },
     {
+        path: '/item-detective',
+        name: 'ItemDetective',
+        component: () => import('@/views/ItemDetectiveView.vue'),
+        meta: {
+            requiresAuth: true,
+            title: 'Item Detective'
+        }
+    },
+    {
         path: '/:pathMatch(.*)*',
         redirect: '/'
     }
@@ -132,11 +141,18 @@ const routes = [
 
 const router = createRouter({
     history: createWebHistory(),
-    routes
+    routes,
+    scrollBehavior() {
+        // Always scroll to top
+        return { top: 0 };
+    }
 });
 
-// Navigation guards
+// Global navigation guard
 router.beforeEach((to, from, next) => {
+    // Set page title
+    document.title = to.meta.title ? `${to.meta.title} | Found It` : 'Found It';
+    
     const token = localStorage.getItem('token');
     const userStr = localStorage.getItem('user');
     let user = null;
