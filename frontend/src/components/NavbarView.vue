@@ -63,7 +63,7 @@
 
           <!-- Notifications dropdown -->
           <div class="relative" ref="notifDropdownRef">
-            <button @click="toggleNotif" class="relative h-9 w-9 rounded-full flex items-center justify-center hover:bg-muted/50 transition-colors">
+            <button @click.stop="toggleNotif" class="relative h-9 w-9 rounded-full flex items-center justify-center hover:bg-muted/50 transition-colors">
               <BellIcon class="h-5 w-5"/>
               <span v-if="unreadCount" class="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-primary text-[10px] text-primary-foreground">
                 {{ unreadCount }}
@@ -74,15 +74,18 @@
                 <div class="p-4 text-sm">
                   <div class="flex items-center justify-between mb-2">
                     <router-link to="/notifications" class="font-semibold hover:text-primary">Notifications</router-link>
-                    <button @click="markAllRead" class="text-xs text-primary hover:underline">Mark all as read</button>
+                    <button @click.stop="markAllRead" class="text-xs text-primary hover:underline">Mark all as read</button>
                   </div>
                   <div class="py-2 text-center text-muted-foreground" v-if="!hasNotifications">
                     No new notifications
                   </div>
                   <div v-else>
-                    <div v-for="notif in notifications" :key="notif.id" class="border-b py-3 cursor-pointer hover:bg-muted/10" @click="markNotificationRead(notif.id)">
+                    <div v-for="notif in notifications" :key="notif.id" class="border-b py-3 cursor-pointer hover:bg-muted/10" @click.stop="markNotificationRead(notif.id)">
                       <div class="flex gap-3">
-                        <div class="h-8 w-8 rounded-full bg-muted flex items-center justify-center text-muted-foreground">
+                        <div v-if="notif.data.reporter?.photo" class="h-8 w-8 rounded-full overflow-hidden aspect-square">
+                          <img :src="getAvatarUrl(notif.data.reporter.photo)" alt="Reporter" class="h-full w-full object-cover rounded-full" />
+                        </div>
+                        <div v-else class="h-8 w-8 rounded-full bg-muted flex items-center justify-center text-muted-foreground aspect-square">
                           <MapPin class="h-4 w-4" />
                         </div>
                         <div>
