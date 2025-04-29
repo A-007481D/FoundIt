@@ -94,6 +94,12 @@ class ItemController extends Controller
             $request->file('image'),
             Auth::id()
         );
+
+        // If this is a "found" item with an image, process it for the item detective
+        if ($item->status === 'found' && $request->hasFile('image')) {
+            $this->processItemImageFeatures($item, $request->file('image'));
+        }
+
         return response()->json([
             'message' => 'Item created successfully',
             'item' => $item
@@ -126,6 +132,12 @@ class ItemController extends Controller
             $request->file('image'),
             Auth::id()
         );
+
+        // If item status is "found" and there's a new image, process for item detective
+        if ($item->status === 'found' && $request->hasFile('image')) {
+            $this->processItemImageFeatures($item, $request->file('image'));
+        }
+
         return response()->json([
             'message' => 'Item updated successfully',
             'item' => $item
@@ -164,5 +176,174 @@ class ItemController extends Controller
         $categories = Category::all();
 
         return response()->json($categories);
+    }
+
+    /**
+     * Process and store image features for the Item Detective
+     *
+     * @param \App\Models\Item $item
+     * @param \Illuminate\Http\UploadedFile $image
+     * @return void
+     */
+    private function processItemImageFeatures($item, $image)
+    {
+        try {
+            // Get image path from the item (assuming it's already been stored)
+            $imagePath = $item->image_path;
+            
+            // Basic image analysis for color detection
+            $colorInfo = $this->analyzeImageColor($image);
+            
+            // Create or update the image features record
+            $itemImageFeature = \App\Models\ItemImageFeature::updateOrCreate(
+                ['item_id' => $item->id],
+                [
+                    'image_path' => $imagePath,
+                    'category' => $item->category,
+                    'color' => $colorInfo['color'],
+                    // Feature vector and classifications will be populated by the frontend
+                    // when using the Item Detective feature
+                ]
+            );
+            
+            // Log the successful processing
+            \Illuminate\Support\Facades\Log::info("Processed image features for item #{$item->id}");
+            
+        } catch (\Exception $e) {
+            // Just log the error but don't fail the request
+            \Illuminate\Support\Facades\Log::error("Error processing image features: " . $e->getMessage());
+        }
+    }
+
+    /**
+     * Basic color analysis from the image
+     *
+     * @param \Illuminate\Http\UploadedFile $image
+     * @return array
+     */
+    private function analyzeImageColor($image)
+    {
+        try {
+            // Create a temporary file to work with
+            $tempPath = $image->getRealPath();
+            
+            // Load the image with GD library
+            $imageData = getimagesize($tempPath);
+            $mime = $imageData['mime'];
+            
+            switch ($mime) {
+                case 'image/jpeg':
+                    $img = imagecreatefromjpeg($tempPath);
+                    break;
+                case 'image/png':
+                    $img = imagecreatefrompng($tempPath);
+                    break;
+                case 'image/gif':
+                    $img = imagecreatefromgif($tempPath);
+                    break;
+                default:
+                    throw new \Exception("Unsupported image type: $mime");
+            }
+            
+            // Resize to smaller dimensions for faster processing
+            $width = imagesx($img);
+            $height = imagesy($img);
+            $newWidth = 150;
+            $newHeight = floor($height * ($newWidth / $width));
+            $resizedImg = imagecreatetruecolor($newWidth, $newHeight);
+            
+            // Preserve transparency for PNG
+            if ($mime == 'image/png') {
+                imagealphablending($resizedImg, false);
+                imagesavealpha($resizedImg, true);
+            }
+            
+            imagecopyresampled($resizedImg, $img, 0, 0, 0, 0, $newWidth, $newHeight, $width, $height);
+            
+            // Count colors
+            $colorCounts = [];
+            for ($x = 0; $x < $newWidth; $x++) {
+                for ($y = 0; $y < $newHeight; $y++) {
+                    $rgb = imagecolorat($resizedImg, $x, $y);
+                    $r = ($rgb >> 16) & 0xFF;
+                    $g = ($rgb >> 8) & 0xFF;
+                    $b = $rgb & 0xFF;
+                    
+                    // Skip if fully transparent
+                    if ($mime == 'image/png') {
+                        $alpha = ($rgb & 0x7F000000) >> 24;
+                        if ($alpha == 127) continue;
+                    }
+                    
+                    // Simple color classification
+                    $color = $this->classifyColor($r, $g, $b);
+                    if (!isset($colorCounts[$color])) {
+                        $colorCounts[$color] = 0;
+                    }
+                    $colorCounts[$color]++;
+                }
+            }
+            
+            // Free memory
+            imagedestroy($img);
+            imagedestroy($resizedImg);
+            
+            // Get the dominant color
+            arsort($colorCounts);
+            $dominantColor = key($colorCounts);
+            
+            return [
+                'color' => $dominantColor,
+                'color_distribution' => $colorCounts
+            ];
+            
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error('Error analyzing image color: ' . $e->getMessage());
+            return [
+                'color' => 'Unknown',
+                'color_distribution' => []
+            ];
+        }
+    }
+
+    /**
+     * Classify RGB values into named colors
+     *
+     * @param int $r
+     * @param int $g
+     * @param int $b
+     * @return string
+     */
+    private function classifyColor($r, $g, $b)
+    {
+        // Check for grayscale first
+        if (abs($r - $g) < 15 && abs($g - $b) < 15 && abs($r - $b) < 15) {
+            $brightness = ($r + $g + $b) / 3;
+            if ($brightness < 50) return 'Black';
+            if ($brightness < 120) return 'Gray';
+            if ($brightness < 220) return 'Gray';
+            return 'White';
+        }
+        
+        // Check for main colors
+        $max = max($r, $g, $b);
+        $min = min($r, $g, $b);
+        
+        // Check if it's a vivid color
+        if ($max - $min < 50) {
+            return "Muted";
+        }
+        
+        if ($r > 200 && $g < 100 && $b < 100) return 'Red';
+        if ($r > 200 && $g > 150 && $b < 100) return 'Orange';
+        if ($r > 200 && $g > 200 && $b < 100) return 'Yellow';
+        if ($r < 100 && $g > 150 && $b < 100) return 'Green';
+        if ($r < 100 && $g > 100 && $b > 200) return 'Blue';
+        if ($r > 150 && $g < 100 && $b > 150) return 'Purple';
+        if ($r > 200 && $g < 100 && $b > 150) return 'Pink';
+        if ($r > 150 && $g > 100 && $b < 100) return 'Brown';
+        
+        // Default fallback
+        return 'Multicolored';
     }
 }
