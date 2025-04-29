@@ -227,6 +227,7 @@ const navItems = computed(() => {
       { name: 'Discover', to: '/discover' },
       { name: 'Recent Matches', to: '/matches' },
       { name: 'My Items', to: '/my-items' },
+      { name: 'Item Detective', to: '/item-detective' },
     ];
   } else {
     return [
