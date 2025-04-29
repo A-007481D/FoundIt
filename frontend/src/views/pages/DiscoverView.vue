@@ -4,7 +4,7 @@
         <div class="animate-spin h-10 w-10 border-4 border-purple-600 border-t-transparent rounded-full"></div>
     </div>
     <div v-else class="min-h-screen flex flex-col">
-        <main class="max-w-[90rem] mx-auto flex-1 container py-6 flex flex-col-reverse md:flex-row items-start">
+        <main class="relative max-w-[90rem] mx-auto flex-1 container py-6 flex flex-col-reverse md:flex-row items-center">
             <div class="flex flex-col gap-6">
                 <div class="flex flex-col gap-2">
                     <h1 class="text-3xl font-bold tracking-tight">Discover Items</h1>
@@ -128,14 +128,25 @@
 
                         <!-- Content Area -->
                         <div class="flex-1">
-                            <!-- Search Mode: only results grid -->
-                            <div v-if="route.query.q" class="py-8">
-                                <!-- <h2 class="text-xl font-semibold mb-4 text-center">Search Results</h2> -->
+                            <!-- Search Mode: show only search results -->
+                            <div v-if="route.query.q" class="flex flex-col items-center justify-center w-full py-12 text-center">
+                                <!-- <h2 class="text-xl font-semibold mb-4">Search Results</h2> -->
                                 <div v-if="allItems.length" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                                     <ItemCard v-for="item in allItems" :key="item.id" :item="item" @click="openItemDetail(item.id)" />
                                 </div>
+                                <div v-else class="flex flex-col items-center justify-center py-12 text-center w-full">
+                                  <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 text-muted-foreground mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
+          </svg>
+                                    <h3 class="text-lg font-medium">No items found</h3>
+                                    
+                                    <p class="text-muted-foreground mt-1">Try adjusting your filters or check back later.</p>
+                                    <button @click="showCreateItemForm" class="mt-4 inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-white shadow transition-colors hover:bg-primary-dark focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2">
+                                       
+                                        Create New Item
+                                    </button>
+                                </div>
                             </div>
-
                             <!-- Tab Mode: show tabs when not searching -->
                             <div v-else>
                                 <!-- All Items Tab Content -->
@@ -189,20 +200,6 @@
                         </div>
                     </div>
                 </div>
-            </div>
-            <!-- Full-page no-results panel under filters/content -->
-            <div v-if="route.query.q && !allItems.length" class="w-full flex flex-col items-center justify-center py-12">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 text-muted-foreground mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"/>
-                </svg>
-                <h3 class="text-lg font-medium">No items found</h3>
-                <p class="text-muted-foreground mt-1">Try adjusting your filters or check back later.</p>
-                <button @click="showCreateItemForm" class="mt-4 inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-white shadow transition-colors hover:bg-primary-dark focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
-                    </svg>
-                    Create New Item
-                </button>
             </div>
         </main>
 

@@ -35,7 +35,7 @@
               @input="onSearch"
               type="search"
               placeholder="Search..."
-              class="w-[200px] lg:w-[300px] pl-8 py-2 rounded-full bg-muted border-none focus:ring-2 focus:ring-primary"
+              class="w-[200px] lg:w-[300px] pl-8 py-2 rounded-full bg-muted outline-none border-none px-2 focus:ring-2 focus:ring-primary"
           />
           <svg class="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" fill="none"
                stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
