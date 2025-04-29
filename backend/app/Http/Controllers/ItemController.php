@@ -25,8 +25,8 @@ class ItemController extends Controller
      */
     public function index(Request $request)
     {
-        // If keyword search, use Laravel Scout / Meili for real-time full-text
-        if ($request->filled('search')) {
+        // Disable Scout full-text; fallback to DB LIKE search
+        if (false && $request->filled('search')) {
             $search = $request->search;
             $raw = Item::search($search)->raw();
             $hits = $raw['hits'] ?? [];
@@ -78,7 +78,6 @@ class ItemController extends Controller
             $search = $request->search;
             $query->where(function ($q) use ($search) {
                 $q->where('title', 'like', "%{$search}%")
-                  ->orWhere('description', 'like', "%{$search}%")
                   ->orWhere('location', 'like', "%{$search}%");
             });
         }

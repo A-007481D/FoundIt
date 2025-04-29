@@ -273,10 +273,18 @@ const filters = ref({
 
 const categories = ref([])
 
-// Computed properties
-const allItems = computed(() => items.value)
-const lostItems = computed(() => items.value.filter(item => item.type === 'lost'))
-const foundItems = computed(() => items.value.filter(item => item.type === 'found'))
+// Computed properties with navbar search filter
+const allItems = computed(() => {
+  const q = route.query.q?.toLowerCase().trim() || '';
+  return q
+    ? items.value.filter(item =>
+        (item.title || '').toLowerCase().includes(q) ||
+        (item.location || '').toLowerCase().includes(q)
+      )
+    : items.value;
+});
+const lostItems = computed(() => allItems.value.filter(item => item.type === 'lost'))
+const foundItems = computed(() => allItems.value.filter(item => item.type === 'found'))
 const featuredItems = computed(() => items.value.filter(item => item.featured))
 const recentItems = computed(() => items.value.filter(item => !item.featured))
 const visibleCount = ref(6)
