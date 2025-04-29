@@ -296,44 +296,64 @@
     </div>
   </div>
   
-  <!-- Debug Panel (only in development) -->
-  <div v-if="isDevMode" class="debug-panel">
-    <div class="debug-header">
-      <h3>Debug Panel</h3>
-      <button @click="debugVisible = !debugVisible" class="debug-toggle">
-        {{ debugVisible ? 'Hide' : 'Show' }}
-      </button>
+  <!-- Debug Panel -->
+  <div class="debug-panel text-white" :class="{ 'expanded': showDebugPanel }">
+    <div class="debug-panel-header" @click="showDebugPanel = !showDebugPanel">
+      Debug Panel
+      <span v-if="showDebugPanel" class="text-white rounded-md cursor-pointer bg-red-200 hover:bg-gray-500 px-2 py-1">Hide</span>
+      <span v-else class="text-white rounded-md cursor-pointer bg-green-200 hover:bg-gray-500 px-2 py-1">Show</span>
     </div>
-    <div v-if="debugVisible" class="debug-content">
+    
+    <div v-if="showDebugPanel" class="debug-panel-content">
       <div class="debug-section">
         <h4>API Status</h4>
-        <div>Backend Connection: <span :class="apiConnected ? 'status-ok' : 'status-error'">
-          {{ apiConnected ? 'Connected' : 'Disconnected' }}
-        </span></div>
+        <div class="debug-row">
+          <span class="debug-label">Backend Connection:</span>
+          <span class="debug-value" :class="{ 'connected': apiConnected, 'error': !apiConnected }">
+            {{ apiConnected ? 'Connected' : 'Disconnected' }}
+          </span>
+        </div>
         <button @click="testConnection" class="debug-btn">Test Connection</button>
       </div>
       
       <div class="debug-section">
         <h4>Store State</h4>
-        <div>Status: <span :class="'status-' + store.searchStatus">{{ store.searchStatus }}</span></div>
-        <div>Results: {{ store.searchResults.length }}</div>
-        <div>Error: {{ store.errorMessage }}</div>
-        <div class="processing-mode">
-          <span>Processing: </span>
-          <span :class="store.serverSideOnly ? 'status-warning' : 'status-ok'">
-            {{ store.serverSideOnly ? 'Server-side only' : 'TensorFlow.js' }}
-          </span>
-          <button @click="toggleProcessingMode" class="debug-btn">
-            Switch to {{ store.serverSideOnly ? 'TensorFlow.js' : 'Server-only' }}
+        <div class="debug-row">
+          <span class="debug-label text-white">Status:</span>
+          <span class="debug-value text-white">{{ store.searchStatus }}</span>
+        </div>
+        <div class="debug-row">
+          <span class="debug-label text-white">Results:</span>
+          <span class="debug-value text-white">{{ store.searchResults.length }}</span>
+        </div>
+        <div class="debug-row">
+          <span class="debug-label text-red-500">Error:</span>
+          <span class="debug-value error text-red-500">{{ store.errorMessage }}</span>
+        </div>
+        <div class="debug-row">
+          <span class="debug-label text-white">Processing:</span>
+          <span class="debug-value text-yellow-500">{{ store.serverSideOnly ? 'Server-only' : 'TensorFlow.js' }}</span>
+          <button @click="toggleProcessingMode" class="debug-btn small">
+            {{ store.serverSideOnly ? 'Enable TensorFlow.js' : 'Switch to Server-only' }}
           </button>
+        </div>
+        <div class="debug-row">
+          <span class="debug-label text-white">TF Error Count:</span>
+          <span class="debug-value text-red-500">{{ store.tfErrorCount }} / {{ store.maxTfErrors }}</span>
         </div>
       </div>
       
       <div class="debug-section">
         <h4>Request Details</h4>
-        <div>Last API URL: {{ lastApiUrl }}</div>
-        <div>Last Status: {{ lastApiStatus }}</div>
-        <pre v-if="lastApiResponse" class="debug-response">{{ JSON.stringify(lastApiResponse, null, 2) }}</pre>
+        <div class="debug-row">
+          <span class="debug-label text-white">Last API URL:</span>
+          <span class="debug-value text-white">{{ lastApiUrl }}</span>
+        </div>
+        <div class="debug-row">
+          <span class="debug-label text-white">Last Status:</span>
+          <span class="debug-value text-green-500">{{ lastApiStatus }}</span>
+        </div>
+        <pre class="debug-json text-orange-400">{{ JSON.stringify(lastApiResponse, null, 2) }}</pre>
       </div>
     </div>
   </div>
@@ -368,6 +388,7 @@ const apiConnected = ref(false);
 const lastApiUrl = ref('');
 const lastApiStatus = ref('');
 const lastApiResponse = ref(null);
+const showDebugPanel = ref(false);
 
 watch(() => store.searchStatus, (newStatus) => {
   showUploader.value = !['analyzing', 'searching', 'complete'].includes(newStatus);
@@ -1131,7 +1152,7 @@ const toggleProcessingMode = () => {
   font-size: 0.75rem;
 }
 
-.debug-header {
+.debug-panel-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -1139,22 +1160,12 @@ const toggleProcessingMode = () => {
   background-color: #1e293b;
 }
 
-.debug-header h3 {
+.debug-panel-header h3 {
   margin: 0;
   font-size: 0.875rem;
 }
 
-.debug-toggle {
-  background-color: #334155;
-  border: none;
-  color: white;
-  padding: 0.25rem 0.5rem;
-  font-size: 0.75rem;
-  border-radius: 0.25rem;
-  cursor: pointer;
-}
-
-.debug-content {
+.debug-panel-content {
   padding: 1rem;
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -1175,6 +1186,30 @@ const toggleProcessingMode = () => {
   color: #94a3b8;
 }
 
+.debug-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.debug-label {
+  font-size: 0.75rem;
+}
+
+.debug-value {
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.debug-value.connected {
+  color: #10b981;
+}
+
+.debug-value.error {
+  color: #ef4444;
+}
+
 .debug-btn {
   background-color: #334155;
   border: none;
@@ -1186,7 +1221,7 @@ const toggleProcessingMode = () => {
   cursor: pointer;
 }
 
-.debug-response {
+.debug-json {
   margin-top: 0.5rem;
   padding: 0.5rem;
   background-color: #0f172a;
@@ -1225,5 +1260,10 @@ const toggleProcessingMode = () => {
 .processing-mode {
   margin-top: 0.5rem;
   font-size: 0.75rem;
+}
+
+.debug-btn.small {
+  padding: 0.25rem 0.5rem;
+  font-size: 0.625rem;
 }
 </style> 
