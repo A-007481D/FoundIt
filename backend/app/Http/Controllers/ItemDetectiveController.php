@@ -34,6 +34,10 @@ class ItemDetectiveController extends Controller
 
             $defaultMode = Setting::getValue('item_detective_mode', 'simple');
             $mode = $request->input('mode', $defaultMode);
+            // Fallback to simple if TensorFlow mode but no TF data sent
+            if ($mode === 'tf' && (!$request->has('features') || !$request->has('classifications'))) {
+                $mode = 'simple';
+            }
             $strategies = [
                 'simple' => SimpleStrategy::class,
                 'tf'     => TensorflowStrategy::class,
@@ -52,7 +56,9 @@ class ItemDetectiveController extends Controller
             if ($mode !== 'tf') {
                 $category = $this->guessCategoryFromColor($colorInfo['color']);
             } else {
-                $category = $this->extractCategoryFromClassifications($options['classifications'])['category'];
+                // Safe extract: ensure classifications array
+                $cls = is_array($options['classifications'] ?? null) ? $options['classifications'] : [];
+                $category = $this->extractCategoryFromClassifications($cls)['category'];
             }
             $options['color'] = $colorInfo['color'];
 
@@ -67,9 +73,24 @@ class ItemDetectiveController extends Controller
                 'color'    => $colorInfo['color'],
                 'brand'    => $brand,
             ]);
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             Log::error('Error in item detective search: ' . $e->getMessage());
-            return response()->json(['error' => 'Failed to process image'], 500);
+            // Fallback to simple strategy on any error
+            try {
+                $img = $request->file('image');
+                $colorInfo = $this->analyzeImageColor($img);
+                $category = $this->guessCategoryFromColor($colorInfo['color']);
+                $results = (new SimpleStrategy())->search($img, []);
+                return response()->json([
+                    'results'  => $results,
+                    'category' => $category,
+                    'color'    => $colorInfo['color'],
+                    'brand'    => 'Unknown',
+                ]);
+            } catch (\Throwable $inner) {
+                Log::error('Fallback simple search failed: ' . $inner->getMessage());
+                return response()->json(['error' => 'Failed to process image'], 500);
+            }
         }
     }
 

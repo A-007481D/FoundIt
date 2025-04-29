@@ -6,6 +6,7 @@ use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Collection;
 use App\Models\ItemImageFeature;
 use Illuminate\Support\Facades\Storage;
+use Jenssegers\ImageHash\ImageHash;
 
 class TensorflowStrategy implements DetectiveStrategyInterface
 {
@@ -14,6 +15,36 @@ class TensorflowStrategy implements DetectiveStrategyInterface
      */
     public function search(UploadedFile $image, array $options = []): Collection
     {
+        // Early exact-match via perceptual hash (PHash)
+        $hasher = new ImageHash();
+        $queryHash = $hasher->hash($image->getRealPath())->toHex();
+        $exactFeatures = ItemImageFeature::with('item')
+            ->where('phash', $queryHash)
+            ->whereHas('item', fn($q) => $q->where('type', 'found')->where('status', 'active'))
+            ->get();
+        if ($exactFeatures->isNotEmpty()) {
+            $results = collect();
+            foreach ($exactFeatures as $f) {
+                $url = url('/images/placeholder-item.jpg');
+                if ($f->image_path && Storage::disk('public')->exists($f->image_path)) {
+                    $url = url(Storage::url($f->image_path));
+                }
+                $results->push([
+                    'id' => $f->item->id,
+                    'name' => $f->item->title,
+                    'match_percentage' => 100,
+                    'image_url' => $url,
+                    'location' => $f->item->location ?? 'Unknown',
+                    'found_date' => $f->item->created_at->format('M j, Y'),
+                    'last_seen' => $f->item->updated_at->diffForHumans(),
+                    'color' => $f->color ?? 'Unknown',
+                    'feature1' => $f->category ?? null,
+                    'feature2' => null,
+                ]);
+            }
+            return $results;
+        }
+
         $featureVector = $options['features'] ?? [];
         $classifications = $options['classifications'] ?? [];
 
