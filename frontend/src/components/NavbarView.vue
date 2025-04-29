@@ -32,7 +32,7 @@
         <div v-if="showSearch" class="relative hidden md:block">
           <input
               v-model="search"
-              @keyup.enter="onSearch"
+              @input="onSearch"
               type="search"
               placeholder="Search..."
               class="w-[200px] lg:w-[300px] pl-8 py-2 rounded-full bg-muted border-none focus:ring-2 focus:ring-primary"
@@ -287,9 +287,11 @@ const toggleUserMenu = () => {
 }
 
 const onSearch = () => {
-  if (!search.value.trim()) return
-  router.push({ path: '/search', query: { q: search.value } })
-  search.value = ''
+  const q = search.value.trim()
+  const newQuery = { ...route.query }
+  if (q) newQuery.q = q
+  else delete newQuery.q
+  router.replace({ path: route.path, query: newQuery })
 }
 
 const logout = async () => {

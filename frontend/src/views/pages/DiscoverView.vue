@@ -41,6 +41,28 @@
                         <div class="hidden w-64 shrink-0 md:block">
                             <div class="flex flex-col gap-6">
                                 <div>
+                                    <h3 class="mb-2 font-medium">Title</h3>
+                                    <input 
+                                        v-model="filters.search" 
+                                        @input="applyFilters" 
+                                        @keyup.enter="applyFilters" 
+                                        type="text" 
+                                        placeholder="Search by title" 
+                                        class="border rounded px-2 py-1 w-full"
+                                    />
+                                </div>
+                                <div>
+                                    <h3 class="mb-2 font-medium">Location</h3>
+                                    <input 
+                                        v-model="filters.location" 
+                                        @input="applyFilters" 
+                                        @keyup.enter="applyFilters" 
+                                        type="text" 
+                                        placeholder="e.g. New York" 
+                                        class="border rounded px-2 py-1 w-full"
+                                    />
+                                </div>
+                                <div>
                                     <h3 class="mb-2 font-medium">Item Type</h3>
                                     <div class="space-y-2">
                                         <div class="flex items-center space-x-2">
@@ -213,7 +235,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import ItemCard from '@/components/ItemCard.vue'
 import ItemDetail from '@/components/ItemDetail.vue'
@@ -244,7 +266,9 @@ const filters = ref({
   category_id: null,
   distance: 5,
   datePosted: 'anytime',
-  categories: {}
+  categories: {},
+  search: '',
+  location: ''
 })
 
 const categories = ref([])
@@ -261,15 +285,22 @@ const visibleRecentItems = computed(() => recentItems.value.slice(0, visibleCoun
 // Fetch initial data
 onMounted(async () => {
   try {
-    // Fetch data sequentially to troubleshoot any issues
     await fetchCategories()
-    await fetchItems()
+    // Initialize search from navbar query param
+    filters.value.search = route.query.q || ''
+    applyFilters()
     isLoaded.value = true
   } catch (error) {
     console.error('Error initializing data:', error)
   } finally {
     isLoading.value = false
   }
+})
+
+// Watch navbar search query and apply filters
+watch(() => route.query.q, (q) => {
+  filters.value.search = q || ''
+  applyFilters()
 })
 
 // Methods for fetching data
@@ -361,6 +392,9 @@ const applyFilters = () => {
   const params = {
     status: 'active'
   }
+  
+  if (filters.value.search) params.search = filters.value.search
+  if (filters.value.location) params.location = filters.value.location
   
   // Handle item type filter
   if (filters.value.type !== 'all') {
