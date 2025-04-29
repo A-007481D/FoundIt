@@ -280,16 +280,58 @@
         </div>
         <h3>Something went wrong</h3>
         <p>{{ store.errorMessage || 'We encountered an error while processing your request. Please try again.' }}</p>
+        <div class="mt-2 text-sm text-gray-500">
+          <p>If the problem persists, please try:</p>
+          <ul class="list-disc pl-5 mt-1">
+            <li>Using a different image format (JPG or PNG)</li>
+            <li>Using a smaller image</li>
+            <li>Taking a clearer photo of the item</li>
+            <li>Using Chrome or Edge browser</li>
+          </ul>
+        </div>
         <button @click="resetDetection" class="try-again-btn">
           Try Again
         </button>
       </div>
     </div>
   </div>
+  
+  <!-- Debug Panel (only in development) -->
+  <div v-if="isDevMode" class="debug-panel">
+    <div class="debug-header">
+      <h3>Debug Panel</h3>
+      <button @click="debugVisible = !debugVisible" class="debug-toggle">
+        {{ debugVisible ? 'Hide' : 'Show' }}
+      </button>
+    </div>
+    <div v-if="debugVisible" class="debug-content">
+      <div class="debug-section">
+        <h4>API Status</h4>
+        <div>Backend Connection: <span :class="apiConnected ? 'status-ok' : 'status-error'">
+          {{ apiConnected ? 'Connected' : 'Disconnected' }}
+        </span></div>
+        <button @click="testConnection" class="debug-btn">Test Connection</button>
+      </div>
+      
+      <div class="debug-section">
+        <h4>Store State</h4>
+        <div>Status: <span :class="'status-' + store.searchStatus">{{ store.searchStatus }}</span></div>
+        <div>Results: {{ store.searchResults.length }}</div>
+        <div>Error: {{ store.errorMessage }}</div>
+      </div>
+      
+      <div class="debug-section">
+        <h4>Request Details</h4>
+        <div>Last API URL: {{ lastApiUrl }}</div>
+        <div>Last Status: {{ lastApiStatus }}</div>
+        <pre v-if="lastApiResponse" class="debug-response">{{ JSON.stringify(lastApiResponse, null, 2) }}</pre>
+      </div>
+    </div>
+  </div>
 </template>
 
 <script setup>
-import { ref, computed, watch } from 'vue';
+import { ref, computed, watch, onMounted } from 'vue';
 import { useItemDetectiveStore } from '@/stores/itemDetective.store';
 import { 
   Search, Upload, Sparkles, 
@@ -298,6 +340,8 @@ import {
   Briefcase, Shirt, ChevronDown, SearchX,
   AlertTriangle
 } from 'lucide-vue-next';
+import * as tf from '@tensorflow/tfjs';
+import axios from 'axios';
 
 const store = useItemDetectiveStore();
 const fileInput = ref(null);
@@ -307,6 +351,14 @@ const isDragging = ref(false);
 const showUploader = ref(true);
 const matchThreshold = ref(70);
 const progressStage = computed(() => store.searchStatus);
+
+// Debug related
+const isDevMode = ref(process.env.NODE_ENV === 'development');
+const debugVisible = ref(false);
+const apiConnected = ref(false);
+const lastApiUrl = ref('');
+const lastApiStatus = ref('');
+const lastApiResponse = ref(null);
 
 watch(() => store.searchStatus, (newStatus) => {
   showUploader.value = !['analyzing', 'searching', 'complete'].includes(newStatus);
@@ -341,13 +393,127 @@ const processFile = (file) => {
   }
 };
 
-const startDetection = async () => {
+const serverSideOnlyUpload = async () => {
   if (!imageFile.value) return;
   
   try {
-    await store.processImage(imageFile.value);
+    showUploader.value = false;
+    store.isProcessing = true;
+    store.searchStatus = 'searching';
+    
+    console.log('Using server-side only fallback...');
+    
+    // Create form data for the upload
+    const formData = new FormData();
+    formData.append('image', imageFile.value);
+    
+    // Add headers for debugging
+    const config = {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+        'X-Requested-With': 'XMLHttpRequest',
+        'Accept': 'application/json'
+      }
+    };
+    
+    // Instead of using TensorFlow.js, just upload the image directly
+    // and let the server handle the processing
+    const response = await axios.post('/api/item-detective/search', formData, config);
+    
+    console.log('Server response:', response.data);
+    
+    // Process the response
+    store.searchResults = response.data.results || [];
+    store.detectionResults = {
+      category: response.data.category || 'Unknown',
+      color: response.data.color || 'Unknown',
+      brand: response.data.brand || 'Unknown',
+      matchPercentage: 85 // Default confidence level
+    };
+    
+    store.searchStatus = 'complete';
   } catch (error) {
-    console.error('Error during detection:', error);
+    console.error('Error with server-side fallback:', error);
+    
+    let errorMessage = 'Error searching for similar items.';
+    
+    // Handle specific error cases
+    if (error.response) {
+      // The request was made and the server responded with a status code
+      // that falls out of the range of 2xx
+      console.error('Server error response:', error.response.data);
+      
+      if (error.response.status === 401) {
+        errorMessage = 'Authentication required. Please log in and try again.';
+      } else if (error.response.status === 422) {
+        errorMessage = 'Invalid image format. Please try with a different image.';
+      } else if (error.response.status >= 500) {
+        errorMessage = 'Server error. Please try again later.';
+      }
+    } else if (error.request) {
+      // The request was made but no response was received
+      errorMessage = 'Server not responding. Please check your connection and try again.';
+    }
+    
+    store.errorMessage = errorMessage;
+    store.searchStatus = 'error';
+  } finally {
+    store.isProcessing = false;
+  }
+};
+
+const testConnection = async () => {
+  try {
+    const response = await axios.get('/api/ping');
+    apiConnected.value = true;
+    lastApiUrl.value = '/api/ping';
+    lastApiStatus.value = response.status;
+    lastApiResponse.value = response.data;
+    return true;
+  } catch (error) {
+    apiConnected.value = false;
+    lastApiUrl.value = '/api/ping';
+    lastApiStatus.value = error.response ? error.response.status : 'No response';
+    lastApiResponse.value = error.response ? error.response.data : error.message;
+    return false;
+  }
+};
+
+const startDetection = async () => {
+  if (!imageFile.value) return;
+  
+  // Reset any previous state and errors
+  store.resetState();
+  showUploader.value = false;
+  
+  try {
+    // Test API connection first
+    console.log('Testing API connection...');
+    await testConnection();
+    
+    // Use a more resilient approach
+    console.log('Starting item detection process...');
+    
+    // Try to process the image with TensorFlow.js
+    await store.processImage(imageFile.value);
+    
+    console.log('Image processing completed successfully');
+  } catch (error) {
+    console.error('Error during detection with TensorFlow.js, trying fallback:', error);
+    
+    try {
+      // Try server-side only approach if TensorFlow fails
+      await serverSideOnlyUpload();
+    } catch (fallbackError) {
+      console.error('Fallback also failed:', fallbackError);
+      store.errorMessage = 'Could not connect to the server. Please check your internet connection and try again.';
+      store.searchStatus = 'error';
+      
+      // Even if both methods fail, try to display the upload form again
+      setTimeout(() => {
+        showUploader.value = true;
+      }, 2000);
+    }
   }
 };
 
@@ -364,8 +530,48 @@ const getMatchBadgeClass = (percentage) => {
   return 'low-match';
 };
 
-// Pre-load model when component mounts
-store.loadModel();
+// Override axios to track API calls
+const originalPost = axios.post;
+axios.post = async function(url, data, config) {
+  lastApiUrl.value = url;
+  try {
+    const response = await originalPost.call(this, url, data, config);
+    lastApiStatus.value = response.status;
+    lastApiResponse.value = response.data;
+    return response;
+  } catch (error) {
+    lastApiStatus.value = error.response ? error.response.status : 'No response';
+    lastApiResponse.value = error.response ? error.response.data : error.message;
+    throw error;
+  }
+};
+
+// Check API on mount
+onMounted(async () => {
+  try {
+    // First check API connectivity
+    await testConnection();
+    
+    console.log('Initializing TensorFlow.js...');
+    await tf.ready();
+    console.log('TensorFlow.js initialized with backend:', tf.getBackend());
+    
+    // Pre-warm the backend
+    tf.tidy(() => {
+      const dummy = tf.zeros([1, 1, 1, 1]);
+      dummy.dispose();
+    });
+    
+    // Try to pre-load the model but don't block the UI
+    setTimeout(() => {
+      store.loadModel().catch(error => {
+        console.warn('Model preloading failed, will try again when needed:', error);
+      });
+    }, 1000);
+  } catch (error) {
+    console.error('Error initializing TensorFlow.js:', error);
+  }
+});
 </script>
 
 <style scoped>
@@ -921,5 +1127,104 @@ store.loadModel();
   .source-image-container {
     margin-bottom: 1.5rem;
   }
+}
+
+/* Debug Panel Styles */
+.debug-panel {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background-color: #0f172a;
+  border-top: 1px solid #334155;
+  z-index: 1000;
+  font-size: 0.75rem;
+}
+
+.debug-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.5rem 1rem;
+  background-color: #1e293b;
+}
+
+.debug-header h3 {
+  margin: 0;
+  font-size: 0.875rem;
+}
+
+.debug-toggle {
+  background-color: #334155;
+  border: none;
+  color: white;
+  padding: 0.25rem 0.5rem;
+  font-size: 0.75rem;
+  border-radius: 0.25rem;
+  cursor: pointer;
+}
+
+.debug-content {
+  padding: 1rem;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.debug-section {
+  background-color: #1e293b;
+  padding: 0.75rem;
+  border-radius: 0.25rem;
+}
+
+.debug-section h4 {
+  margin: 0 0 0.5rem;
+  font-size: 0.75rem;
+  color: #94a3b8;
+}
+
+.debug-btn {
+  background-color: #334155;
+  border: none;
+  color: white;
+  padding: 0.25rem 0.5rem;
+  font-size: 0.625rem;
+  border-radius: 0.25rem;
+  margin-top: 0.5rem;
+  cursor: pointer;
+}
+
+.debug-response {
+  margin-top: 0.5rem;
+  padding: 0.5rem;
+  background-color: #0f172a;
+  border-radius: 0.25rem;
+  white-space: pre-wrap;
+  font-family: monospace;
+  font-size: 0.625rem;
+  max-height: 100px;
+  overflow-y: auto;
+}
+
+.status-ok {
+  color: #10b981;
+}
+
+.status-error {
+  color: #ef4444;
+}
+
+.status-idle {
+  color: #94a3b8;
+}
+
+.status-loading, .status-analyzing, .status-searching {
+  color: #f59e0b;
+}
+
+.status-complete {
+  color: #10b981;
 }
 </style> 

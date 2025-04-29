@@ -22,31 +22,47 @@ class ItemDetectiveController extends Controller
     {
         try {
             $request->validate([
-                'image' => 'required|image|max:10240',
-                'features' => 'required|json',
-                'classifications' => 'required|json'
+                'image' => 'required|image|max:10240', // 10MB limit
+                'features' => 'sometimes|json',  // Make features optional
+                'classifications' => 'sometimes|json'  // Make classifications optional
             ]);
 
-            // Parse the feature vector and classifications from the request
-            $featureVector = json_decode($request->features, true);
-            $classifications = json_decode($request->classifications, true);
-
-            // Extract category from classifications
-            $categoryInfo = $this->extractCategoryFromClassifications($classifications);
-            $category = $categoryInfo['category'];
+            // Check if we're running in TensorFlow mode or just backend mode
+            $tensorflowMode = $request->has('features') && $request->has('classifications');
             
-            // Extract color from the image
+            if ($tensorflowMode) {
+                // Parse the feature vector and classifications from the request
+                $featureVector = json_decode($request->features, true);
+                $classifications = json_decode($request->classifications, true);
+                
+                // Extract category from classifications
+                $categoryInfo = $this->extractCategoryFromClassifications($classifications);
+                $category = $categoryInfo['category'];
+            } else {
+                // Backend-only mode (no TensorFlow.js features)
+                // We'll analyze the image directly using our backend logic
+                $category = 'Unknown'; // Default, will be updated from color analysis
+                $classifications = []; // Empty classifications
+                $featureVector = []; // Empty feature vector
+            }
+            
+            // Extract color from the image - we'll do this in both modes
             $colorInfo = $this->analyzeImageColor($request->file('image'));
             
+            // In backend-only mode, try to determine the category from the color
+            if (!$tensorflowMode) {
+                // Set a general category based on the color (very basic)
+                $category = $this->guessCategoryFromColor($colorInfo['color']);
+            }
+            
             // Get "found" items with feature vectors for comparison
-            $itemFeatures = ItemImageFeature::whereNotNull('feature_vector')
-                ->with('item')
+            $itemFeatures = ItemImageFeature::with('item')
                 ->whereHas('item', function($query) {
                     $query->where('status', 'found');
                 })
                 ->get();
 
-            // If we have no items with feature vectors, return empty results
+            // If we have no items, return empty results
             if ($itemFeatures->isEmpty()) {
                 return response()->json([
                     'results' => [],
@@ -56,8 +72,14 @@ class ItemDetectiveController extends Controller
                 ]);
             }
 
-            // Calculate similarity scores
-            $matchResults = $this->calculateSimilarityScores($featureVector, $itemFeatures, $category, $colorInfo['color']);
+            // Calculate similarity scores - using different approaches based on mode
+            if ($tensorflowMode && count($featureVector) > 0) {
+                // TensorFlow mode - use feature vectors for comparison
+                $matchResults = $this->calculateSimilarityScores($featureVector, $itemFeatures, $category, $colorInfo['color']);
+            } else {
+                // Backend-only mode - use simpler color and category matching
+                $matchResults = $this->calculateSimpleMatchScores($itemFeatures, $category, $colorInfo['color']);
+            }
 
             // Return only the top matches that meet minimum threshold
             $results = $matchResults
@@ -72,7 +94,7 @@ class ItemDetectiveController extends Controller
                 'results' => $results,
                 'category' => $category,
                 'color' => $colorInfo['color'],
-                'brand' => $this->guessBrand($classifications, $category)
+                'brand' => $tensorflowMode ? $this->guessBrand($classifications, $category) : 'Unknown'
             ]);
             
         } catch (\Exception $e) {
@@ -479,5 +501,220 @@ class ItemDetectiveController extends Controller
         }
         
         return $dateTime->format('M j, Y');
+    }
+
+    /**
+     * Calculate simple match scores based only on color and category
+     * Used when TensorFlow features are not available
+     *
+     * @param \Illuminate\Database\Eloquent\Collection $itemFeatures
+     * @param string $category
+     * @param string $color
+     * @return \Illuminate\Support\Collection
+     */
+    private function calculateSimpleMatchScores($itemFeatures, $category, $color)
+    {
+        return $itemFeatures->map(function ($itemFeature) use ($category, $color) {
+            $item = $itemFeature->item;
+            
+            // Calculate a basic match score without feature vectors
+            $baseScore = 50; // Start at 50%
+            
+            // Add score for category match
+            $categoryBoost = ($itemFeature->category == $category) ? 30 : 0;
+            
+            // Add score for color match
+            $colorBoost = ($itemFeature->color == $color) ? 20 : 0;
+            
+            // Additional boost for partial color match (e.g. "Dark Blue" matches "Blue")
+            if ($colorBoost == 0 && 
+                (stripos($itemFeature->color, $color) !== false || 
+                 stripos($color, $itemFeature->color) !== false)) {
+                $colorBoost = 10;
+            }
+            
+            // Calculate combined score (capped at 99%)
+            $matchPercentage = min(99, $baseScore + $categoryBoost + $colorBoost);
+            
+            return [
+                'id' => $item->id,
+                'name' => $item->name,
+                'match_percentage' => $matchPercentage,
+                'image_url' => $this->getItemImageUrl($item),
+                'location' => $item->location ?? 'Unknown',
+                'found_date' => $item->created_at->format('M j, Y'),
+                'last_seen' => $this->formatLastSeen($item->updated_at),
+                'color' => $itemFeature->color ?? 'Unknown',
+                'feature1' => $itemFeature->category ?? null,
+                'feature2' => null,
+            ];
+        })->sortByDesc('match_percentage');
+    }
+
+    /**
+     * Guess category from color when no TensorFlow data is available
+     *
+     * @param string $color
+     * @return string
+     */
+    private function guessCategoryFromColor($color)
+    {
+        // Very basic category guessing based on color
+        // In a real system, you'd want something more sophisticated
+        $colorCategoryMap = [
+            'Black' => 'Electronics',
+            'White' => 'Electronics',
+            'Blue' => 'Clothing',
+            'Red' => 'Clothing',
+            'Green' => 'Clothing',
+            'Brown' => 'Accessory',
+            'Pink' => 'Accessory',
+            'Purple' => 'Accessory',
+            'Yellow' => 'Accessory',
+            'Orange' => 'Accessory',
+            'Silver' => 'Electronics',
+            'Gold' => 'Accessory',
+            'Gray' => 'Electronics',
+            'Muted' => 'Clothing',
+            'Multicolored' => 'Clothing'
+        ];
+        
+        return $colorCategoryMap[$color] ?? 'Other';
+    }
+
+    /**
+     * Save a lost item query for future matching
+     *
+     * @param Request $request
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function saveQuery(Request $request)
+    {
+        try {
+            $request->validate([
+                'image' => 'required|image|max:10240',
+                'contact_email' => 'required|email',
+                'item_name' => 'required|string|max:255',
+                'description' => 'nullable|string|max:1000',
+                'features' => 'sometimes|json',
+                'classifications' => 'sometimes|json'
+            ]);
+
+            // Store the lost item query
+            $lostItem = new \App\Models\Item();
+            $lostItem->name = $request->item_name;
+            $lostItem->description = $request->description;
+            $lostItem->status = 'lost';
+            $lostItem->contact_email = $request->contact_email;
+            $lostItem->save();
+            
+            // Save the image
+            $imagePath = $request->file('image')->store('items', 'public');
+            $lostItem->images()->create([
+                'path' => $imagePath
+            ]);
+            
+            // Create the feature vector record
+            $featureRecord = new \App\Models\ItemImageFeature();
+            $featureRecord->item_id = $lostItem->id;
+            
+            // Extract color from the image
+            $colorInfo = $this->analyzeImageColor($request->file('image'));
+            $featureRecord->color = $colorInfo['color'];
+            
+            // Check if we have TensorFlow features or need to use backend-only mode
+            $tensorflowMode = $request->has('features') && $request->has('classifications');
+            
+            if ($tensorflowMode) {
+                // Parse the feature vector and classifications
+                $featureVector = json_decode($request->features, true);
+                $classifications = json_decode($request->classifications, true);
+                
+                // Store the feature vector as JSON
+                $featureRecord->feature_vector = json_encode($featureVector);
+                
+                // Extract category from classifications
+                $categoryInfo = $this->extractCategoryFromClassifications($classifications);
+                $featureRecord->category = $categoryInfo['category'];
+            } else {
+                // Backend-only mode
+                $featureRecord->feature_vector = null;
+                $featureRecord->category = $this->guessCategoryFromColor($colorInfo['color']);
+            }
+            
+            $featureRecord->save();
+            
+            // Run an immediate search for matches
+            $matchResults = $this->findMatchesForLostItem($lostItem->id);
+            
+            return response()->json([
+                'message' => 'Your lost item has been saved! We\'ll notify you if a matching item is found.',
+                'item_id' => $lostItem->id,
+                'current_matches' => $matchResults
+            ], 201);
+            
+        } catch (\Exception $e) {
+            Log::error('Error saving lost item query: ' . $e->getMessage());
+            return response()->json([
+                'error' => 'Failed to save lost item query',
+                'message' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Find matches for a lost item
+     *
+     * @param int $lostItemId
+     * @return array
+     */
+    private function findMatchesForLostItem($lostItemId)
+    {
+        // Get the lost item and its features
+        $lostItem = \App\Models\Item::with('features')->findOrFail($lostItemId);
+        $lostFeature = $lostItem->features->first();
+        
+        if (!$lostFeature) {
+            return [];
+        }
+        
+        // Get "found" items with feature vectors for comparison
+        $foundItemFeatures = \App\Models\ItemImageFeature::with('item')
+            ->whereHas('item', function($query) {
+                $query->where('status', 'found');
+            })
+            ->get();
+            
+        // If no found items, return empty results
+        if ($foundItemFeatures->isEmpty()) {
+            return [];
+        }
+        
+        // Check if we have feature vectors for comparison
+        if ($lostFeature->feature_vector) {
+            $featureVector = json_decode($lostFeature->feature_vector, true);
+            $matchResults = $this->calculateSimilarityScores(
+                $featureVector, 
+                $foundItemFeatures, 
+                $lostFeature->category, 
+                $lostFeature->color
+            );
+        } else {
+            // Use simpler matching based on color and category
+            $matchResults = $this->calculateSimpleMatchScores(
+                $foundItemFeatures,
+                $lostFeature->category,
+                $lostFeature->color
+            );
+        }
+        
+        // Return only good matches
+        return $matchResults
+            ->filter(function ($item) {
+                return $item['match_percentage'] >= 70; // Higher threshold for notifications
+            })
+            ->take(8)
+            ->values()
+            ->all();
     }
 } 

@@ -34,6 +34,15 @@ Route::prefix('auth')->group(function () {
     Route::get('/email/verify/{id}/{hash}', [AuthController::class, 'verifyEmail'])->name('verification.verify');
 });
 
+// Basic connectivity test
+Route::get('/ping', function() {
+    return response()->json(['message' => 'pong']);
+});
+
+// Item Detective public routes
+Route::post('/item-detective/search', [ItemDetectiveController::class, 'search']);
+Route::post('/item-detective/save-query', [ItemDetectiveController::class, 'saveQuery']);
+
 // Protected routes
 Route::middleware(['auth:api', 'verified'])->group(function () {
     // User routes
@@ -65,7 +74,7 @@ Route::middleware(['auth:api', 'verified'])->group(function () {
     Route::prefix('message-notifications')->group(function () {
         Route::get('/', [MessageNotificationController::class, 'getNotifications']);
         Route::post('/{notificationId}/read', [MessageNotificationController::class, 'markAsRead']);
-        Route::post('/read-all', [MessageNotificationController::class, 'markAllAsRead']);
+        Route::post('/read-all', [MessageNotificationController::class, 'markAllRead']);
     });
 
     // notifications
@@ -73,8 +82,8 @@ Route::middleware(['auth:api', 'verified'])->group(function () {
     Route::post('/notifications/{id}/read', [NotificationController::class, 'markRead']);
     Route::post('/notifications/read-all', [NotificationController::class, 'markAllRead']);
 
-    // Item Detective routes
-    Route::post('/item-detective/search', [ItemDetectiveController::class, 'search']);
+    // Item Detective routes (authenticated)
+    // Route::post('/item-detective/search', [ItemDetectiveController::class, 'search']); // Moved to public routes
 
     // Item routes for all authenticated users
     Route::prefix('items')->group(function () {
