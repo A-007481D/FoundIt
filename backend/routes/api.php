@@ -9,6 +9,7 @@ use App\Http\Controllers\ChatController;
 use App\Http\Controllers\MessageReportController;
 use App\Http\Controllers\MessageNotificationController;
 use App\Http\Controllers\NotificationController;
+use App\Http\Controllers\ItemDetectiveController;
 
 /*
 |--------------------------------------------------------------------------
@@ -71,6 +72,9 @@ Route::middleware(['auth:api', 'verified'])->group(function () {
     Route::get('/notifications', [NotificationController::class, 'index']);
     Route::post('/notifications/{id}/read', [NotificationController::class, 'markRead']);
     Route::post('/notifications/read-all', [NotificationController::class, 'markAllRead']);
+
+    // Item Detective routes
+    Route::post('/item-detective/search', [ItemDetectiveController::class, 'search']);
 
     // Item routes for all authenticated users
     Route::prefix('items')->group(function () {
