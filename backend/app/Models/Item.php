@@ -64,4 +64,20 @@ class Item extends Model
     {
         return $this->morphMany(Report::class, 'reportable');
     }
+
+    /**
+     * Get the features for the item.
+     */
+    public function features()
+    {
+        return $this->hasMany(ItemImageFeature::class);
+    }
+
+    /**
+     * Get the images for the item.
+     */
+    public function images()
+    {
+        return $this->hasMany(ItemImage::class);
+    }
 }
