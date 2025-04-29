@@ -75,16 +75,19 @@ class ItemController extends Controller
         $query = Item::with(['user', 'category'])->where('status', 'active')->where('visible', true);
 
         if ($request->has('search')) {
-            $search = $request->search;
-            $query->where(function ($q) use ($search) {
-                $q->where('title', 'like', "%{$search}%")
-                  ->orWhere('location', 'like', "%{$search}%");
+            // Case-insensitive search on title and location
+            $searchTerm = strtolower($request->search);
+            $query->where(function ($q) use ($searchTerm) {
+                $q->whereRaw('LOWER(title) LIKE ?', ["%{$searchTerm}%"])
+                  ->orWhereRaw('LOWER(location) LIKE ?', ["%{$searchTerm}%"]);
             });
         }
 
         // Location filter (partial match)
         if ($request->has('location') && $request->location) {
-            $query->where('location', 'like', "%{$request->location}%");
+            // Case-insensitive location filter
+            $loc = strtolower($request->location);
+            $query->whereRaw('LOWER(location) LIKE ?', ["%{$loc}%"]);
         }
 
         if ($request->has('type') && $request->type !== 'all') {

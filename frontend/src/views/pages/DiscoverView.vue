@@ -133,49 +133,20 @@
                                 <div v-if="isLoading" class="flex justify-center items-center py-12">
                                     <div class="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full"></div>
                                 </div>
-                                <div v-else-if="allItems.length === 0" class="flex flex-col items-center justify-center py-12 text-center w-full">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 text-muted-foreground mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
-                                    </svg>
-                                    <h3 class="text-lg font-medium">No items found</h3>
-                                    <p class="text-muted-foreground mt-1">Try adjusting your filters or check back later.</p>
-                                    <button 
-                                        @click="showCreateItemForm" 
-                                        class="mt-4 inline-flex items-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-white shadow transition-colors hover:bg-primary-dark focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-                                    >
-                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-                                        </svg>
-                                        Create New Item
-                                    </button>
-                                </div>
                                 <div v-else>
                                     <div v-if="featuredItems.length > 0" class="mb-8">
                                         <h2 class="text-xl font-semibold mb-4">Featured Items</h2>
                                         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                                            <ItemCard 
-                                                v-for="item in featuredItems" 
-                                                :key="item.id" 
-                                                :item="item" 
-                                                @click="openItemDetail(item.id)" 
-                                            />
+                                            <ItemCard v-for="item in featuredItems" :key="item.id" :item="item" @click="openItemDetail(item.id)" />
                                         </div>
                                     </div>
                                     <div>
                                         <h2 class="text-xl font-semibold mb-4">Recent Items</h2>
                                         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                                            <ItemCard 
-                                                v-for="item in visibleRecentItems" 
-                                                :key="item.id" 
-                                                :item="item" 
-                                                @click="openItemDetail(item.id)" 
-                                            />
+                                            <ItemCard v-for="item in visibleRecentItems" :key="item.id" :item="item" @click="openItemDetail(item.id)" />
                                         </div>
                                         <div class="flex justify-center mt-6">
-                                            <button 
-                                                v-if="visibleCount < recentItems.length" 
-                                                @click="visibleCount += 6" 
-                                                class="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-white shadow transition-colors hover:bg-primary-dark focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2">
+                                            <button v-if="visibleCount < recentItems.length" @click="visibleCount += 6" class="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-white shadow transition-colors hover:bg-primary-dark focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2">
                                                 Show More Items
                                             </button>
                                         </div>
@@ -273,18 +244,10 @@ const filters = ref({
 
 const categories = ref([])
 
-// Computed properties with navbar search filter
-const allItems = computed(() => {
-  const q = route.query.q?.toLowerCase().trim() || '';
-  return q
-    ? items.value.filter(item =>
-        (item.title || '').toLowerCase().includes(q) ||
-        (item.location || '').toLowerCase().includes(q)
-      )
-    : items.value;
-});
-const lostItems = computed(() => allItems.value.filter(item => item.type === 'lost'))
-const foundItems = computed(() => allItems.value.filter(item => item.type === 'found'))
+// Computed properties
+const allItems = computed(() => items.value)
+const lostItems = computed(() => items.value.filter(item => item.type === 'lost'))
+const foundItems = computed(() => items.value.filter(item => item.type === 'found'))
 const featuredItems = computed(() => items.value.filter(item => item.featured))
 const recentItems = computed(() => items.value.filter(item => !item.featured))
 const visibleCount = ref(6)
@@ -294,7 +257,7 @@ const visibleRecentItems = computed(() => recentItems.value.slice(0, visibleCoun
 onMounted(async () => {
   try {
     await fetchCategories()
-    // Initialize search from navbar query param
+    // initialize search from URL and fetch items
     filters.value.search = route.query.q || ''
     applyFilters()
     isLoaded.value = true
@@ -305,7 +268,7 @@ onMounted(async () => {
   }
 })
 
-// Watch navbar search query and apply filters
+// Watch navbar query to trigger search
 watch(() => route.query.q, (q) => {
   filters.value.search = q || ''
   applyFilters()
