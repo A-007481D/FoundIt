@@ -58,9 +58,27 @@ class ItemDetectiveController extends Controller
             // Get "found" items with feature vectors for comparison
             $itemFeatures = ItemImageFeature::with('item')
                 ->whereHas('item', function($query) {
-                    $query->where('status', 'found');
+                    $query->where('type', 'found')
+                          ->where('status', 'active');
                 })
                 ->get();
+
+            // Add debug information
+            $itemCount = $itemFeatures->count();
+            $debugInfo = [
+                'item_count' => $itemCount,
+                'search_category' => $category,
+                'search_color' => $colorInfo['color'],
+                'tensorflow_mode' => $tensorflowMode,
+                'first_items' => $itemFeatures->take(3)->map(function($feature) {
+                    return [
+                        'id' => $feature->item_id,
+                        'name' => $feature->item ? $feature->item->title : 'Unknown',
+                        'category' => $feature->category,
+                        'color' => $feature->color
+                    ];
+                })
+            ];
 
             // If we have no items, return empty results
             if ($itemFeatures->isEmpty()) {
@@ -68,7 +86,8 @@ class ItemDetectiveController extends Controller
                     'results' => [],
                     'category' => $category,
                     'color' => $colorInfo['color'],
-                    'brand' => 'Unknown'
+                    'brand' => 'Unknown',
+                    'debug' => $debugInfo
                 ]);
             }
 
@@ -80,6 +99,17 @@ class ItemDetectiveController extends Controller
                 // Backend-only mode - use simpler color and category matching
                 $matchResults = $this->calculateSimpleMatchScores($itemFeatures, $category, $colorInfo['color']);
             }
+
+            // Add scoring debug info
+            $debugInfo['scores'] = $matchResults->take(5)->map(function($item) {
+                return [
+                    'id' => $item['id'],
+                    'name' => $item['name'],
+                    'match_percentage' => $item['match_percentage'],
+                    'color' => $item['color'],
+                    'category' => $item['feature1']
+                ];
+            });
 
             // Return only the top matches that meet minimum threshold
             $results = $matchResults
@@ -94,14 +124,16 @@ class ItemDetectiveController extends Controller
                 'results' => $results,
                 'category' => $category,
                 'color' => $colorInfo['color'],
-                'brand' => $tensorflowMode ? $this->guessBrand($classifications, $category) : 'Unknown'
+                'brand' => $tensorflowMode ? $this->guessBrand($classifications, $category) : 'Unknown',
+                'debug' => $debugInfo
             ]);
             
         } catch (\Exception $e) {
             Log::error('Error in item detective search: ' . $e->getMessage());
             return response()->json([
                 'error' => 'Failed to process image',
-                'message' => $e->getMessage()
+                'message' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
             ], 500);
         }
     }
@@ -384,7 +416,7 @@ class ItemDetectiveController extends Controller
             if (!is_array($storedVector) || count($storedVector) != count($featureVector)) {
                 return [
                     'id' => $item->id,
-                    'name' => $item->name,
+                    'name' => $item->title,
                     'match_percentage' => 0,
                     'image_url' => $this->getItemImageUrl($item),
                     'location' => $item->location ?? 'Unknown',
@@ -413,7 +445,7 @@ class ItemDetectiveController extends Controller
             
             return [
                 'id' => $item->id,
-                'name' => $item->name,
+                'name' => $item->title,
                 'match_percentage' => $matchPercentage,
                 'image_url' => $this->getItemImageUrl($item),
                 'location' => $item->location ?? 'Unknown',
@@ -538,7 +570,7 @@ class ItemDetectiveController extends Controller
             
             return [
                 'id' => $item->id,
-                'name' => $item->name,
+                'name' => $item->title,
                 'match_percentage' => $matchPercentage,
                 'image_url' => $this->getItemImageUrl($item),
                 'location' => $item->location ?? 'Unknown',
@@ -602,9 +634,10 @@ class ItemDetectiveController extends Controller
 
             // Store the lost item query
             $lostItem = new \App\Models\Item();
-            $lostItem->name = $request->item_name;
+            $lostItem->title = $request->item_name;
             $lostItem->description = $request->description;
-            $lostItem->status = 'lost';
+            $lostItem->status = 'active';  // Set status to active
+            $lostItem->type = 'lost';      // Set type to lost
             $lostItem->contact_email = $request->contact_email;
             $lostItem->save();
             
@@ -681,7 +714,8 @@ class ItemDetectiveController extends Controller
         // Get "found" items with feature vectors for comparison
         $foundItemFeatures = \App\Models\ItemImageFeature::with('item')
             ->whereHas('item', function($query) {
-                $query->where('status', 'found');
+                $query->where('type', 'found')
+                      ->where('status', 'active');
             })
             ->get();
             
@@ -716,5 +750,58 @@ class ItemDetectiveController extends Controller
             ->take(8)
             ->values()
             ->all();
+    }
+
+    /**
+     * Debug endpoint to check the database for items
+     * 
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function debug()
+    {
+        try {
+            // Count total items
+            $totalItems = Item::count();
+            
+            // Count found items by type
+            $foundItems = Item::where('type', 'found')->count();
+            
+            // Count lost items by type
+            $lostItems = Item::where('type', 'lost')->count();
+            
+            // Get feature vectors
+            $featureCount = ItemImageFeature::count();
+            
+            // Get items with their features
+            $items = Item::with('features')->limit(10)->get()->map(function($item) {
+                return [
+                    'id' => $item->id,
+                    'title' => $item->title,
+                    'status' => $item->status,
+                    'type' => $item->type,
+                    'features' => $item->features->map(function($feature) {
+                        return [
+                            'id' => $feature->id,
+                            'color' => $feature->color,
+                            'category' => $feature->category,
+                            'has_vector' => !empty($feature->feature_vector)
+                        ];
+                    })
+                ];
+            });
+            
+            return response()->json([
+                'total_items' => $totalItems,
+                'found_items' => $foundItems,
+                'lost_items' => $lostItems,
+                'feature_count' => $featureCount,
+                'sample_items' => $items
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'error' => 'Debug failed',
+                'message' => $e->getMessage()
+            ], 500);
+        }
     }
 } 
