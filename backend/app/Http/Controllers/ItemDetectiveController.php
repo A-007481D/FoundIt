@@ -4,11 +4,15 @@ namespace App\Http\Controllers;
 
 use App\Models\Item;
 use App\Models\ItemImageFeature;
+use App\Models\Setting;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
+use App\Services\ItemDetection\SimpleStrategy;
+use App\Services\ItemDetection\TensorflowStrategy;
+use App\Services\ItemDetection\PHashStrategy;
 
 class ItemDetectiveController extends Controller
 {
@@ -22,130 +26,50 @@ class ItemDetectiveController extends Controller
     {
         try {
             $request->validate([
-                'image' => 'required|image|max:10240', // 10MB limit
-                'features' => 'sometimes|json',  // Make features optional
-                'classifications' => 'sometimes|json'  // Make classifications optional
+                'image' => 'required|image|max:10240',
+                'mode' => 'sometimes|string|in:simple,tf,phash',
+                'features' => 'sometimes|json',
+                'classifications' => 'sometimes|json',
             ]);
 
-            // Check if we're running in TensorFlow mode or just backend mode
-            $tensorflowMode = $request->has('features') && $request->has('classifications');
-            
-            if ($tensorflowMode) {
-                // Parse the feature vector and classifications from the request
-                $featureVector = json_decode($request->features, true);
-                $classifications = json_decode($request->classifications, true);
-                
-                // Extract category from classifications
-                $categoryInfo = $this->extractCategoryFromClassifications($classifications);
-                $category = $categoryInfo['category'];
-            } else {
-                // Backend-only mode (no TensorFlow.js features)
-                // We'll analyze the image directly using our backend logic
-                $category = 'Unknown'; // Default, will be updated from color analysis
-                $classifications = []; // Empty classifications
-                $featureVector = []; // Empty feature vector
-            }
-            
-            // Extract color from the image - we'll do this in both modes
-            $colorInfo = $this->analyzeImageColor($request->file('image'));
-            
-            // In backend-only mode, try to determine the category from the color
-            if (!$tensorflowMode) {
-                // Set a general category based on the color (very basic)
-                $category = $this->guessCategoryFromColor($colorInfo['color']);
-            }
-            
-            // Get "found" items with feature vectors for comparison
-            $itemFeatures = ItemImageFeature::with('item')
-                ->whereHas('item', function($query) {
-                    $query->where('type', 'found')
-                          ->where('status', 'active');
-                })
-                ->get();
-
-            // Add debug information
-            $itemCount = $itemFeatures->count();
-            $debugInfo = [
-                'item_count' => $itemCount,
-                'search_category' => $category,
-                'search_color' => $colorInfo['color'],
-                'tensorflow_mode' => $tensorflowMode,
-                'first_items' => $itemFeatures->take(3)->map(function($feature) {
-                    return [
-                        'id' => $feature->item_id,
-                        'name' => $feature->item ? $feature->item->title : 'Unknown',
-                        'category' => $feature->category,
-                        'color' => $feature->color
-                    ];
-                })
+            $defaultMode = Setting::getValue('item_detective_mode', 'simple');
+            $mode = $request->input('mode', $defaultMode);
+            $strategies = [
+                'simple' => SimpleStrategy::class,
+                'tf'     => TensorflowStrategy::class,
+                'phash'  => PHashStrategy::class,
             ];
+            $strategyClass = $strategies[$mode] ?? SimpleStrategy::class;
+            $strategy = app($strategyClass);
 
-            // If we have no items, return empty results
-            if ($itemFeatures->isEmpty()) {
-                return response()->json([
-                    'results' => [],
-                    'category' => $category,
-                    'color' => $colorInfo['color'],
-                    'brand' => 'Unknown',
-                    'debug' => $debugInfo
-                ]);
+            $options = [];
+            if ($mode === 'tf') {
+                $options['features'] = json_decode($request->features, true);
+                $options['classifications'] = json_decode($request->classifications, true);
             }
 
-            // Calculate similarity scores - using different approaches based on mode
-            if ($tensorflowMode && count($featureVector) > 0) {
-                // TensorFlow mode - use feature vectors for comparison
-                $matchResults = $this->calculateSimilarityScores($featureVector, $itemFeatures, $category, $colorInfo['color']);
+            $colorInfo = $this->analyzeImageColor($request->file('image'));
+            if ($mode !== 'tf') {
+                $category = $this->guessCategoryFromColor($colorInfo['color']);
             } else {
-                // Backend-only mode - use simpler color and category matching
-                $matchResults = $this->calculateSimpleMatchScores($itemFeatures, $category, $colorInfo['color']);
+                $category = $this->extractCategoryFromClassifications($options['classifications'])['category'];
             }
+            $options['color'] = $colorInfo['color'];
 
-            // Add scoring debug info
-            $debugInfo['scores'] = $matchResults->take(5)->map(function($item) {
-                return [
-                    'id' => $item['id'],
-                    'name' => $item['name'],
-                    'match_percentage' => $item['match_percentage'],
-                    'color' => $item['color'],
-                    'category' => $item['feature1']
-                ];
-            });
-
-            // Return only the top matches that meet minimum threshold
-            $results = $matchResults
-                ->filter(function ($item) {
-                    return $item['match_percentage'] >= 60; 
-                })
-                ->take(8) // res limit 
-                ->values()
-                ->all();
-
-            // If no matches, return an empty array
-            if (empty($results)) {
-                return response()->json([
-                    'results' => [],
-                    'category' => $category,
-                    'color' => $colorInfo['color'],
-                    'brand' => $tensorflowMode ? $this->guessBrand($classifications, $category) : 'Unknown',
-                    'debug' => $debugInfo
-                ]);
-            }
+            $results = $strategy->search($request->file('image'), $options);
+            $brand = $mode === 'tf'
+                ? $this->guessBrand($options['classifications'] ?? [], $category)
+                : 'Unknown';
 
             return response()->json([
-                'results' => $results,
+                'results'  => $results,
                 'category' => $category,
-                'color' => $colorInfo['color'],
-                'brand' => $tensorflowMode ? $this->guessBrand($classifications, $category) : 'Unknown',
-                'debug' => $debugInfo
+                'color'    => $colorInfo['color'],
+                'brand'    => $brand,
             ]);
-            
         } catch (\Exception $e) {
             Log::error('Error in item detective search: ' . $e->getMessage());
-            return response()->json([
-                'error' => 'Failed to process image',
-                'message' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
-            ], 500);
+            return response()->json(['error' => 'Failed to process image'], 500);
         }
     }
 
