@@ -114,11 +114,22 @@ class ItemDetectiveController extends Controller
             // Return only the top matches that meet minimum threshold
             $results = $matchResults
                 ->filter(function ($item) {
-                    return $item['match_percentage'] >= 50; // Minimum 50% match
+                    return $item['match_percentage'] >= 60; 
                 })
-                ->take(8) // Limit to 8 results
+                ->take(8) // res limit 
                 ->values()
                 ->all();
+
+            // If no matches, return an empty array
+            if (empty($results)) {
+                return response()->json([
+                    'results' => [],
+                    'category' => $category,
+                    'color' => $colorInfo['color'],
+                    'brand' => $tensorflowMode ? $this->guessBrand($classifications, $category) : 'Unknown',
+                    'debug' => $debugInfo
+                ]);
+            }
 
             return response()->json([
                 'results' => $results,
@@ -281,18 +292,29 @@ class ItemDetectiveController extends Controller
             $imageData = getimagesize($tempPath);
             $mime = $imageData['mime'];
             
+            // Try to load the image based on mime type
+            $img = null;
             switch ($mime) {
                 case 'image/jpeg':
-                    $img = imagecreatefromjpeg($tempPath);
+                    $img = @imagecreatefromjpeg($tempPath);
                     break;
                 case 'image/png':
-                    $img = imagecreatefrompng($tempPath);
+                    $img = @imagecreatefrompng($tempPath);
                     break;
                 case 'image/gif':
-                    $img = imagecreatefromgif($tempPath);
+                    $img = @imagecreatefromgif($tempPath);
+                    break;
+                case 'image/webp':
+                    if (function_exists('imagecreatefromwebp')) {
+                        $img = @imagecreatefromwebp($tempPath);
+                    }
                     break;
                 default:
                     throw new \Exception("Unsupported image type: $mime");
+            }
+            
+            if (!$img) {
+                throw new \Exception("Failed to create image resource from uploaded file");
             }
             
             // Resize to smaller dimensions for faster processing
@@ -310,16 +332,18 @@ class ItemDetectiveController extends Controller
             
             imagecopyresampled($resizedImg, $img, 0, 0, 0, 0, $newWidth, $newHeight, $width, $height);
             
-            // Count colors
+            // Count colors with better sampling (sample every other pixel for speed)
             $colorCounts = [];
-            for ($x = 0; $x < $newWidth; $x++) {
-                for ($y = 0; $y < $newHeight; $y++) {
+            $samplingStep = 2; // Sample every 2nd pixel
+            
+            for ($x = 0; $x < $newWidth; $x += $samplingStep) {
+                for ($y = 0; $y < $newHeight; $y += $samplingStep) {
                     $rgb = imagecolorat($resizedImg, $x, $y);
                     $r = ($rgb >> 16) & 0xFF;
                     $g = ($rgb >> 8) & 0xFF;
                     $b = $rgb & 0xFF;
                     
-                    // Skip if fully transparent
+                    // Skip if fully transparent for PNG
                     if ($mime == 'image/png') {
                         $alpha = ($rgb & 0x7F000000) >> 24;
                         if ($alpha == 127) continue;
@@ -348,9 +372,20 @@ class ItemDetectiveController extends Controller
             ];
             
         } catch (\Exception $e) {
+            // Log error but provide a default color
             Log::error('Error analyzing image color: ' . $e->getMessage());
+            
+            // Try to determine a reasonable default color
+            $defaultColor = 'Unknown';
+            
+            // If we have any color info from previous attempts, use it
+            if (!empty($colorCounts) && is_array($colorCounts)) {
+                arsort($colorCounts);
+                $defaultColor = key($colorCounts);
+            }
+            
             return [
-                'color' => 'Unknown',
+                'color' => $defaultColor,
                 'color_distribution' => []
             ];
         }
@@ -492,10 +527,33 @@ class ItemDetectiveController extends Controller
      */
     private function getItemImageUrl($item)
     {
-        if ($item->image_path) {
+        // Check if the item has an image property
+        if ($item->image) {
+            return $item->image; // Return the existing image URL
+        }
+        
+        // Check for image_path property
+        if ($item->image_path && Storage::disk('public')->exists($item->image_path)) {
             return url(Storage::url($item->image_path));
         }
         
+        // Check if the item has related images
+        if ($item->images && $item->images->count() > 0) {
+            $primaryImage = $item->images->where('is_primary', true)->first() 
+                            ?? $item->images->first();
+                            
+            if ($primaryImage && $primaryImage->path) {
+                return url(Storage::url($primaryImage->path));
+            }
+        }
+        
+        // Check for a feature record with an image_path
+        $feature = $item->features->first();
+        if ($feature && $feature->image_path && Storage::disk('public')->exists('items/' . $feature->image_path)) {
+            return url(Storage::url('items/' . $feature->image_path));
+        }
+        
+        // Return placeholder as last resort
         return url('/images/placeholder-item.jpg');
     }
     
@@ -550,19 +608,20 @@ class ItemDetectiveController extends Controller
             $item = $itemFeature->item;
             
             // Calculate a basic match score without feature vectors
-            $baseScore = 50; // Start at 50%
+            // Start at a lower base score to avoid matching unrelated items
+            $baseScore = 30; // Lower base score (was 50)
             
             // Add score for category match
-            $categoryBoost = ($itemFeature->category == $category) ? 30 : 0;
+            $categoryBoost = ($itemFeature->category == $category) ? 40 : 0; // Increased importance
             
             // Add score for color match
-            $colorBoost = ($itemFeature->color == $color) ? 20 : 0;
+            $colorBoost = ($itemFeature->color == $color) ? 30 : 0; // Increased importance
             
             // Additional boost for partial color match (e.g. "Dark Blue" matches "Blue")
             if ($colorBoost == 0 && 
                 (stripos($itemFeature->color, $color) !== false || 
                  stripos($color, $itemFeature->color) !== false)) {
-                $colorBoost = 10;
+                $colorBoost = 15;
             }
             
             // Calculate combined score (capped at 99%)

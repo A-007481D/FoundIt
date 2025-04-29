@@ -6,6 +6,7 @@ use Illuminate\Console\Command;
 use App\Models\Item;
 use App\Models\ItemImageFeature;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 
 class SeedTestItemsCommand extends Command
 {
@@ -30,7 +31,9 @@ class SeedTestItemsCommand extends Command
     {
         $this->info('Seeding test items for item detective...');
 
-        // Create test items with different colors and categories
+        $systemUserId = $this->getSystemUserForTestItems();
+        $this->info("Using system user ID: {$systemUserId} for test items");
+
         $testItems = [
             [
                 'name' => 'Blue Backpack',
@@ -119,7 +122,7 @@ class SeedTestItemsCommand extends Command
             $item->location = $itemData['location'];
             $item->visible = true;
             $item->type = 'found';
-            $item->user_id = 1;
+            $item->user_id = $systemUserId;
             $item->category_id = 1;
             $item->found_date = now();
             $item->lost_date = now();
@@ -234,5 +237,34 @@ class SeedTestItemsCommand extends Command
                 $this->line("Created placeholder image: {$placeholder}");
             }
         }
+    }
+
+    /**
+     * Get or create a system user for test items
+     *
+     * @return int
+     */
+    private function getSystemUserForTestItems()
+    {
+        // Try to find existing system user
+        $systemUser = \App\Models\User::where('email', 'system@foundit.test')->first();
+        
+        if ($systemUser) {
+            return $systemUser->id;
+        }
+        
+        // Create a new system user if it doesn't exist
+        $systemUser = new \App\Models\User();
+        $systemUser->firstname = 'System';
+        $systemUser->lastname = 'Bot';
+        $systemUser->email = 'system@foundit.test';
+        $systemUser->password = bcrypt('SYSTEM_GENERATED_PASSWORD_' . Str::random(16));
+        $systemUser->email_verified_at = now();
+        $systemUser->role = 'user';
+        $systemUser->status = 'active';
+        $systemUser->save();
+        
+        $this->info('Created system user for test items');
+        return $systemUser->id;
     }
 } 
