@@ -42,6 +42,7 @@ Route::get('/ping', function() {
 // Item Detective public routes
 Route::post('/item-detective/search', [ItemDetectiveController::class, 'search']);
 Route::post('/item-detective/save-query', [ItemDetectiveController::class, 'saveQuery']);
+Route::get('/item-detective/debug', [ItemDetectiveController::class, 'debug']);
 
 // Protected routes
 Route::middleware(['auth:api', 'verified'])->group(function () {
