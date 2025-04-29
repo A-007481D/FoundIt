@@ -25,12 +25,19 @@ export const useItemDetectiveStore = defineStore('itemDetective', {
       color: null,
       brand: null,
       matchPercentage: 0
-    }
+    },
+    serverSideOnly: false // Flag to bypass TensorFlow.js entirely
   }),
   
   actions: {
     async loadModel() {
       if (this.model) return this.model;
+      
+      // If we're in server-side only mode, don't attempt to load the model
+      if (this.serverSideOnly) {
+        console.log('Server-side only mode active, skipping model loading');
+        return null;
+      }
       
       try {
         this.isModelLoading = true;
@@ -70,10 +77,12 @@ export const useItemDetectiveStore = defineStore('itemDetective', {
         return model;
       } catch (error) {
         console.error('Error loading TensorFlow model:', error);
-        this.errorMessage = 'Failed to load image recognition model. Please try again in a different browser.';
-        this.searchStatus = 'error';
+        this.errorMessage = 'Failed to load image recognition model. Using server-side processing instead.';
+        this.serverSideOnly = true; // Switch to server-side only mode
         this.isModelLoading = false;
-        throw error;
+        
+        // Don't throw the error, just return null to indicate server-side processing should be used
+        return null;
       }
     },
     
@@ -86,10 +95,24 @@ export const useItemDetectiveStore = defineStore('itemDetective', {
         
         console.log('Processing image...');
         
+        // If server-side only mode is enabled, skip TensorFlow.js processing
+        if (this.serverSideOnly) {
+          console.log('Using server-side only processing...');
+          await this.serverSideProcessing(imageFile);
+          return;
+        }
+        
         // Load model if not loaded
         if (!this.model) {
           console.log('Model not loaded yet, loading...');
-          await this.loadModel();
+          const model = await this.loadModel();
+          
+          // If model loading failed, switch to server-side processing
+          if (!model) {
+            console.log('Model loading failed, switching to server-side only...');
+            await this.serverSideProcessing(imageFile);
+            return;
+          }
         }
         
         // Convert the file to an image element
@@ -125,8 +148,49 @@ export const useItemDetectiveStore = defineStore('itemDetective', {
           classifications
         };
       } catch (error) {
-        console.error('Error processing image:', error);
-        this.errorMessage = 'Error processing image. Please try with a different image or browser.';
+        console.error('Error processing image with TensorFlow.js:', error);
+        
+        // Try server-side processing as fallback
+        try {
+          console.log('Falling back to server-side processing...');
+          await this.serverSideProcessing(imageFile);
+        } catch (fallbackError) {
+          console.error('Server-side fallback also failed:', fallbackError);
+          this.errorMessage = 'Error processing image. Please try with a different image or browser.';
+          this.searchStatus = 'error';
+          this.isProcessing = false;
+          throw fallbackError;
+        }
+      }
+    },
+    
+    async serverSideProcessing(imageFile) {
+      try {
+        this.searchStatus = 'searching';
+        
+        // Create form data
+        const formData = new FormData();
+        formData.append('image', imageFile);
+        
+        // Call API endpoint without TensorFlow features
+        const response = await axios.post('/api/item-detective/search', formData);
+        
+        // Process the response
+        this.searchResults = response.data.results || [];
+        this.detectionResults = {
+          category: response.data.category || 'Unknown',
+          color: response.data.color || 'Unknown',
+          brand: response.data.brand || 'Unknown',
+          matchPercentage: 85 // Default confidence level for server-side
+        };
+        
+        this.searchStatus = 'complete';
+        this.isProcessing = false;
+        
+        return this.searchResults;
+      } catch (error) {
+        console.error('Error in server-side processing:', error);
+        this.errorMessage = 'Server error processing image. Please try again.';
         this.searchStatus = 'error';
         this.isProcessing = false;
         throw error;
@@ -219,6 +283,15 @@ export const useItemDetectiveStore = defineStore('itemDetective', {
       });
     },
     
+    setServerSideOnly(value) {
+      this.serverSideOnly = value;
+      if (value) {
+        console.log('Switched to server-side only mode');
+      } else {
+        console.log('Switched to client-side TensorFlow.js mode');
+      }
+    },
+    
     resetState() {
       this.searchResults = [];
       this.errorMessage = null;
@@ -230,6 +303,7 @@ export const useItemDetectiveStore = defineStore('itemDetective', {
         brand: null,
         matchPercentage: 0
       };
+      // Don't reset serverSideOnly flag here
     }
   }
 }); 

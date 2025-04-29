@@ -318,6 +318,15 @@
         <div>Status: <span :class="'status-' + store.searchStatus">{{ store.searchStatus }}</span></div>
         <div>Results: {{ store.searchResults.length }}</div>
         <div>Error: {{ store.errorMessage }}</div>
+        <div class="processing-mode">
+          <span>Processing: </span>
+          <span :class="store.serverSideOnly ? 'status-warning' : 'status-ok'">
+            {{ store.serverSideOnly ? 'Server-side only' : 'TensorFlow.js' }}
+          </span>
+          <button @click="toggleProcessingMode" class="debug-btn">
+            Switch to {{ store.serverSideOnly ? 'TensorFlow.js' : 'Server-only' }}
+          </button>
+        </div>
       </div>
       
       <div class="debug-section">
@@ -399,39 +408,13 @@ const serverSideOnlyUpload = async () => {
   try {
     showUploader.value = false;
     store.isProcessing = true;
-    store.searchStatus = 'searching';
     
-    console.log('Using server-side only fallback...');
+    // Force server-side only mode
+    store.setServerSideOnly(true);
     
-    // Create form data for the upload
-    const formData = new FormData();
-    formData.append('image', imageFile.value);
+    // Use the store's built-in server-side processing
+    await store.serverSideProcessing(imageFile.value);
     
-    // Add headers for debugging
-    const config = {
-      headers: {
-        'Content-Type': 'multipart/form-data',
-        'X-Requested-With': 'XMLHttpRequest',
-        'Accept': 'application/json'
-      }
-    };
-    
-    // Instead of using TensorFlow.js, just upload the image directly
-    // and let the server handle the processing
-    const response = await axios.post('/api/item-detective/search', formData, config);
-    
-    console.log('Server response:', response.data);
-    
-    // Process the response
-    store.searchResults = response.data.results || [];
-    store.detectionResults = {
-      category: response.data.category || 'Unknown',
-      color: response.data.color || 'Unknown',
-      brand: response.data.brand || 'Unknown',
-      matchPercentage: 85 // Default confidence level
-    };
-    
-    store.searchStatus = 'complete';
   } catch (error) {
     console.error('Error with server-side fallback:', error);
     
@@ -457,7 +440,6 @@ const serverSideOnlyUpload = async () => {
     
     store.errorMessage = errorMessage;
     store.searchStatus = 'error';
-  } finally {
     store.isProcessing = false;
   }
 };
@@ -489,7 +471,11 @@ const startDetection = async () => {
   try {
     // Test API connection first
     console.log('Testing API connection...');
-    await testConnection();
+    const connected = await testConnection();
+    
+    if (!connected) {
+      throw new Error('API connection failed. Please check your backend server.');
+    }
     
     // Use a more resilient approach
     console.log('Starting item detection process...');
@@ -506,7 +492,7 @@ const startDetection = async () => {
       await serverSideOnlyUpload();
     } catch (fallbackError) {
       console.error('Fallback also failed:', fallbackError);
-      store.errorMessage = 'Could not connect to the server. Please check your internet connection and try again.';
+      store.errorMessage = store.errorMessage || 'Could not connect to the server. Please check your internet connection and try again.';
       store.searchStatus = 'error';
       
       // Even if both methods fail, try to display the upload form again
@@ -572,6 +558,10 @@ onMounted(async () => {
     console.error('Error initializing TensorFlow.js:', error);
   }
 });
+
+const toggleProcessingMode = () => {
+  store.serverSideOnly = !store.serverSideOnly;
+};
 </script>
 
 <style scoped>
@@ -1216,6 +1206,10 @@ onMounted(async () => {
   color: #ef4444;
 }
 
+.status-warning {
+  color: #f59e0b;
+}
+
 .status-idle {
   color: #94a3b8;
 }
@@ -1226,5 +1220,10 @@ onMounted(async () => {
 
 .status-complete {
   color: #10b981;
+}
+
+.processing-mode {
+  margin-top: 0.5rem;
+  font-size: 0.75rem;
 }
 </style> 
