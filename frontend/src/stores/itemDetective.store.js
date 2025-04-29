@@ -20,6 +20,7 @@ export const useItemDetectiveStore = defineStore('itemDetective', {
     searchStatus: null, // 'idle', 'loading', 'analyzing', 'searching', 'complete', 'error'
     errorMessage: null,
     imageFeatures: null,
+    mode: 'simple',
     detectionResults: {
       category: null,
       color: null,
@@ -187,6 +188,7 @@ export const useItemDetectiveStore = defineStore('itemDetective', {
         // Create form data
         const formData = new FormData();
         formData.append('image', imageFile);
+        formData.append('mode', this.mode);
         
         // Call API endpoint without TensorFlow features
         const response = await axios.post('/api/item-detective/search', formData);
@@ -243,6 +245,7 @@ export const useItemDetectiveStore = defineStore('itemDetective', {
         // Create form data
         const formData = new FormData();
         formData.append('image', this.imageFeatures.rawFile);
+        formData.append('mode', this.mode);
         formData.append('features', JSON.stringify(this.imageFeatures.vector));
         formData.append('classifications', JSON.stringify(this.imageFeatures.classifications));
         
