@@ -21,7 +21,8 @@ class ItemImageFeature extends Model
         'classifications',
         'category',
         'color',
-        'brand'
+        'brand',
+        'phash'
     ];
     
     /**

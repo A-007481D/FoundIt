@@ -43,6 +43,16 @@
           </div>
         </div>
         
+        <!-- Detection Mode Selector -->
+        <div class="mode-selector mb-4">
+          <label class="block mb-1 font-medium" for="mode">Detection Mode:</label>
+          <select v-model="store.mode" id="mode" class="border rounded px-3 py-2 w-full">
+            <option value="simple">Simple</option>
+            <option value="tf">TensorFlow</option>
+            <option value="phash">PHash</option>
+          </select>
+        </div>
+        
         <button 
           @click="startDetection" 
           :disabled="!imageFile || store.isProcessing"
@@ -202,16 +212,16 @@
               <Search size="20" /> 
               Detective Results
             </h2>
-            <div class="result-count-badge">{{ store.searchResults.length }} Potential Matches</div>
+            <div class="result-count-badge">{{ filteredResults.length }} Potential Matches</div>
           </div>
           
           <p class="results-description">
-            We found {{ store.searchResults.length }} items that match your search criteria. Review the matches below.
+            We found {{ filteredResults.length }} items that match your search criteria. Review the matches below.
           </p>
           
           <div class="results-grid">
             <div 
-              v-for="(result, index) in store.searchResults" 
+              v-for="(result, index) in filteredResults" 
               :key="index" 
               class="result-card"
             >
@@ -259,7 +269,7 @@
             </div>
             
             <!-- Show empty state if no results -->
-            <div v-if="store.searchResults.length === 0" class="empty-results">
+            <div v-if="filteredResults.length === 0" class="empty-results">
               <div class="empty-icon">
                 <SearchX size="48" />
               </div>
@@ -380,6 +390,7 @@ const isDragging = ref(false);
 const showUploader = ref(true);
 const matchThreshold = ref(70);
 const progressStage = computed(() => store.searchStatus);
+const filteredResults = computed(() => store.searchResults.filter(r => r.match_percentage >= matchThreshold.value));
 
 // Debug related
 const isDevMode = ref(process.env.NODE_ENV === 'development');
@@ -1266,4 +1277,21 @@ const toggleProcessingMode = () => {
   padding: 0.25rem 0.5rem;
   font-size: 0.625rem;
 }
-</style> 
+
+.mode-selector {
+  margin-bottom: 1rem;
+}
+
+.mode-selector label {
+  font-size: 0.875rem;
+  margin-bottom: 0.5rem;
+}
+
+.mode-selector select {
+  width: 100%;
+  padding: 0.5rem;
+  border-radius: 0.375rem;
+  border: 1px solid #334155;
+  font-size: 0.875rem;
+}
+</style>

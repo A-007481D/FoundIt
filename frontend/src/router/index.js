@@ -23,6 +23,7 @@ import AdminDashboard from '@/views/admin/DashboardView.vue';
 import AdminUsers from '@/views/admin/UsersView.vue';
 import AdminItems from '@/views/admin/ItemsView.vue';
 import AdminReports from '@/views/admin/ReportsView.vue';
+import SettingsView from '@/views/admin/SettingsView.vue';
 
 const routes = [
     {
@@ -121,6 +122,11 @@ const routes = [
                 path: 'reports',
                 name: 'AdminReports',
                 component: AdminReports
+            },
+            {
+                path: 'settings',
+                name: 'AdminSettings',
+                component: SettingsView
             }
         ]
     },

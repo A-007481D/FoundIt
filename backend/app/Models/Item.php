@@ -80,4 +80,17 @@ class Item extends Model
     {
         return $this->hasMany(ItemImage::class);
     }
+
+    /**
+     * Specify which model attributes are searchable via Scout/Meili.
+     *
+     * @return array<string, mixed>
+     */
+    public function toSearchableArray()
+    {
+        return [
+            'title' => $this->title,
+            'location' => $this->location,
+        ];
+    }
 }

@@ -202,7 +202,7 @@
 
                     <!-- All Matches Tab -->
                     <div v-if="activeTab === 'all'" class="space-y-6">
-                        <match-card v-for="match in matchedItems" :key="match.id" :match="match" />
+                        <match-card v-for="match in filteredAllMatches" :key="match.id" :match="match" />
                     </div>
 
                     <!-- New Matches Tab -->
@@ -611,14 +611,59 @@ export default {
             .catch(error => console.error('Error loading matches:', error));
     },
     computed: {
+        filteredAllMatches() {
+            const q = this.$route.query.q?.toLowerCase() || '';
+            return this.matchedItems.filter(match => {
+              if (!q) return true;
+              const fields = [
+                match.lostItem.title || '',
+                match.lostItem.description || '',
+                match.lostItem.location || '',
+                match.foundItem.title || '',
+                match.foundItem.description || '',
+                match.foundItem.location || ''
+              ].map(f => f.toLowerCase());
+              return fields.some(f => f.includes(q));
+            });
+        },
         newMatches() {
-            return this.matchedItems.filter(match => match.status === 'new');
+            const q = this.$route.query.q?.toLowerCase() || '';
+            return this.matchedItems.filter(match => match.status === 'new' && (
+              !q || [
+                match.lostItem.title || '',
+                match.lostItem.description || '',
+                match.lostItem.location || '',
+                match.foundItem.title || '',
+                match.foundItem.description || '',
+                match.foundItem.location || ''
+              ].map(f => f.toLowerCase()).some(f => f.includes(q))
+            ));
         },
         inProgressMatches() {
-            return this.matchedItems.filter(match => match.status === 'in-progress');
+            const q = this.$route.query.q?.toLowerCase() || '';
+            return this.matchedItems.filter(match => match.status === 'in-progress' && (
+              !q || [
+                match.lostItem.title || '',
+                match.lostItem.description || '',
+                match.lostItem.location || '',
+                match.foundItem.title || '',
+                match.foundItem.description || '',
+                match.foundItem.location || ''
+              ].map(f => f.toLowerCase()).some(f => f.includes(q))
+            ));
         },
         resolvedMatches() {
-            return this.matchedItems.filter(match => match.status === 'resolved');
+            const q = this.$route.query.q?.toLowerCase() || '';
+            return this.matchedItems.filter(match => match.status === 'resolved' && (
+              !q || [
+                match.lostItem.title || '',
+                match.lostItem.description || '',
+                match.lostItem.location || '',
+                match.foundItem.title || '',
+                match.foundItem.description || '',
+                match.foundItem.location || ''
+              ].map(f => f.toLowerCase()).some(f => f.includes(q))
+            ));
         }
     },
     methods: {

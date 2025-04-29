@@ -12,6 +12,21 @@ import Pusher from 'pusher-js'
 import authHeader from '@/services/auth-header'
 import axios from 'axios'
 
+// Ensure each request carries the current JWT token
+axios.interceptors.request.use(config => {
+  const token = localStorage.getItem('token')
+  if (token) {
+    config.headers.Authorization = 'Bearer ' + token
+  }
+  return config
+}, error => Promise.reject(error))
+
+// Apply auth token to all Axios requests
+axios.defaults.headers.common = {
+  ...axios.defaults.headers.common,
+  ...authHeader(),
+};
+
 const app = createApp(App)
 
 const pinia = createPinia()

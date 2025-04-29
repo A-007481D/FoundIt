@@ -9,6 +9,7 @@ use App\Models\Item;
 use App\Services\ItemService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Carbon\Carbon;
 
 class ItemController extends Controller
 {
@@ -24,26 +25,105 @@ class ItemController extends Controller
      */
     public function index(Request $request)
     {
+        // Disable Scout full-text; fallback to DB LIKE search
+        if (false && $request->filled('search')) {
+            $search = $request->search;
+            $raw = Item::search($search)->raw();
+            $hits = $raw['hits'] ?? [];
+            $ids = collect($hits)->pluck('id')->all();
+            if (empty($ids)) {
+                return response()->json([ 'data'=>[], 'current_page'=>1, 'last_page'=>1, 'per_page'=>$request->per_page??10, 'total'=>0 ]);
+            }
+            $builder = Item::with(['user','category'])
+                ->whereIn('id',$ids)
+                ->where('status','active')->where('visible',true);
+            // Apply filters
+            if ($request->filled('location')) {
+                $builder->where('location','like',"%{$request->location}%");
+            }
+            if ($request->has('type') && $request->type!=='all') {
+                $builder->where('type',$request->type);
+            }
+            if ($request->has('category_ids')) {
+                $cats = explode(',', $request->category_ids);
+                $builder->whereIn('category_id',$cats);
+            }
+            if ($request->has('date_filter') && $request->date_filter!=='anytime') {
+                switch($request->date_filter) {
+                    case 'today': $dateFrom=Carbon::today(); break;
+                    case 'this-week': $dateFrom=Carbon::now()->startOfWeek(); break;
+                    case 'this-month': $dateFrom=Carbon::now()->startOfMonth(); break;
+                    default: $dateFrom=null;
+                }
+                if (isset($dateFrom)) {
+                    $builder->where(function($q) use($dateFrom) {
+                        $q->where('lost_date','>=',$dateFrom)->orWhere('found_date','>=',$dateFrom);
+                    });
+                }
+            }
+            if ($request->has('date_to')) {
+                $builder->where(function($q) use($request) {
+                    $q->where('lost_date','<=',$request->date_to)->orWhere('found_date','<=',$request->date_to);
+                });
+            }
+            // preserve Meili order
+            $builder->orderByRaw('FIELD(id,'.implode(',',$ids).')');
+            $items = $builder->paginate($request->per_page??10);
+            return response()->json($items);
+        }
+
         $query = Item::with(['user', 'category'])->where('status', 'active')->where('visible', true);
 
         if ($request->has('search')) {
-            $search = $request->search;
-            $query->where(function($q) use ($search) {
-                $q->where('title', 'like', "%{$search}%")
-                  ->orWhere('description', 'like', "%{$search}%")
-                  ->orWhere('location', 'like', "%{$search}%");
+            // Case-insensitive search on title and location
+            $searchTerm = strtolower($request->search);
+            $query->where(function ($q) use ($searchTerm) {
+                $q->whereRaw('LOWER(title) LIKE ?', ["%{$searchTerm}%"])
+                  ->orWhereRaw('LOWER(location) LIKE ?', ["%{$searchTerm}%"]);
             });
+        }
+
+        // Location filter (partial match)
+        if ($request->has('location') && $request->location) {
+            // Case-insensitive location filter
+            $loc = strtolower($request->location);
+            $query->whereRaw('LOWER(location) LIKE ?', ["%{$loc}%"]);
         }
 
         if ($request->has('type') && $request->type !== 'all') {
             $query->where('type', $request->type);
         }
 
-        if ($request->has('category_id') && $request->category_id !== 'all') {
+        // Category filter: support multiple or single selection
+        if ($request->has('category_ids')) {
+            $ids = explode(',', $request->category_ids);
+            $query->whereIn('category_id', $ids);
+        } elseif ($request->has('category_id') && $request->category_id !== 'all') {
             $query->where('category_id', $request->category_id);
         }
 
-        if ($request->has('date_from')) {
+        // Date filter by predefined periods or explicit range
+        if ($request->has('date_filter') && $request->date_filter !== 'anytime') {
+            switch ($request->date_filter) {
+                case 'today':
+                    $dateFrom = Carbon::today();
+                    break;
+                case 'this-week':
+                    $dateFrom = Carbon::now()->startOfWeek();
+                    break;
+                case 'this-month':
+                    $dateFrom = Carbon::now()->startOfMonth();
+                    break;
+                default:
+                    $dateFrom = null;
+            }
+            if (isset($dateFrom)) {
+                $query->where(function ($q) use ($dateFrom) {
+                    $q->where('lost_date', '>=', $dateFrom)
+                      ->orWhere('found_date', '>=', $dateFrom);
+                });
+            }
+        } elseif ($request->has('date_from')) {
             $query->where(function($q) use ($request) {
                 $q->where('lost_date', '>=', $request->date_from)
                   ->orWhere('found_date', '>=', $request->date_from);

@@ -10,6 +10,7 @@ use App\Http\Controllers\MessageReportController;
 use App\Http\Controllers\MessageNotificationController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\ItemDetectiveController;
+use App\Http\Controllers\Admin\SettingsController;
 
 /*
 |--------------------------------------------------------------------------
@@ -136,5 +137,9 @@ Route::middleware(['auth:api', 'verified'])->group(function () {
         Route::patch('/reports/{id}/resolve', [\App\Http\Controllers\Admin\ReportController::class, 'resolve']);
         Route::patch('/reports/{id}/dismiss', [\App\Http\Controllers\Admin\ReportController::class, 'dismiss']);
         Route::get('/reports/stats', [\App\Http\Controllers\Admin\ReportController::class, 'getStats']);
+        
+        // Settings
+        Route::get('/settings', [SettingsController::class, 'index']);
+        Route::put('/settings', [SettingsController::class, 'update']);
     });
 });
