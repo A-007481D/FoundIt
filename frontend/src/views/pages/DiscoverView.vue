@@ -4,7 +4,7 @@
         <div class="animate-spin h-10 w-10 border-4 border-purple-600 border-t-transparent rounded-full"></div>
     </div>
     <div v-else class="min-h-screen flex flex-col">
-        <main class="max-w-[90rem] mx-auto flex-1 container py-6 flex flex-col-reverse md:flex-row items-center">
+        <main class="max-w-[90rem] mx-auto flex-1 container py-6 flex flex-col-reverse md:flex-row items-start">
             <div class="flex flex-col gap-6">
                 <div class="flex flex-col gap-2">
                     <h1 class="text-3xl font-bold tracking-tight">Discover Items</h1>
@@ -27,13 +27,13 @@
                                 {{ tab.label }}
                             </button>
                         </div>
-                        <div class="hidden items-center gap-2 md:flex">
+                        <!-- <div class="hidden items-center gap-2 md:flex">
                             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-4 w-4 text-muted-foreground">
                                 <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"></path>
                                 <circle cx="12" cy="10" r="3"></circle>
                             </svg>
-                            <span class="text-sm text-muted-foreground">New York, NY (5 mile radius)</span>
-                        </div>
+                             <span class="text-sm text-muted-foreground">New York, NY (5 mile radius)</span>
+                        </div> -->
                     </div>
 
                     <div class="mt-6 flex gap-6">
@@ -128,56 +128,81 @@
 
                         <!-- Content Area -->
                         <div class="flex-1">
-                            <!-- All Items Tab Content -->
-                            <div v-if="activeTab === 'all'">
-                                <div v-if="isLoading" class="flex justify-center items-center py-12">
-                                    <div class="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full"></div>
-                                </div>
-                                <div v-else>
-                                    <div v-if="featuredItems.length > 0" class="mb-8">
-                                        <h2 class="text-xl font-semibold mb-4">Featured Items</h2>
-                                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                                            <ItemCard v-for="item in featuredItems" :key="item.id" :item="item" @click="openItemDetail(item.id)" />
-                                        </div>
-                                    </div>
-                                    <div>
-                                        <h2 class="text-xl font-semibold mb-4">Recent Items</h2>
-                                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                                            <ItemCard v-for="item in visibleRecentItems" :key="item.id" :item="item" @click="openItemDetail(item.id)" />
-                                        </div>
-                                        <div class="flex justify-center mt-6">
-                                            <button v-if="visibleCount < recentItems.length" @click="visibleCount += 6" class="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-white shadow transition-colors hover:bg-primary-dark focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2">
-                                                Show More Items
-                                            </button>
-                                        </div>
-                                    </div>
+                            <!-- Search Mode: only results grid -->
+                            <div v-if="route.query.q" class="py-8">
+                                <!-- <h2 class="text-xl font-semibold mb-4 text-center">Search Results</h2> -->
+                                <div v-if="allItems.length" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                                    <ItemCard v-for="item in allItems" :key="item.id" :item="item" @click="openItemDetail(item.id)" />
                                 </div>
                             </div>
 
-                            <!-- Lost Items Tab Content -->
-                            <div v-if="activeTab === 'lost'">
-                                <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                                    <item-card
-                                        v-for="item in lostItems"
-                                        :key="item.id"
-                                        :item="item"
-                                    />
+                            <!-- Tab Mode: show tabs when not searching -->
+                            <div v-else>
+                                <!-- All Items Tab Content -->
+                                <div v-if="activeTab === 'all'">
+                                    <div v-if="isLoading" class="flex justify-center items-center py-12">
+                                        <div class="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full"></div>
+                                    </div>
+                                    <div v-else>
+                                        <div v-if="featuredItems.length > 0" class="mb-8">
+                                            <h2 class="text-xl font-semibold mb-4">Featured Items</h2>
+                                            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                                                <ItemCard v-for="item in featuredItems" :key="item.id" :item="item" @click="openItemDetail(item.id)" />
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <h2 class="text-xl font-semibold mb-4">Recent Items</h2>
+                                            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                                                <ItemCard v-for="item in visibleRecentItems" :key="item.id" :item="item" @click="openItemDetail(item.id)" />
+                                            </div>
+                                            <div class="flex justify-center mt-6">
+                                                <button v-if="visibleCount < recentItems.length" @click="visibleCount += 6" class="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-white shadow transition-colors hover:bg-primary-dark focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2">
+                                                    Show More Items
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
-                            </div>
 
-                            <!-- Found Items Tab Content -->
-                            <div v-if="activeTab === 'found'">
-                                <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                                    <item-card
-                                        v-for="item in foundItems"
-                                        :key="item.id"
-                                        :item="item"
-                                    />
+                                <!-- Lost Items Tab Content -->
+                                <div v-if="activeTab === 'lost'">
+                                    <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                                        <item-card
+                                            v-for="item in lostItems"
+                                            :key="item.id"
+                                            :item="item"
+                                        />
+                                    </div>
+                                </div>
+
+                                <!-- Found Items Tab Content -->
+                                <div v-if="activeTab === 'found'">
+                                    <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                                        <item-card
+                                            v-for="item in foundItems"
+                                            :key="item.id"
+                                            :item="item"
+                                        />
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
+            </div>
+            <!-- Full-page no-results panel under filters/content -->
+            <div v-if="route.query.q && !allItems.length" class="w-full flex flex-col items-center justify-center py-12">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 text-muted-foreground mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"/>
+                </svg>
+                <h3 class="text-lg font-medium">No items found</h3>
+                <p class="text-muted-foreground mt-1">Try adjusting your filters or check back later.</p>
+                <button @click="showCreateItemForm" class="mt-4 inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-white shadow transition-colors hover:bg-primary-dark focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                    </svg>
+                    Create New Item
+                </button>
             </div>
         </main>
 
