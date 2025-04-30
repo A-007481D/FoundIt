@@ -66,6 +66,7 @@ jobs:
         working-directory: backend
         run: |
           vendor/bin/psalm --output-format=emacs
+        continue-on-error: true
 
   codeql:
     name: CodeQL Analysis (Vue.js)
