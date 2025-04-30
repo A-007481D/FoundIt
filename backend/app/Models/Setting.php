@@ -17,7 +17,7 @@ class Setting extends Model
     public static function getValue(string $key, $default = null)
     {
         // If settings table does not exist (prior to migration), return default
-        if (!Schema::hasTable((new static)->getTable())) {
+        if (!Schema::hasTable((new self)->getTable())) {
             return $default;
         }
         return Cache::remember("setting_{$key}", 60, function () use ($key, $default) {

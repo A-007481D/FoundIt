@@ -141,7 +141,6 @@ class ItemDetectiveController extends Controller
             'glasses' => 'Accessory',
             'pen' => 'Accessory',
             'pencil' => 'Accessory',
-            'notebook' => 'Accessory',
             'book' => 'Accessory',
             'jersey' => 'Clothing',
             'shirt' => 'Clothing',
@@ -229,6 +228,7 @@ class ItemDetectiveController extends Controller
      */
     private function analyzeImageColor($image)
     {
+        $colorCounts = [];
         try {
             // Create a temporary file to work with
             $tempPath = $image->getRealPath();
@@ -278,7 +278,6 @@ class ItemDetectiveController extends Controller
             imagecopyresampled($resizedImg, $img, 0, 0, 0, 0, $newWidth, $newHeight, $width, $height);
             
             // Count colors with better sampling (sample every other pixel for speed)
-            $colorCounts = [];
             $samplingStep = 2; // Sample every 2nd pixel
             
             for ($x = 0; $x < $newWidth; $x += $samplingStep) {

@@ -19,6 +19,6 @@ class ChatChannel
      */
     public function join(User $user): array|bool
     {
-        //
+        return ['id' => $user->id];
     }
 }
