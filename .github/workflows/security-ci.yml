@@ -65,7 +65,7 @@ jobs:
       - name: Psalm Security Scan
         working-directory: backend
         run: |
-          vendor/bin/psalm --no-interaction --show-info=false --output-format=emacs
+          vendor/bin/psalm --output-format=emacs
 
   codeql:
     name: CodeQL Analysis (Vue.js)
