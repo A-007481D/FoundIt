@@ -10,7 +10,7 @@ on:
   pull_request:
     branches: [ ci-test ]
 
-jobs:
+jobs: 
   terraform-scan:
     name: Terraform Scan
     runs-on: ubuntu-latest
