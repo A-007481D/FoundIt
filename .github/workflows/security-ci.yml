@@ -56,11 +56,12 @@ jobs:
           tools: composer
       - name: Install dependencies
         working-directory: backend
-        run: composer install --prefer-dist
+        run: |
+          composer install --prefer-dist
+          composer update phpstan/phpstan --prefer-dist --no-interaction
       - name: Run PHPStan
-        uses: php-actions/phpstan@v3
-        with:
-          path: app,config,routes,resources/views
+        working-directory: backend
+        run: vendor/bin/phpstan analyse app config routes resources/views
       - name: Psalm Security Scan
         uses: docker://ghcr.io/psalm/psalm-security-scan
         with:
