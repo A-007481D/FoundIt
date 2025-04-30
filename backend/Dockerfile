@@ -1,7 +1,7 @@
-FROM composer:2 as vendor
+FROM composer:2 AS vendor
 WORKDIR /app
 COPY composer.json composer.lock ./
-RUN composer install --no-dev --optimize-autoloader
+RUN composer install --no-dev --optimize-autoloader --no-scripts --no-interaction
 
 FROM php:8.1-fpm
 
