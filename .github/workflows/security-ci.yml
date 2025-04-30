@@ -63,10 +63,9 @@ jobs:
         working-directory: backend
         run: vendor/bin/phpstan analyse app config routes resources/views
       - name: Psalm Security Scan
-        uses: docker://ghcr.io/psalm/psalm-security-scan
-        with:
-          security_analysis: true
-          report_file: results.sarif
+        working-directory: backend
+        run: |
+          vendor/bin/psalm --no-interaction --show-info=false --output-format=emacs
 
   codeql:
     name: CodeQL Analysis (Vue.js)
