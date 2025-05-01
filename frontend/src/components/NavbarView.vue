@@ -145,10 +145,10 @@
         <!-- Guest -->
         <template v-else>
           <router-link to="/login" class="rounded-md font-medium bg-white border-2 border-primary text-primary px-4 py-2 hover:bg-primary/10">
-            Se connecter
+            Login
           </router-link>
           <router-link to="/register" class="rounded-md text-white font-medium bg-primary hover:bg-primary/90 px-4 py-2">
-            S'inscrire
+            Register
           </router-link>
         </template>
 
