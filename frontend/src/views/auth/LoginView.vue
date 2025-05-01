@@ -7,7 +7,7 @@
                     <div class="p-6">
                         <!-- Title -->
                         <div class="space-y-1 mb-6 text-center">
-                            <h2 class="text-2xl font-bold text-gray-900">Login</h2>
+                            <h2 class="text-2xl font-bold text-gray-900">Welcome Back</h2>
                             <p class="text-gray-600">Enter your credentials to log in</p>
                         </div>
 
