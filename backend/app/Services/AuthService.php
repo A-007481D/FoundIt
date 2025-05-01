@@ -13,15 +13,22 @@ use Illuminate\Auth\Events\Registered;
 use Tymon\JWTAuth\Facades\JWTAuth;
 use Carbon\Carbon;
 use App\Notifications\ResetPasswordNotification;
+use App\Services\UserSessionService;
+use App\Services\ActivityLogService;
+use Illuminate\Http\Request;
 
 class AuthService extends AuthRepository
 {
+    protected UserSessionService $sessionService;
+    protected ActivityLogService $activityLogService;
+    
     /**
      * Create a new class instance.
      */
-    public function __construct()
+    public function __construct(UserSessionService $sessionService = null, ActivityLogService $activityLogService = null)
     {
-        //
+        $this->sessionService = $sessionService ?? new UserSessionService();
+        $this->activityLogService = $activityLogService ?? new ActivityLogService();
     }
 
     public function register(array $data)
@@ -35,7 +42,7 @@ class AuthService extends AuthRepository
     /**
      * @throws ValidationException
      */
-    public function login(array $data)
+    public function login(array $data, Request $request = null)
     {
         $user = $this->findByEmail($data['email']);
 
@@ -46,11 +53,33 @@ class AuthService extends AuthRepository
             ]);
         }
         if (!Hash::check($data['password'], $user->password)) {
+            // Log failed login attempt
+            if ($request && $user && $user->id) {
+                $this->activityLogService->log(
+                    'login_failed',
+                    'User',
+                    $user->id,
+                    ['reason' => 'incorrect_password', 'user_id' => $user->id],
+                    $request
+                );
+            }
+            
             throw ValidationException::withMessages([
                 'password' => ['The provided password is incorrect.'],
             ]);
         }
         if (!$user->hasVerifiedEmail()) {
+            // Log failed login attempt
+            if ($request && $user && $user->id) {
+                $this->activityLogService->log(
+                    'login_failed',
+                    'User',
+                    $user->id,
+                    ['reason' => 'email_not_verified', 'user_id' => $user->id],
+                    $request
+                );
+            }
+            
             throw ValidationException::withMessages([
                 'email' => ['Email is not verified.'],
             ]);
@@ -58,6 +87,17 @@ class AuthService extends AuthRepository
         
         // Check if user is banned
         if ($user->status === 'banned') {
+            // Log failed login attempt
+            if ($request && $user && $user->id) {
+                $this->activityLogService->log(
+                    'login_failed',
+                    'User',
+                    $user->id,
+                    ['reason' => 'account_banned', 'banned_reason' => $user->banned_reason, 'user_id' => $user->id],
+                    $request
+                );
+            }
+            
             $reason = $user->banned_reason ? ': ' . $user->banned_reason : '';
             throw ValidationException::withMessages([
                 'account' => ['Your account has been banned' . $reason],
@@ -71,12 +111,39 @@ class AuthService extends AuthRepository
                 // Reactivate user if suspension period is over
                 $user->status = 'active';
                 $user->save();
+                
+                // Log user reactivation
+                if ($request && $user && $user->id) {
+                    $this->activityLogService->log(
+                        'account_reactivated',
+                        'User',
+                        $user->id,
+                        ['reason' => 'suspension_expired', 'user_id' => $user->id],
+                        $request
+                    );
+                }
             } else {
                 // Format the suspension end date if it exists
                 $endDate = '';
                 if ($user->suspension_end) {
                     // Make sure suspension_end is a Carbon instance
                     $endDate = ' until ' . Carbon::parse($user->suspension_end)->format('M d, Y');
+                }
+                
+                // Log failed login attempt
+                if ($request && $user && $user->id) {
+                    $this->activityLogService->log(
+                        'login_failed',
+                        'User',
+                        $user->id,
+                        [
+                            'reason' => 'account_suspended', 
+                            'suspended_reason' => $user->suspended_reason,
+                            'suspension_end' => $user->suspension_end,
+                            'user_id' => $user->id
+                        ],
+                        $request
+                    );
                 }
                 
                 $reason = $user->suspended_reason ? ': ' . $user->suspended_reason : '';
@@ -86,11 +153,54 @@ class AuthService extends AuthRepository
             }
         }
 
-        return JWTAuth::fromUser($user);
+        // Generate JWT token
+        $token = JWTAuth::fromUser($user);
+        
+        // Create session record
+        if ($request && $user && $user->id) {
+            // Create session first
+            $this->sessionService->createSession($user->id, $token, $request);
+            
+            // Log successful login with explicit user_id
+            $this->activityLogService->log(
+                'login',
+                'User',
+                $user->id,
+                ['user_id' => $user->id],  // Explicitly include user_id in metadata
+                $request
+            );
+        }
+        
+        return $token;
     }
-    public function logout(): void
+    public function logout(Request $request = null): void
     {
-        JWTAuth::invalidate(JWTAuth::getToken());
+        $token = JWTAuth::getToken();
+        $user = auth('api')->user();
+        
+        if ($token && $user && $request) {
+            // Find and terminate the session
+            $hashedToken = hash('sha256', $token->get());
+            $session = $user->sessions()->where('token', $hashedToken)->first();
+            
+            if ($session) {
+                $session->terminate();
+            }
+            
+            // Log the logout activity
+            $this->activityLogService->log(
+                'logout',
+                'User',
+                $user->id,
+                ['user_id' => $user->id],
+                $request
+            );
+        }
+        
+        // Invalidate the token
+        if ($token) {
+            JWTAuth::invalidate($token);
+        }
     }
 
     /**
