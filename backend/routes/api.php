@@ -141,5 +141,18 @@ Route::middleware(['auth:api', 'verified'])->group(function () {
         // Settings
         Route::get('/settings', [SettingsController::class, 'index']);
         Route::put('/settings', [SettingsController::class, 'update']);
+        
+        // Activity Logs
+        Route::get('/activity-logs', [\App\Http\Controllers\Admin\ActivityLogController::class, 'index']);
+        Route::get('/activity-logs/users/{userId}', [\App\Http\Controllers\Admin\ActivityLogController::class, 'userActivities']);
+        Route::get('/activity-logs/actions', [\App\Http\Controllers\Admin\ActivityLogController::class, 'getActionTypes']);
+        Route::get('/activity-logs/entities', [\App\Http\Controllers\Admin\ActivityLogController::class, 'getEntityTypes']);
+        
+        // User Sessions
+        Route::get('/sessions', [\App\Http\Controllers\Admin\UserSessionController::class, 'index']);
+        Route::get('/sessions/users/{userId}', [\App\Http\Controllers\Admin\UserSessionController::class, 'userSessions']);
+        Route::post('/sessions/{sessionId}/terminate', [\App\Http\Controllers\Admin\UserSessionController::class, 'terminateSession']);
+        Route::post('/sessions/users/{userId}/terminate-all', [\App\Http\Controllers\Admin\UserSessionController::class, 'terminateUserSessions']);
+        Route::post('/sessions/cleanup', [\App\Http\Controllers\Admin\UserSessionController::class, 'cleanupExpiredSessions']);
     });
 });
