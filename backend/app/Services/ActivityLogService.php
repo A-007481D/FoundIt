@@ -9,36 +9,41 @@ use Illuminate\Http\Request;
 class ActivityLogService
 {
     /**
-     * Log an activity
+     * Log user activity
      *
-     * @param string $action The action performed (login, create, update, delete, etc.)
-     * @param string|null $entityType The type of entity (Item, User, etc.)
+     * @param string $action The action performed
+     * @param string|null $entityType The type of entity
      * @param int|null $entityId The ID of the entity
-     * @param array|null $metadata Additional information about the activity
-     * @param Request|null $request The HTTP request (for IP and User-Agent)
-     * @return ActivityLog The created activity log
+     * @param array|null $metadata Additional data
+     * @param int|null $userId User ID (if not authenticated, provide manually)
+     * @param string|null $category The category for this activity log
+     * @param Request|null $request The HTTP request
+     * @return ActivityLog|null The created log entry or null if creation fails
      */
     public function log(
-        string $action, 
-        ?string $entityType = null, 
-        ?int $entityId = null, 
-        ?array $metadata = null, 
+        string $action,
+        ?string $entityType = null,
+        ?int $entityId = null,
+        ?array $metadata = null,
+        ?int $userId = null,
+        ?string $category = null,
         ?Request $request = null
-    ): ?ActivityLog {
-        $userId = Auth::id();
-        
-        if (!$userId) {
-            // If no authenticated user, try to get user ID from metadata if provided
-            $userId = $metadata['user_id'] ?? null;
-        }
-        
-        // If user_id is still null, we can't create the log (would violate DB constraint)
-        if ($userId === null) {
-            // Return null instead of creating a log when user_id is null
+    ): ?ActivityLog
+    {
+        // Skip logging if no user is authenticated and no user ID is provided
+        if (!$userId && !auth()->check()) {
             return null;
         }
         
-        // If request is provided, get IP and user agent
+        // Use provided user ID or get from auth
+        $userId = $userId ?? auth()->id();
+
+        // Get request data if not provided
+        if (!$request && request()) {
+            $request = request();
+        }
+        
+        // Get IP address and user agent from request if available
         $ipAddress = null;
         $userAgent = null;
         if ($request) {
@@ -46,6 +51,12 @@ class ActivityLogService
             $userAgent = $request->userAgent();
         }
         
+        // Determine the appropriate category if not provided
+        if (!$category) {
+            $category = $this->determineCategory($action, $entityType);
+        }
+        
+        // Create activity log
         return ActivityLog::create([
             'user_id' => $userId,
             'action' => $action,
@@ -54,7 +65,42 @@ class ActivityLogService
             'metadata' => $metadata,
             'ip_address' => $ipAddress,
             'user_agent' => $userAgent,
+            'category' => $category,
         ]);
+    }
+    
+    /**
+     * Determine the appropriate category for an activity log based on action and entity type
+     *
+     * @param string $action The action performed
+     * @param string|null $entityType The entity type
+     * @return string The determined category
+     */
+    protected function determineCategory(string $action, ?string $entityType): string
+    {
+        // Authentication related actions
+        if (in_array($action, ['login', 'login_failed', 'logout', 'password_reset', 'password_reset_request'])) {
+            return 'authentication';
+        }
+        
+        if (strpos($action, 'session') !== false) {
+            return 'session_management';
+        }
+        
+        if ($entityType === 'item' || $entityType === 'lost_item' || $entityType === 'found_item') {
+            return 'item_management';
+        }
+        
+        if ($entityType === 'user' || strpos($action, 'user') !== false) {
+            return 'user_management';
+        }
+        
+        if ($entityType === 'report' || strpos($action, 'report') !== false) {
+            return 'reporting';
+        }
+        
+        // Default category
+        return 'system';
     }
     
     /**
@@ -113,6 +159,10 @@ class ActivityLogService
             $query->forEntity($filters['entity_type']);
         }
         
+        if (isset($filters['category']) && $filters['category'] !== 'all') {
+            $query->where('category', $filters['category']);
+        }
+        
         if (isset($filters['from_date'])) {
             $query->where('created_at', '>=', $filters['from_date']);
         }
@@ -121,8 +171,25 @@ class ActivityLogService
             $query->where('created_at', '<=', $filters['to_date']);
         }
         
-        return $query->with('user')
-                     ->orderBy('created_at', 'desc')
-                     ->paginate($perPage);
+        $query->latest();
+        
+        return $query->with('user')->paginate($perPage);
+    }
+    
+    /**
+     * Get available log categories
+     * 
+     * @return array
+     */
+    public function getLogCategories()
+    {
+        return [
+            'authentication' => 'Login/Logout Activities',
+            'item_management' => 'Item Related Activities',
+            'reporting' => 'Report Related Activities',
+            'user_management' => 'User Management Activities',
+            'session_management' => 'Session Management',
+            'system' => 'System Activities'
+        ];
     }
 }
