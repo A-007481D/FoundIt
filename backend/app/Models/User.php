@@ -9,6 +9,8 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 use Tymon\JWTAuth\Contracts\JWTSubject;
+use App\Models\ActivityLog;
+use App\Models\UserSession;
 
 class User extends Authenticatable implements MustVerifyEmail, JWTSubject
 {
@@ -87,5 +89,29 @@ class User extends Authenticatable implements MustVerifyEmail, JWTSubject
     public function isAdmin()
     {
         return $this->role === 'admin';
+    }
+    
+    /**
+     * Get the activity logs for the user.
+     */
+    public function activityLogs()
+    {
+        return $this->hasMany(ActivityLog::class);
+    }
+    
+    /**
+     * Get the active sessions for the user.
+     */
+    public function sessions()
+    {
+        return $this->hasMany(UserSession::class);
+    }
+    
+    /**
+     * Get active sessions for the user.
+     */
+    public function activeSessions()
+    {
+        return $this->sessions()->active();
     }
 }
