@@ -202,6 +202,10 @@ const authStore = useAuthStore()
 const chatStore = useChatStore()
 const notificationStore = useNotificationStore()
 
+// router hooks
+const router = useRouter()
+const route = useRoute()
+
 // state
 const showMobile = ref(false)
 const showNotif = ref(false)
@@ -210,10 +214,8 @@ const search = ref('')
 const notifDropdownRef = ref(null)
 const dropdownRef = ref(null)
 const notifications = computed(() => notificationStore.notifications)
-
-// router hooks
-const router = useRouter()
-const route = useRoute()
+const unreadCount = computed(() => notificationStore.unreadCount)
+const hasNotifications = computed(() => notificationStore.notifications.length > 0)
 
 // computed properties
 const isAuthenticated = computed(() => authStore.isAuthenticated)
@@ -238,30 +240,13 @@ const navItems = computed(() => {
   }
 })
 
-const unreadCount = computed(() => notificationStore.unreadCount)
-
-const hasNotifications = computed(() => notificationStore.notifications.length > 0)
-
 const userInitials = computed(() => {
-  if (!authStore.user) return ''
-  
-  // Extract initials from user's name if available
-  const user = authStore.user
-  if (user.name) {
-    const nameParts = user.name.split(' ')
-    if (nameParts.length >= 2) {
-      return (nameParts[0][0] + nameParts[1][0]).toUpperCase()
-    } else if (nameParts.length === 1 && nameParts[0].length > 0) {
-      return nameParts[0][0].toUpperCase()
-    }
-  }
-  
-  // Fallback to first letter of email
-  if (user.email) {
-    return user.email[0].toUpperCase()
-  }
-  
-  return '?'
+  if (!user.value?.name) return 'U'
+  return user.value.name
+    .split(' ')
+    .map(n => n[0])
+    .join('')
+    .toUpperCase()
 })
 
 const unreadMessagesCount = computed(() => {
@@ -350,7 +335,6 @@ onMounted(async () => {
     // fetch all notifications
     await notificationStore.fetchNotifications()
   }
-
   document.addEventListener('click', handleClickOutside)
   
   if (isAuthenticated.value) {

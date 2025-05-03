@@ -478,15 +478,15 @@ const serverSideOnlyUpload = async () => {
 
 const testConnection = async () => {
   try {
-    const response = await axios.get('/api/ping');
+    const response = await axios.get('/ping');
     apiConnected.value = true;
-    lastApiUrl.value = '/api/ping';
+    lastApiUrl.value = '/ping';
     lastApiStatus.value = response.status;
     lastApiResponse.value = response.data;
     return true;
   } catch (error) {
     apiConnected.value = false;
-    lastApiUrl.value = '/api/ping';
+    lastApiUrl.value = '/ping';
     lastApiStatus.value = error.response ? error.response.status : 'No response';
     lastApiResponse.value = error.response ? error.response.data : error.message;
     return false;

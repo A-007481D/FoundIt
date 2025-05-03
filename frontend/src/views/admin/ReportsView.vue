@@ -128,9 +128,9 @@
                 <button v-if="report.type === 'user'" @click="banUser" class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white font-medium rounded-md ml-2">
                   Ban User
                 </button>
-                <button v-if="report.type === 'item'" @click="navigateToItem" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-medium rounded-md">
+                <!-- <button v-if="report.type === 'item'" @click="navigateToItem" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-medium rounded-md">
                   View Item Details
-                </button>
+                </button> -->
                 <button v-if="report.type === 'item'" @click="deleteItem" class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white font-medium rounded-md ml-2">
                   Delete Item
                 </button>
