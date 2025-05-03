@@ -23,6 +23,16 @@ class AttributeScorer
      */
     public function rawCategory(Item $a, Item $b): float
     {
+        // If either item has no category_id, but descriptions are similar, give partial match
+        if ($a->category_id === null || $b->category_id === null) {
+            $descSimilarity = 0;
+            similar_text(strtolower($a->description), strtolower($b->description), $descSimilarity);
+            if ($descSimilarity > 50) {
+                return 0.5; // Partial match based on description
+            }
+            return 0.0;
+        }
+        
         return $a->category_id === $b->category_id ? 1.0 : 0.0;
     }
 
@@ -31,8 +41,24 @@ class AttributeScorer
      */
     public function rawDescription(Item $a, Item $b): float
     {
+        if (empty($a->description) || empty($b->description)) {
+            // If either description is empty but titles are similar, give partial score
+            $titleSimilarity = 0;
+            if (!empty($a->title) && !empty($b->title)) {
+                similar_text(strtolower($a->title), strtolower($b->title), $titleSimilarity);
+                return $titleSimilarity / 100.0;
+            }
+            return 0.1; // Minimum match score
+        }
+
         $percent = 0;
         similar_text(strtolower($a->description), strtolower($b->description), $percent);
+        
+        // Even low similarity should count somewhat
+        if ($percent < 30) {
+            return max(0.1, $percent / 100.0);
+        }
+        
         return $percent / 100.0;
     }
 
@@ -41,15 +67,29 @@ class AttributeScorer
      */
     public function rawTimeframe(Item $a, Item $b): float
     {
-        $dateA = $a->type === 'lost' ? $a->lost_date : $a->found_date;
-        $dateB = $b->type === 'found' ? $b->found_date : $b->lost_date;
-        if (! $dateA || ! $dateB) {
-            return 0.0;
+        $lostDate = $a->type === 'lost' ? $a->lost_date : $b->lost_date;
+        $foundDate = $a->type === 'found' ? $a->found_date : $b->found_date;
+        
+        if (!$lostDate || !$foundDate) {
+            return 0.3; // Default score if dates aren't comparable
         }
-        $diff = abs($dateA->diffInDays($dateB));
+        
+        // Found date should typically be after lost date
+        if ($foundDate->lt($lostDate)) {
+            $diff = abs($lostDate->diffInDays($foundDate));
+            // If found before lost, only match if within a few days (might be reporting delay)
+            if ($diff <= 3) {
+                return 0.5;
+            }
+            return 0.1;
+        }
+        
+        $diff = abs($lostDate->diffInDays($foundDate));
         if ($diff > $this->timeframeWindowDays) {
-            return 0.0;
+            return 0.1; // Minimal score for items outside window
         }
+        
+        // Higher score for closer dates
         return 1.0 - ($diff / $this->timeframeWindowDays);
     }
 
@@ -60,15 +100,28 @@ class AttributeScorer
     {
         $partsA = explode(',', $a->location);
         $partsB = explode(',', $b->location);
+        
         if (count($partsA) < 2 || count($partsB) < 2) {
-            return 0.0;
+            // String matching if coordinates aren't available
+            $similarity = 0;
+            similar_text($a->location, $b->location, $similarity);
+            return max(0.2, $similarity / 100.0);
         }
+        
         [$latA, $lngA] = array_map('floatval', $partsA);
         [$latB, $lngB] = array_map('floatval', $partsB);
+        
+        // Handle invalid coordinates
+        if ($latA == 0 && $lngA == 0 || $latB == 0 && $lngB == 0) {
+            return 0.2; // Default score for invalid coordinates
+        }
+        
         $distance = $this->haversine($latA, $lngA, $latB, $lngB);
         if ($distance > $this->locationRadiusKm) {
-            return 0.0;
+            // Give some minimal score even for distant items
+            return 0.1;
         }
+        
         return 1.0 - ($distance / $this->locationRadiusKm);
     }
 

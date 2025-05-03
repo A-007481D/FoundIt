@@ -11,7 +11,7 @@ return [
     ],
 
     // min score to consider a match
-    'threshold' => env('MATCH_THRESHOLD', 0.7),
+    'threshold' => env('MATCH_THRESHOLD', 0.5),
 
     'timeframe_window_days' => 30,
 
