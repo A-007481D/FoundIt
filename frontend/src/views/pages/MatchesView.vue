@@ -124,7 +124,7 @@
                 </div>
 
                 <!-- Match Stats -->
-                <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+                <!-- <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
                     <div class="rounded-lg border bg-card text-card-foreground shadow-sm">
                         <div class="p-4 flex items-center justify-between">
                             <div>
@@ -182,7 +182,7 @@
                             </div>
                         </div>
                     </div>
-                </div>
+                </div> -->
 
                 <!-- Tabs -->
                 <div>

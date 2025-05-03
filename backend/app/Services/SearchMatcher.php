@@ -27,53 +27,118 @@ class SearchMatcher implements MatcherInterface
         Log::info("SearchMatcher.matchItem start: item={$item->id}, type={$item->type}");
         $otherType = $item->type === 'lost' ? 'found' : 'lost';
         $weights = Config::get('matching.weights');
-        $threshold = Config::get('matching.threshold', 0.7);
+        $threshold = Config::get('matching.threshold', 0.5);
 
-        // Fetch candidates via Meili, then apply PHP filters
-        $results = Item::search($item->description)->raw();
-        $allHits = $results['hits'] ?? [];
-        $hits = array_filter($allHits, fn($hit) =>
-            ($hit['type'] ?? '') === $otherType
-            && ($hit['status'] ?? '') === 'active'
-            && ($hit['visible'] ?? false)
-        );
-        Log::info(sprintf('SearchMatcher.matchItem: item %d yielded %d hits', $item->id, count($hits)));
+        $candidates = $this->getCandidateItemsViaSearch($item, $otherType);
+        
+        if ($candidates->isEmpty()) {
+            Log::info("Search returned no results for item {$item->id}, falling back to direct query");
+            $candidates = $this->getCandidateItemsViaDirectQuery($item, $otherType);
+        }
+        
+        Log::info(sprintf('SearchMatcher.matchItem: item %d yielded %d candidates', 
+            $item->id, count($candidates)));
 
-        foreach ($hits as $hit) {
-            $otherId = $hit['id'] ?? null;
-            if (! $otherId) {
-                continue;
-            }
-            $otherItem = Item::find($otherId);
-            if (! $otherItem) {
-                continue;
-            }
+        foreach ($candidates as $otherItem) {
             // compute weighted attribute scores via AttributeScorer
             $scoreCategory    = $this->scorer->rawCategory($item, $otherItem) * $weights['category'];
             $scoreDescription = $this->scorer->rawDescription($item, $otherItem) * $weights['description'];
             $scoreTimeframe   = $this->scorer->rawTimeframe($item, $otherItem) * $weights['timeframe'];
             $scoreLocation    = $this->scorer->rawLocation($item, $otherItem) * $weights['location'];
             $score = $scoreCategory + $scoreDescription + $scoreTimeframe + $scoreLocation;
+            
             Log::info(sprintf(
-                'SearchMatcher.matchItem scoring: cat=%.2f desc=%.2f time=%.2f loc=%.2f total=%.2f',
-                $scoreCategory, $scoreDescription, $scoreTimeframe, $scoreLocation, $score
+                'SearchMatcher.matchItem scoring: item=%d, otherItem=%d, cat=%.2f desc=%.2f time=%.2f loc=%.2f total=%.2f',
+                $item->id, $otherItem->id, $scoreCategory, $scoreDescription, $scoreTimeframe, $scoreLocation, $score
             ));
-            $lostId  = $item->type === 'lost'  ? $item->id : $otherId;
-            $foundId = $item->type === 'found' ? $item->id : $otherId;
+            
+            $lostId  = $item->type === 'lost'  ? $item->id : $otherItem->id;
+            $foundId = $item->type === 'found' ? $item->id : $otherItem->id;
+            
             if ($score >= $threshold) {
                 $match = ItemMatch::updateOrCreate(
                     ['lost_item_id' => $lostId, 'found_item_id' => $foundId],
                     ['score' => $score]
                 );
+                
+                Log::info(sprintf(
+                    'Match created/updated: lost_item_id=%d, found_item_id=%d, score=%.2f, new=%s',
+                    $lostId, $foundId, $score, $match->wasRecentlyCreated ? 'true' : 'false'
+                ));
+                
                 if ($match->wasRecentlyCreated) {
-                    $match->lostItem->user->notify(new NewMatchFound($match));
-                    $match->foundItem->user->notify(new NewMatchFound($match));
+                    // Send notifications only for newly created matches
+                    if ($match->lostItem && $match->lostItem->user) {
+                        $match->lostItem->user->notify(new NewMatchFound($match));
+                    }
+                    if ($match->foundItem && $match->foundItem->user) {
+                        $match->foundItem->user->notify(new NewMatchFound($match));
+                    }
                 }
             } else {
-                ItemMatch::where('lost_item_id', $lostId)
+                // Delete any existing match that fell below threshold
+                $deleted = ItemMatch::where('lost_item_id', $lostId)
                     ->where('found_item_id', $foundId)
                     ->delete();
+                
+                if ($deleted) {
+                    Log::info("Deleted match: lost_item_id={$lostId}, found_item_id={$foundId} (score too low: {$score})");
+                }
             }
+        }
+    }
+    
+    /**
+     * Get candidate items via Laravel Scout search
+     */
+    private function getCandidateItemsViaSearch(Item $item, string $otherType)
+    {
+        try {
+            $query = '';
+            if (!empty($item->title)) {
+                $query .= $item->title . ' ';
+            }
+            if (!empty($item->description)) {
+                $query .= $item->description;
+            }
+            
+            return Item::search($query)
+                ->where('type', $otherType)
+                ->where('status', 'active')
+                ->where('visible', true)
+                ->get();
+        } catch (\Exception $e) {
+            Log::error('Error in SearchMatcher search query: ' . $e->getMessage());
+            return collect();
+        }
+    }
+    
+    /**
+     * Get candidate items via direct database query as fallback
+     */
+    private function getCandidateItemsViaDirectQuery(Item $item, string $otherType)
+    {
+        try {
+            $query = Item::where('type', $otherType)
+                ->where('status', 'active')
+                ->where('visible', true);
+            
+            // Add title-based matching if title exists
+            if (!empty($item->title)) {
+                $query->where(function($q) use ($item) {
+                    $q->where('title', 'like', '%' . $item->title . '%')
+                      ->orWhere('title', 'like', '%' . str_replace(' ', '%', $item->title) . '%');
+                });
+            }
+            
+            if (!empty($item->category_id)) {
+                $query->orWhere('category_id', $item->category_id);
+            }
+            
+            return $query->get();
+        } catch (\Exception $e) {
+            Log::error('Error in SearchMatcher direct query: ' . $e->getMessage());
+            return collect();
         }
     }
 

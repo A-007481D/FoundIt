@@ -1,4 +1,5 @@
 import { defineStore } from 'pinia';
+import itemDetectiveService from '@/services/item-detective.service';
 import axios from 'axios';
 import * as tf from '@tensorflow/tfjs';
 
@@ -191,7 +192,7 @@ export const useItemDetectiveStore = defineStore('itemDetective', {
         formData.append('mode', this.mode);
         
         // Call API endpoint without TensorFlow features
-        const response = await axios.post('/api/item-detective/search', formData);
+        const response = await itemDetectiveService.search(formData);
         
         // Process the response
         this.searchResults = response.data.results || [];
@@ -242,15 +243,13 @@ export const useItemDetectiveStore = defineStore('itemDetective', {
           throw new Error('No image has been processed');
         }
         
-        // Create form data
+        // Create form data with image features
         const formData = new FormData();
-        formData.append('image', this.imageFeatures.rawFile);
         formData.append('mode', this.mode);
-        formData.append('features', JSON.stringify(this.imageFeatures.vector));
         formData.append('classifications', JSON.stringify(this.imageFeatures.classifications));
         
         // Call API endpoint
-        const response = await axios.post('/api/item-detective/search', formData);
+        const response = await itemDetectiveService.search(formData);
         
         this.searchResults = response.data.results || [];
         this.detectionResults.color = response.data.color || 'Unknown';

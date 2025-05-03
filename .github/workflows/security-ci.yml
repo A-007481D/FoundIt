@@ -1,58 +1,103 @@
-# name: Security & IaC Scan
-# on:
-#   push:
-#     branches: [ main ]
-#   pull_request:
-#     branches: [ main ]
-#
-#
-# jobs:
-#   terraform-scan:
-#     name: Terraform Scan
-#     runs-on: ubuntu-latest
-#     steps:
-#       - uses: actions/checkout@v4
-#       - name: Setup Terraform
-#         uses: hashicorp/setup-terraform@v2
-#         with:
-#           terraform_version: '1.5.0'
-#       - name: terraform fmt check
-#         run: terraform fmt -check -diff
-#       - name: tfsec scan
-#         uses: aquasecurity/tfsec-action@v2
-#         with:
-#           version: latest
-#       - name: tflint
-#         uses: terraform-linters/tflint-action@v1
-#
-#   container-scan:
-#     name: Container CVE Scan
-#     runs-on: ubuntu-latest
-#     needs: terraform-scan
-#     steps:
-#       - uses: actions/checkout@v4
-#       - name: Build Docker image
-#         run: docker build -t foundit-backend:latest ./backend
-#       - name: Trivy CVE scan
-#         uses: aquasecurity/trivy-action@v0.9.0
-#         with:
-#           image-ref: foundit-backend:latest
-#           format: 'table'
-#
-#   codeql:
-#     name: CodeQL Analysis
-#     runs-on: ubuntu-latest
-#     strategy:
-#       fail-fast: false
-#       matrix:
-#         language: [ 'javascript', 'php' ]
-#     steps:
-#       - uses: actions/checkout@v4
-#       - name: Initialize CodeQL
-#         uses: github/codeql-action/init@v3
-#         with:
-#           languages: ${{ matrix.language }}
-#       - name: Autobuild
-#         uses: github/codeql-action/autobuild@v3
-#       - name: Perform CodeQL Analysis
-#         uses: github/codeql-action/analyze@v3
+permissions:
+  actions: read
+  contents: read
+  security-events: write
+
+name: Security & IaC Scan
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs: 
+  terraform-scan:
+    name: Terraform Scan
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_version: '1.5.0'
+      - name: Terraform fmt check
+        run: terraform fmt -check -diff
+      - name: tfsec scan
+        uses: aquasecurity/tfsec-action@v1.0.3
+        with:
+          version: latest
+      - name: TFLint
+        uses: terraform-linters/setup-tflint@v1
+
+  container-scan:
+    name: Container CVE Scan
+    needs: terraform-scan
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build Docker image
+        run: docker build -t foundit-backend:latest ./backend
+      - name: Trivy CVE scan
+        uses: aquasecurity/trivy-action@0.30.0    # ← correct tag (no “v”) 
+        with:
+          image-ref: foundit-backend:latest
+          format: table
+
+  php-static-analysis:
+    name: Laravel Static Analysis
+    needs: container-scan
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          tools: composer
+      - name: Install dependencies
+        working-directory: backend
+        run: |
+          composer update --prefer-dist --no-interaction
+          composer install --prefer-dist --no-interaction
+      - name: Setup environment
+        working-directory: backend
+        run: |
+          cp .env.example .env
+          php artisan key:generate --ansi
+          php artisan config:clear
+      - name: Run PHPUnit Tests
+        working-directory: backend
+        run: |
+          ./vendor/bin/phpunit --testdox
+        continue-on-error: true
+      - name: Run PHPStan
+        working-directory: backend
+        run: vendor/bin/phpstan analyse app config routes resources/views
+        continue-on-error: true
+      - name: Run Psalm Scan
+        working-directory: backend
+        run: |
+          vendor/bin/psalm --output-format=emacs
+        continue-on-error: true
+
+  codeql:
+    name: CodeQL Analysis (Vue.js)
+    needs: php-static-analysis
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        language: [ 'javascript' ]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          languages: ${{ matrix.language }}
+        continue-on-error: true
+      - name: Autobuild
+        uses: github/codeql-action/autobuild@v3
+        continue-on-error: true
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v3
+        continue-on-error: true

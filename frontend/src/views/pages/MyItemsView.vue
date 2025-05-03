@@ -160,7 +160,7 @@ const route = useRoute();
 // Lifecycle
 onMounted(async () => {
   try {
-    await fetchItems();
+    await fetchUserItems();
     const editId = route.query.editItemId;
     if (editId) {
       const itemToEdit = items.value.find(item => item.id.toString() === editId);
@@ -173,71 +173,22 @@ onMounted(async () => {
 });
 
 // Methods
-const fetchItems = async () => {
+async function fetchUserItems() {
+  isLoading.value = true;
   try {
-    isLoading.value = true;
-    console.log('Fetching user items...');
     const response = await itemService.getUserItems();
-    console.log('User items response:', response);
-    
-    // Log the actual data structure to understand the API response format
-    console.log('Raw API response data:', JSON.stringify(response.data, null, 2));
-    
-    // Process the response to extract items
-    if (Array.isArray(response.data)) {
-      items.value = response.data;
-    } else if (response.data?.items && Array.isArray(response.data.items)) {
-      items.value = response.data.items;
-    } else if (response.data?.data && Array.isArray(response.data.data)) {
-      // Handle Laravel resource collections format
-      items.value = response.data.data;
-    } else {
-      // If all else fails, look for any array in the response
-      const anyArrayProperty = Object.keys(response.data || {}).find(key => 
-        Array.isArray(response.data[key]));
-      
-      if (anyArrayProperty) {
-        items.value = response.data[anyArrayProperty];
-      } else {
-        console.warn('Could not find items array in API response');
-        items.value = [];
-      }
-    }
-    
-    // If no items are found despite database having them, use getItems as fallback
-    if (items.value.length === 0) {
-      console.log('No user items found, trying general items api');
-      const fallbackResponse = await itemService.getItems();
-      console.log('Fallback response:', fallbackResponse);
-      
-      // Process the fallback response
-      if (Array.isArray(fallbackResponse.data)) {
-        items.value = fallbackResponse.data;
-      } else if (fallbackResponse.data?.items && Array.isArray(fallbackResponse.data.items)) {
-        items.value = fallbackResponse.data.items;
-      } else if (fallbackResponse.data?.data && Array.isArray(fallbackResponse.data.data)) {
-        items.value = fallbackResponse.data.data;
-      } else {
-        const anyArrayProperty = Object.keys(fallbackResponse.data || {}).find(key => 
-          Array.isArray(fallbackResponse.data[key]));
-        
-        if (anyArrayProperty) {
-          items.value = fallbackResponse.data[anyArrayProperty];
-        }
-      }
-    }
+    items.value = response.data.data || response.data.items || [];
   } catch (error) {
-    console.error('Error fetching items:', error);
-    // Don't leave the user with a perpetual loading screen
+    console.error('Error fetching user items:', error);
     items.value = [];
   } finally {
     isLoading.value = false;
   }
-};
+}
 
-const refreshItems = async () => {
-  await fetchItems();
-};
+function refreshItems() {
+  fetchUserItems();
+}
 
 const openItemDetail = (itemId) => {
   selectedItemId.value = itemId;

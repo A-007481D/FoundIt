@@ -10,16 +10,10 @@ import 'vue3-toastify/dist/index.css'
 import Echo from 'laravel-echo'
 import Pusher from 'pusher-js'
 import authHeader from '@/services/auth-header'
-import axios from 'axios'
+// Import our custom axios interceptor instead of axios directly
+import axios from './interceptors/axios'
 
-// Ensure each request carries the current JWT token
-axios.interceptors.request.use(config => {
-  const token = localStorage.getItem('token')
-  if (token) {
-    config.headers.Authorization = 'Bearer ' + token
-  }
-  return config
-}, error => Promise.reject(error))
+// Axios is now configured in interceptors/axios.js with session termination handling
 
 // Apply auth token to all Axios requests
 axios.defaults.headers.common = {
