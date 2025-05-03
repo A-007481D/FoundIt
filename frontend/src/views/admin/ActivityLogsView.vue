@@ -1,10 +1,10 @@
 <template>
   <div class="activity-logs-container">
-    <h1 class="text-2xl font-bold mb-4">Activity Logs</h1>
+    <h1 class="text-xl md:text-2xl font-bold mb-4">Activity Logs</h1>
     
     <!-- Filters -->
     <div class="bg-white shadow rounded-lg p-4 mb-6">
-      <h2 class="text-lg font-semibold mb-3">Filters</h2>
+      <h2 class="text-base md:text-lg font-semibold mb-3">Filters</h2>
       <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div>
           <label class="block text-sm font-medium text-gray-700 mb-1">User</label>
@@ -70,12 +70,12 @@
     <!-- User Details (when filtering by user) -->
     <div v-if="filters.user_id !== 'all' && selectedUser" class="bg-white shadow rounded-lg p-4 mb-6">
       <div class="flex items-center">
-        <div class="rounded-full bg-gray-200 w-16 h-16 flex items-center justify-center text-xl font-bold text-gray-600">
+        <div class="rounded-full bg-gray-200 w-12 h-12 md:w-16 md:h-16 flex items-center justify-center text-base md:text-xl font-bold text-gray-600">
           {{ selectedUser.firstname[0] }}{{ selectedUser.lastname[0] }}
         </div>
         <div class="ml-4">
-          <h2 class="text-xl font-semibold">{{ selectedUser.firstname }} {{ selectedUser.lastname }}</h2>
-          <p class="text-gray-600">{{ selectedUser.email }}</p>
+          <h2 class="text-lg md:text-xl font-semibold">{{ selectedUser.firstname }} {{ selectedUser.lastname }}</h2>
+          <p class="text-sm text-gray-600">{{ selectedUser.email }}</p>
           <div class="flex mt-1">
             <span 
               class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium"
@@ -103,16 +103,16 @@
     
     <!-- Activity Log List -->
     <div class="bg-white shadow rounded-lg p-4 mb-6">
-      <h2 class="text-lg font-semibold mb-3">
+      <h2 class="text-base md:text-lg font-semibold mb-3">
         Activity Logs
-        <span class="text-sm font-normal text-gray-600 ml-2">
+        <span class="text-xs md:text-sm font-normal text-gray-600 ml-2">
           ({{ totalLogs }} total)
         </span>
       </h2>
       
       <div v-if="loading" class="py-10 text-center">
-        <div class="spinner mb-2"></div>
-        <p class="text-gray-600">Loading activity logs...</p>
+        <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
+        <p class="text-gray-600 mt-4">Loading activity logs...</p>
       </div>
       
       <div v-else-if="activityLogs.length === 0" class="py-10 text-center">
@@ -120,7 +120,8 @@
       </div>
       
       <div v-else>
-        <div class="overflow-x-auto">
+        <!-- Desktop View -->
+        <div class="overflow-x-auto hidden md:block">
           <table class="min-w-full divide-y divide-gray-200">
             <thead class="bg-gray-50">
               <tr>
@@ -172,9 +173,50 @@
           </table>
         </div>
         
+        <!-- Mobile Card View -->
+        <div class="md:hidden space-y-4">
+          <div v-for="log in activityLogs" :key="log.id" class="bg-white border rounded-lg shadow-sm overflow-hidden">
+            <div class="p-4">
+              <div class="flex justify-between items-start">
+                <div>
+                  <div class="text-sm font-medium">{{ log.user.firstname }} {{ log.user.lastname }}</div>
+                  <div class="text-xs text-gray-500 mt-1">{{ formatDateTime(log.created_at) }}</div>
+                </div>
+                <span 
+                  class="px-2 py-1 text-xs rounded-full font-semibold"
+                  :class="getActionClass(log.action)"
+                >
+                  {{ formatAction(log.action) }}
+                </span>
+              </div>
+              
+              <div class="mt-3 text-xs text-gray-600 grid grid-cols-2 gap-y-2">
+                <div>
+                  <span class="font-medium">Entity:</span> 
+                  {{ log.entity_type || '-' }}
+                  {{ log.entity_id ? `#${log.entity_id}` : '' }}
+                </div>
+                <div>
+                  <span class="font-medium">IP:</span> 
+                  {{ log.ip_address || '-' }}
+                </div>
+              </div>
+              
+              <div class="mt-3 border-t pt-3">
+                <button 
+                  @click="showLogDetails(log)"
+                  class="w-full text-center text-xs font-medium text-blue-600 hover:text-blue-800 py-1"
+                >
+                  View Details
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+        
         <!-- Pagination -->
-        <div class="px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6">
-          <div class="flex-1 flex justify-between sm:hidden">
+        <div class="px-4 py-3 flex flex-col sm:flex-row items-center justify-between border-t border-gray-200 sm:px-6 mt-4">
+          <div class="flex-1 flex justify-between w-full sm:hidden">
             <button
               @click="changePage(currentPage - 1)"
               :disabled="currentPage === 1"
@@ -183,6 +225,9 @@
             >
               Previous
             </button>
+            <div class="text-sm text-gray-700 px-4">
+              Page {{ currentPage }} of {{ lastPage }}
+            </div>
             <button
               @click="changePage(currentPage + 1)"
               :disabled="currentPage === lastPage"
@@ -245,7 +290,7 @@
       <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
         <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" aria-hidden="true" @click="selectedLog = null"></div>
         <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
-        <div class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
+        <div class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full max-h-[90vh] overflow-y-auto m-4 sm:m-0">
           <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
             <div class="sm:flex sm:items-start">
               <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left w-full">

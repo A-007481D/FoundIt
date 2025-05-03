@@ -4,10 +4,9 @@
     <header class="hidden">
     </header>
     
-
-    <div class="flex">
-      <!-- Sidebar -->
-      <aside class="w-64 bg-white border-r border-gray-200 min-h-[calc(100vh-4rem)] hidden md:block">
+    <div class="flex flex-col md:flex-row">
+      <!-- Desktop Sidebar -->
+      <aside class="w-64 bg-white border-r border-gray-200 min-h-[calc(100vh-4rem)] hidden md:block sticky top-0">
         <nav class="p-4">
           <ul class="space-y-1">
             <li>
@@ -99,35 +98,54 @@
         </nav>
       </aside>
 
-      <!-- Mobile sidebar toggle -->
-      <div class="md:hidden p-4">
+      <!-- Mobile header with menu button -->
+      <div class="sticky top-0 z-20 bg-white shadow-sm border-b md:hidden">
+        <div class="flex items-center justify-between px-4 py-2">
         <button 
           @click="toggleSidebar" 
           class="p-2 rounded-md hover:bg-gray-200 transition-colors"
+            aria-label="Toggle menu"
         >
           <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
           </svg>
         </button>
+          <h1 class="text-lg font-semibold">Admin Panel</h1>
+          <div class="w-6"></div> <!-- Empty div for flexbox spacing -->
+        </div>
       </div>
 
       <!-- Mobile sidebar -->
       <div 
         v-if="showSidebar" 
         class="fixed inset-0 z-40 md:hidden"
-        @click="showSidebar = false"
+        aria-modal="true"
       >
-        <div class="fixed inset-0 bg-black opacity-30"></div>
-        <div class="fixed inset-y-0 left-0 w-64 bg-white shadow-lg transform transition-transform duration-300 ease-in-out">
+        <!-- Backdrop -->
+        <div 
+          class="fixed inset-0 bg-black bg-opacity-50 transition-opacity" 
+          @click="showSidebar = false"
+          aria-hidden="true"
+        ></div>
+        
+        <!-- Sidebar panel -->
+        <div 
+          class="fixed inset-y-0 left-0 w-64 bg-white shadow-xl transform transition-transform duration-300 ease-in-out z-50"
+          :class="showSidebar ? 'translate-x-0' : '-translate-x-full'"
+        >
           <div class="p-4 border-b flex justify-between items-center">
             <h2 class="font-bold text-lg">Admin Menu</h2>
-            <button @click="showSidebar = false" class="p-2 rounded-md hover:bg-gray-200">
+            <button 
+              @click="showSidebar = false" 
+              class="p-2 rounded-md hover:bg-gray-200"
+              aria-label="Close menu"
+            >
               <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
               </svg>
             </button>
           </div>
-          <nav class="p-4">
+          <nav class="p-4 overflow-y-auto max-h-[calc(100vh-64px)]">
             <ul class="space-y-1">
               <li>
                 <router-link 
@@ -166,19 +184,6 @@
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
                   </svg>
                   Item Management
-                </router-link>
-              </li>
-              <li>
-                <router-link 
-                  to="/admin/items" 
-                  exact-active-class="bg-primary text-white"
-                  class="flex items-center gap-3 px-4 py-2 rounded-md hover:bg-gray-100 transition-colors"
-                  @click="showSidebar = false"
-                >
-                  <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
-                  </svg>
-                  Items
                 </router-link>
               </li>
               <li>
@@ -240,7 +245,7 @@
       </div>
 
       <!-- Main content -->
-      <main class="flex-1 p-6">
+      <main class="flex-1 p-4 md:p-6">
         <router-view />
       </main>
     </div>
@@ -248,8 +253,8 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onUnmounted } from 'vue';
-import { useRouter } from 'vue-router';
+import { ref, computed, onMounted, onUnmounted, watch } from 'vue';
+import { useRouter, useRoute } from 'vue-router';
 import { useAuthStore } from '@/stores/auth.store';
 import NavbarView from '@/components/NavbarView.vue'
 
@@ -261,6 +266,12 @@ const dropdownRef = ref(null);
 // Store
 const authStore = useAuthStore();
 const router = useRouter();
+const route = useRoute();
+
+// Close sidebar when route changes
+watch(() => route.fullPath, () => {
+  showSidebar.value = false;
+});
 
 // Computed
 const userFullName = computed(() => authStore.userFullName);
@@ -307,6 +318,15 @@ const handleClickOutside = (event) => {
   }
 };
 
+// Prevent body scrolling when sidebar is open
+watch(showSidebar, (isOpen) => {
+  if (isOpen) {
+    document.body.classList.add('overflow-hidden');
+  } else {
+    document.body.classList.remove('overflow-hidden');
+  }
+});
+
 // Lifecycle hooks
 onMounted(() => {
   document.addEventListener('click', handleClickOutside);
@@ -314,6 +334,7 @@ onMounted(() => {
 
 onUnmounted(() => {
   document.removeEventListener('click', handleClickOutside);
+  document.body.classList.remove('overflow-hidden');
 });
 </script>
 

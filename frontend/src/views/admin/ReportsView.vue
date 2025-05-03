@@ -1,14 +1,14 @@
 <template>
   <div>
-    <div class="flex justify-between items-center mb-6">
-      <h1 class="text-2xl font-bold">Report Management</h1>
-      <div class="flex gap-2">
-        <div class="relative">
+    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 md:mb-6 gap-4">
+      <h1 class="text-xl md:text-2xl font-bold">Report Management</h1>
+      <div class="flex flex-wrap gap-2 w-full sm:w-auto">
+        <div class="relative flex-grow sm:flex-grow-0">
           <input 
             type="text" 
             v-model="searchQuery" 
             placeholder="Search reports..." 
-            class="pl-10 pr-4 py-2 border rounded-md focus:ring-2 focus:ring-primary focus:border-primary"
+            class="w-full sm:w-auto pl-10 pr-4 py-2 border rounded-md focus:ring-2 focus:ring-primary focus:border-primary"
             @input="handleSearch"
           />
           <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 absolute left-3 top-2.5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -42,8 +42,8 @@
       <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
     </div>
 
-    <!-- Reports Table -->
-    <div v-else class="bg-white rounded-lg shadow overflow-hidden">
+    <!-- Desktop Reports Table - hidden on small screens -->
+    <div v-if="!loading" class="bg-white rounded-lg shadow overflow-hidden hidden md:block">
       <table class="min-w-full divide-y divide-gray-200">
         <thead class="bg-gray-50">
           <tr>
@@ -145,18 +145,74 @@
         </tbody>
       </table>
     </div>
+    
+    <!-- Mobile Reports View - visible only on small screens -->
+    <div v-if="!loading" class="space-y-4 md:hidden">
+      <div v-if="paginatedReports.length === 0" class="bg-white rounded-lg shadow p-4 text-center text-gray-500">
+        No reports found matching your criteria.
+      </div>
+      
+      <div v-for="report in paginatedReports" :key="report.id" class="bg-white rounded-lg shadow overflow-hidden">
+        <div class="p-4">
+          <div class="flex items-start space-x-3">
+            <div class="h-10 w-10 flex-shrink-0">
+              <img v-if="report.subject.image" :src="report.subject.image" :alt="report.subject.name" class="h-10 w-10 rounded-full object-cover" />
+              <div v-else class="h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center text-gray-600">
+                {{ report.subject.name ? report.subject.name[0].toUpperCase() : 'U' }}
+              </div>
+            </div>
+            <div class="flex-1 min-w-0">
+              <div class="flex flex-wrap gap-1 mb-1">
+                <span class="px-2 py-1 text-xs font-semibold rounded-full" 
+                  :class="report.type === 'user' ? 'bg-blue-100 text-blue-800' : 'bg-purple-100 text-purple-800'">
+                  {{ report.type }}
+                </span>
+                <span class="px-2 py-1 text-xs font-semibold rounded-full" 
+                  :class="getStatusClass(report.status)">
+                  {{ report.status }}
+                </span>
+              </div>
+              <h3 class="text-sm font-medium text-gray-900">{{ report.subject.name || report.subject.title }}</h3>
+              <p class="text-xs text-gray-500 mt-1 truncate">{{ report.reason }}</p>
+            </div>
+          </div>
+          
+          <div class="mt-3 pt-3 border-t border-gray-100 flex items-center justify-between text-xs">
+            <div>
+              <p class="text-gray-900">Reported by: {{ report.reporter.name }}</p>
+              <p class="text-gray-500 mt-0.5">{{ formatDate(report.created_at) }}</p>
+            </div>
+            <div class="text-xs text-gray-500">
+              ID: #{{ report.id }}
+            </div>
+          </div>
+          
+          <div class="mt-3 pt-3 border-t border-gray-100 flex flex-wrap gap-2">
+            <button @click="viewReport(report)" class="px-2 py-1 text-xs bg-indigo-100 text-indigo-800 rounded hover:bg-indigo-200">
+              View Details
+            </button>
+            <button v-if="report.status === 'pending'" @click="confirmResolveReport(report)" class="px-2 py-1 text-xs bg-green-100 text-green-800 rounded hover:bg-green-200">
+              Resolve
+            </button>
+            <button v-if="report.status === 'pending'" @click="confirmDismissReport(report)" class="px-2 py-1 text-xs bg-gray-100 text-gray-800 rounded hover:bg-gray-200">
+              Dismiss
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
 
     <!-- Pagination -->
-    <div class="flex justify-between items-center mt-4">
-      <div class="text-sm text-gray-700">
+    <div class="flex flex-col sm:flex-row justify-between items-center mt-4 gap-3">
+      <div class="text-xs md:text-sm text-gray-700 order-2 sm:order-1">
         Showing <span class="font-medium">{{ startIndex + 1 }}</span> to <span class="font-medium">{{ endIndex }}</span> of <span class="font-medium">{{ totalItems }}</span> results
       </div>
-      <div class="flex space-x-2">
+      <div class="flex space-x-2 order-1 sm:order-2">
         <button 
           @click="prevPage" 
           :disabled="currentPage === 1" 
           :class="currentPage === 1 ? 'opacity-50 cursor-not-allowed' : ''"
-          class="px-3 py-1 border rounded-md hover:bg-gray-50"
+          class="px-3 py-1 border rounded-md hover:bg-gray-50 text-sm"
         >
           Previous
         </button>
@@ -164,7 +220,7 @@
           @click="nextPage" 
           :disabled="endIndex >= totalItems" 
           :class="endIndex >= totalItems ? 'opacity-50 cursor-not-allowed' : ''"
-          class="px-3 py-1 border rounded-md hover:bg-gray-50"
+          class="px-3 py-1 border rounded-md hover:bg-gray-50 text-sm"
         >
           Next
         </button>
@@ -173,7 +229,7 @@
 
     <!-- Report View Modal -->
     <div v-if="showReportModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div class="bg-white rounded-lg shadow-xl max-w-3xl w-full p-6">
+      <div class="bg-white rounded-lg shadow-xl max-w-3xl w-full max-h-[90vh] overflow-y-auto p-4 md:p-6 m-4 md:m-0">
         <div class="flex justify-between items-center mb-4">
           <h3 class="text-lg font-medium">Report Details</h3>
           <button @click="showReportModal = false" class="text-gray-400 hover:text-gray-500">
@@ -262,37 +318,44 @@
           </div>
         </div>
         
-        <div class="mt-6 flex justify-end space-x-3">
+        <div class="mt-6 flex flex-wrap justify-end gap-3">
           <button @click="showReportModal = false" class="px-4 py-2 border rounded-md hover:bg-gray-50">
             Close
           </button>
-          <button 
-            v-if="currentReport.status === 'pending'" 
-            @click="dismissReportWithNotes" 
-            class="px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700"
-          >
-            Dismiss Report
+          <div v-if="currentReport.status === 'pending'" class="flex flex-wrap gap-2">
+            <button @click="confirmResolveReport(currentReport)" class="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700">
+              Resolve
           </button>
-          <button 
-            v-if="currentReport.status === 'pending'" 
-            @click="resolveReportWithNotes" 
-            class="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700"
-          >
-            Resolve Report
+            <button @click="confirmDismissReport(currentReport)" class="px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700">
+              Dismiss
           </button>
-          <button 
-            v-if="currentReport.type === 'user' && currentReport.status === 'pending'" 
-            @click="navigateToUser" 
-            class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
-          >
-            Manage User
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Confirmation Modal -->
+    <div v-if="showConfirmModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div class="bg-white rounded-lg shadow-xl max-w-md w-full p-4 md:p-6 m-4 md:m-0">
+        <div class="mb-4">
+          <h3 class="text-lg font-medium">{{ confirmTitle }}</h3>
+          <p class="mt-2 text-sm text-gray-500">{{ confirmMessage }}</p>
+        </div>
+        <div class="mt-4">
+          <textarea 
+            v-if="showResolutionInput" 
+            v-model="resolutionNotes" 
+            rows="3" 
+            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring focus:ring-primary focus:ring-opacity-50"
+            placeholder="Add notes about how this report was handled..."
+          ></textarea>
+        </div>
+        <div class="flex justify-end gap-3 mt-4">
+          <button @click="showConfirmModal = false" class="px-4 py-2 border rounded-md hover:bg-gray-50">
+            Cancel
           </button>
-          <button 
-            v-if="currentReport.type === 'item' && currentReport.status === 'pending'" 
-            @click="navigateToItem" 
-            class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
-          >
-            Manage Item
+          <button @click="confirmAction" :class="confirmButtonClass">
+            {{ confirmButtonText }}
           </button>
         </div>
       </div>
@@ -516,6 +579,5 @@ const fetchReports = async () => {
 onMounted(() => {
   fetchReports();
 });
-
 
 </script>
