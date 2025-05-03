@@ -40,7 +40,7 @@
                         <!-- Filter Sidebar -->
                         <div class="hidden w-64 shrink-0 md:block">
                             <div class="flex flex-col gap-6">
-                                <div>
+                                <!-- <div>
                                     <h3 class="mb-2 font-medium">Title</h3>
                                     <input 
                                         v-model="filters.search" 
@@ -61,7 +61,7 @@
                                         placeholder="e.g. New York" 
                                         class="border rounded px-2 py-1 w-full"
                                     />
-                                </div>
+                                </div> -->
                                 <div>
                                     <h3 class="mb-2 font-medium">Item Type</h3>
                                     <div class="space-y-2">
@@ -163,10 +163,20 @@
                                         </div>
                                         <div>
                                             <h2 class="text-xl font-semibold mb-4">Recent Items</h2>
-                                            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                                            <div v-if="recentItems.length > 0" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                                                 <ItemCard v-for="item in visibleRecentItems" :key="item.id" :item="item" @click="openItemDetail(item.id)" />
                                             </div>
-                                            <div class="flex justify-center mt-6">
+                                            <div v-else class="flex flex-col items-center justify-center py-12 text-center w-full">
+                                              <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 text-muted-foreground mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
+                                              </svg>
+                                              <h3 class="text-lg font-medium">No items found</h3>
+                                              <p class="text-muted-foreground mt-1">Try adjusting your filters or check back later.</p>
+                                              <button @click="showCreateItemForm" class="mt-4 inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-white shadow transition-colors hover:bg-primary-dark focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2">
+                                                Create New Item
+                                              </button>
+                                            </div>
+                                            <div v-if="recentItems.length > 0" class="flex justify-center mt-6">
                                                 <button v-if="visibleCount < recentItems.length" @click="visibleCount += 6" class="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-white shadow transition-colors hover:bg-primary-dark focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2">
                                                     Show More Items
                                                 </button>
