@@ -16,6 +16,15 @@
           </svg>
         </div>
         <select 
+          v-model="roleFilter" 
+          class="border rounded-md px-3 py-2 focus:ring-2 focus:ring-primary focus:border-primary"
+          @change="filterUsers"
+        >
+          <option value="all">All Roles</option>
+          <option value="user">User</option>
+          <option value="admin">Admin</option>
+        </select>
+        <select 
           v-model="statusFilter" 
           class="border rounded-md px-3 py-2 focus:ring-2 focus:ring-primary focus:border-primary"
           @change="filterUsers"
@@ -24,15 +33,6 @@
           <option value="active">Active</option>
           <option value="suspended">Suspended</option>
           <option value="banned">Banned</option>
-        </select>
-        <select 
-          v-model="roleFilter" 
-          class="border rounded-md px-3 py-2 focus:ring-2 focus:ring-primary focus:border-primary"
-          @change="filterUsers"
-        >
-          <option value="all">All Roles</option>
-          <option value="user">User</option>
-          <option value="admin">Admin</option>
         </select>
       </div>
     </div>
@@ -68,7 +68,7 @@
           </tr>
         </thead>
         <tbody class="bg-white divide-y divide-gray-200">
-          <tr v-for="user in users" :key="user.id" class="hover:bg-gray-50">
+          <tr v-for="user in paginatedUsers" :key="user.id" class="hover:bg-gray-50">
             <td class="px-6 py-4 whitespace-nowrap">
               <div class="flex items-center">
                 <div class="h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center text-gray-600 mr-3">
@@ -103,20 +103,17 @@
             </td>
             <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
               <div class="flex space-x-2">
-                <button @click="openUserModal(user)" class="text-indigo-600 hover:text-indigo-900">
-                  Edit
+                <button @click="viewUser(user)" class="text-indigo-600 hover:text-indigo-900">
+                  View
                 </button>
-                <button v-if="user.status === 'active'" @click="confirmSuspendUser(user)" class="text-yellow-600 hover:text-yellow-900">
-                  Suspend
-                </button>
-                <button v-if="user.status === 'suspended'" @click="confirmReactivateUser(user)" class="text-green-600 hover:text-green-900">
-                  Reactivate
-                </button>
-                <button v-if="user.status !== 'banned'" @click="confirmBanUser(user)" class="text-red-600 hover:text-red-900">
+                <button @click="confirmAction(user, 'ban')" class="text-red-600 hover:text-red-900">
                   Ban
                 </button>
-                <button v-if="user.status === 'banned'" @click="confirmUnbanUser(user)" class="text-green-600 hover:text-green-900">
-                  Unban
+                <button @click="confirmAction(user, 'suspend')" class="text-yellow-600 hover:text-yellow-900">
+                  Suspend
+                </button>
+                <button @click="confirmAction(user, 'delete')" class="text-red-600 hover:text-red-900">
+                  Delete
                 </button>
               </div>
             </td>
@@ -133,7 +130,7 @@
     <!-- Pagination -->
     <div class="flex justify-between items-center mt-4">
       <div class="text-sm text-gray-700">
-        Showing <span class="font-medium">{{ startIndex + 1 }}</span> to <span class="font-medium">{{ endIndex }}</span> of <span class="font-medium">{{ totalUsers }}</span> users
+        Showing <span class="font-medium">{{ startIndex + 1 }}</span> to <span class="font-medium">{{ endIndex }}</span> of <span class="font-medium">{{ users.length }}</span> users
       </div>
       <div class="flex space-x-2">
         <button 
@@ -146,63 +143,12 @@
         </button>
         <button 
           @click="nextPage" 
-          :disabled="endIndex >= totalUsers" 
-          :class="endIndex >= totalUsers ? 'opacity-50 cursor-not-allowed' : ''"
+          :disabled="endIndex >= users.length" 
+          :class="endIndex >= users.length ? 'opacity-50 cursor-not-allowed' : ''"
           class="px-3 py-1 border rounded-md hover:bg-gray-50"
         >
           Next
         </button>
-      </div>
-    </div>
-
-    <!-- User Edit Modal -->
-    <div v-if="showUserModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div class="bg-white rounded-lg shadow-xl max-w-md w-full p-6">
-        <div class="flex justify-between items-center mb-4">
-          <h3 class="text-lg font-medium">Edit User</h3>
-          <button @click="showUserModal = false" class="text-gray-400 hover:text-gray-500">
-            <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-            </svg>
-          </button>
-        </div>
-        <div class="space-y-4">
-          <div>
-            <label class="block text-sm font-medium text-gray-700">First Name</label>
-            <input type="text" v-model="editingUser.firstname" class="mt-1 block w-full border rounded-md px-3 py-2 focus:ring-primary focus:border-primary" />
-          </div>
-          <div>
-            <label class="block text-sm font-medium text-gray-700">Last Name</label>
-            <input type="text" v-model="editingUser.lastname" class="mt-1 block w-full border rounded-md px-3 py-2 focus:ring-primary focus:border-primary" />
-          </div>
-          <div>
-            <label class="block text-sm font-medium text-gray-700">Email</label>
-            <input type="email" v-model="editingUser.email" class="mt-1 block w-full border rounded-md px-3 py-2 focus:ring-primary focus:border-primary" />
-          </div>
-          <div>
-            <label class="block text-sm font-medium text-gray-700">Role</label>
-            <select v-model="editingUser.role" class="mt-1 block w-full border rounded-md px-3 py-2 focus:ring-primary focus:border-primary">
-              <option value="user">User</option>
-              <option value="admin">Admin</option>
-            </select>
-          </div>
-          <div>
-            <label class="block text-sm font-medium text-gray-700">Status</label>
-            <select v-model="editingUser.status" class="mt-1 block w-full border rounded-md px-3 py-2 focus:ring-primary focus:border-primary">
-              <option value="active">Active</option>
-              <option value="suspended">Suspended</option>
-              <option value="banned">Banned</option>
-            </select>
-          </div>
-        </div>
-        <div class="mt-6 flex justify-end space-x-3">
-          <button @click="showUserModal = false" class="px-4 py-2 border rounded-md hover:bg-gray-50">
-            Cancel
-          </button>
-          <button @click="saveUser" class="px-4 py-2 bg-primary text-white rounded-md hover:bg-primary-dark">
-            Save Changes
-          </button>
-        </div>
       </div>
     </div>
 
@@ -217,95 +163,9 @@
           <button @click="showConfirmModal = false" class="px-4 py-2 border rounded-md hover:bg-gray-50">
             Cancel
           </button>
-          <button @click="confirmAction" :class="confirmButtonClass">
-            {{ confirmButtonText }}
+          <button @click="confirmActionCallback" class="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700">
+            {{ confirmTitle }}
           </button>
-        </div>
-      </div>
-    </div>
-
-    <!-- Suspension Dialog -->
-    <div v-if="showSuspensionDialog" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div class="bg-white rounded-lg shadow-xl max-w-md w-full p-6">
-        <div class="flex justify-between items-center mb-4">
-          <h3 class="text-lg font-medium">Suspend User</h3>
-          <button @click="showSuspensionDialog = false" class="text-gray-500 hover:text-gray-700">
-            <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-            </svg>
-          </button>
-        </div>
-        
-        <div v-if="userToSuspend" class="space-y-4">
-          <p>You are about to suspend <strong>{{ userToSuspend.firstname }} {{ userToSuspend.lastname }}</strong>.</p>
-          
-          <div>
-            <label class="block text-sm font-medium text-gray-700">Suspension Length (Days)</label>
-            <input 
-              type="number" 
-              v-model="suspensionDays" 
-              min="1" 
-              max="365" 
-              class="mt-1 block w-full border rounded-md px-3 py-2 focus:ring-primary focus:border-primary"
-            />
-          </div>
-          
-          <div>
-            <label class="block text-sm font-medium text-gray-700">Reason (Optional)</label>
-            <textarea 
-              v-model="suspensionReason" 
-              rows="3"
-              class="mt-1 block w-full border rounded-md px-3 py-2 focus:ring-primary focus:border-primary"
-              placeholder="Explain why this user is being suspended..."
-            ></textarea>
-          </div>
-          
-          <div class="flex justify-end space-x-3 mt-6">
-            <button @click="showSuspensionDialog = false" class="px-4 py-2 border rounded-md hover:bg-gray-50">
-              Cancel
-            </button>
-            <button @click="submitSuspension" class="px-4 py-2 bg-yellow-600 text-white rounded-md hover:bg-yellow-700">
-              Suspend User
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-    
-    <!-- Ban Dialog -->
-    <div v-if="showBanDialog" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div class="bg-white rounded-lg shadow-xl max-w-md w-full p-6">
-        <div class="flex justify-between items-center mb-4">
-          <h3 class="text-lg font-medium">Ban User</h3>
-          <button @click="showBanDialog = false" class="text-gray-500 hover:text-gray-700">
-            <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-            </svg>
-          </button>
-        </div>
-        
-        <div v-if="userToBan" class="space-y-4">
-          <p class="text-red-600 font-medium">Warning: This action is permanent!</p>
-          <p>You are about to ban <strong>{{ userToBan.firstname }} {{ userToBan.lastname }}</strong> from the platform.</p>
-          
-          <div>
-            <label class="block text-sm font-medium text-gray-700">Reason (Optional)</label>
-            <textarea 
-              v-model="banReason" 
-              rows="3"
-              class="mt-1 block w-full border rounded-md px-3 py-2 focus:ring-primary focus:border-primary"
-              placeholder="Explain why this user is being banned..."
-            ></textarea>
-          </div>
-          
-          <div class="flex justify-end space-x-3 mt-6">
-            <button @click="showBanDialog = false" class="px-4 py-2 border rounded-md hover:bg-gray-50">
-              Cancel
-            </button>
-            <button @click="submitBan" class="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700">
-              Ban User
-            </button>
-          </div>
         </div>
       </div>
     </div>
@@ -314,295 +174,134 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue';
-import adminUserService from '@/services/admin.user.service';
+import AdminUserService from '@/services/api/admin/user';
 import { toast } from 'vue3-toastify';
 
-// Users data
-const users = ref([]);
 const loading = ref(false);
-const totalUsers = ref(0);
-
-// Pagination
-const itemsPerPage = 10;
-const currentPage = ref(1);
-const startIndex = computed(() => (currentPage.value - 1) * itemsPerPage);
-const endIndex = computed(() => Math.min(startIndex.value + itemsPerPage, totalUsers.value));
-
-// Filtering
+const users = ref([]);
 const searchQuery = ref('');
-const statusFilter = ref('all');
 const roleFilter = ref('all');
-const filteredUsers = computed(() => {
-  return users.value.filter(user => {
-    // Apply search filter
-    const searchLower = searchQuery.value.toLowerCase();
-    const matchesSearch = searchQuery.value === '' || 
-      user.firstname.toLowerCase().includes(searchLower) ||
-      user.lastname.toLowerCase().includes(searchLower) ||
-      user.email.toLowerCase().includes(searchLower);
-    
-    // Apply status filter
-    const matchesStatus = statusFilter.value === 'all' || user.status === statusFilter.value;
-    
-    // Apply role filter
-    const matchesRole = roleFilter.value === 'all' || user.role === roleFilter.value;
-    
-    return matchesSearch && matchesStatus && matchesRole;
-  });
-});
-
-// Fetch users from API
-const fetchUsers = async () => {
-  try {
-    loading.value = true;
-    const response = await adminUserService.getUsers({
-      search: searchQuery.value,
-      role: roleFilter.value,
-      status: statusFilter.value,
-      page: currentPage.value,
-      per_page: itemsPerPage
-    });
-    
-    console.log('API Response:', response.data);
-    
-    // Handle the data based on the API response structure
-    if (response.data.data) {
-      // Laravel pagination response structure
-      users.value = response.data.data || [];
-      totalUsers.value = response.data.total || 0;
-      currentPage.value = response.data.current_page || 1;
-    } else {
-      // Simple array response
-      users.value = response.data || [];
-      totalUsers.value = response.data.length || 0;
-      currentPage.value = 1;
-    }
-    
-    loading.value = false;
-  } catch (error) {
-    console.error('Error fetching users:', error);
-    toast.error('Failed to load users');
-    loading.value = false;
-    users.value = [];
-  }
-};
-
-// Modal state
-const showUserModal = ref(false);
-const editingUser = ref({});
-const currentUser = ref({});
+const statusFilter = ref('all');
+const currentPage = ref(1);
+const itemsPerPage = ref(10);
 const showConfirmModal = ref(false);
+const selectedUser = ref(null);
 const confirmTitle = ref('');
 const confirmMessage = ref('');
-const confirmButtonText = ref('');
-const confirmButtonClass = ref('');
-const confirmCallback = ref(null);
+const confirmActionCallback = ref(null);
 
-// Suspension dialog
-const showSuspensionDialog = ref(false);
-const userToSuspend = ref(null);
-const suspensionDays = ref(7);
-const suspensionReason = ref('');
-
-// Ban dialog
-const showBanDialog = ref(false);
-const userToBan = ref(null);
-const banReason = ref('');
+// Computed values for pagination
+const startIndex = computed(() => (currentPage.value - 1) * itemsPerPage.value);
+const endIndex = computed(() => Math.min(startIndex.value + itemsPerPage.value, users.value.length));
+const paginatedUsers = computed(() => users.value.slice(startIndex.value, endIndex.value));
 
 // Methods
-const handleSearch = () => {
-  currentPage.value = 1; // Reset to first page on search
-  fetchUsers();
-};
+async function fetchUsers() {
+  loading.value = true;
+  try {
+    const response = await AdminUserService.getUsers({
+      search: searchQuery.value,
+      role: roleFilter.value === 'all' ? '' : roleFilter.value,
+      status: statusFilter.value === 'all' ? '' : statusFilter.value,
+      page: currentPage.value,
+      per_page: itemsPerPage.value
+    });
+    users.value = response.data.data;
+  } catch (err) {
+    toast.error(err.response?.data?.message || 'Failed to fetch users');
+    console.error('Failed to fetch users:', err);
+  } finally {
+    loading.value = false;
+  }
+}
 
-const filterUsers = () => {
-  currentPage.value = 1; // Reset to first page on filter change
+function handleSearch() {
+  currentPage.value = 1;
   fetchUsers();
-};
+}
 
-const prevPage = () => {
+function filterUsers() {
+  currentPage.value = 1;
+  fetchUsers();
+}
+
+function prevPage() {
   if (currentPage.value > 1) {
     currentPage.value--;
     fetchUsers();
   }
-};
+}
 
-const nextPage = () => {
-  if (endIndex.value < totalUsers.value) {
-    currentPage.value++;
-    fetchUsers();
-  }
-};
+function nextPage() {
+  currentPage.value++;
+  fetchUsers();
+}
 
-const openUserModal = (user) => {
-  currentUser.value = { ...user }; // Store original for comparison
-  editingUser.value = { ...user };
-  showUserModal.value = true;
-};
+function viewUser(user) {
+  // Implement view user functionality
+}
 
-const saveUser = async () => {
+async function banUser(user) {
   try {
-    // Save changes to role and status
-    if (editingUser.value.role !== currentUser.value.role) {
-      await adminUserService.updateRole(editingUser.value.id, editingUser.value.role);
-    }
-    
-    if (editingUser.value.status !== currentUser.value.status) {
-      await adminUserService.updateStatus(editingUser.value.id, editingUser.value.status);
-    }
-    
-    toast.success('User updated successfully');
-    showUserModal.value = false;
-    fetchUsers(); // Refresh the list
-  } catch (error) {
-    toast.error('Failed to update user: ' + (error.response?.data?.message || error.message));
+    await AdminUserService.banUser(user.id);
+    toast.success('User banned successfully');
+    fetchUsers();
+  } catch (err) {
+    toast.error(err.response?.data?.message || 'Failed to ban user');
+    console.error('Failed to ban user:', err);
   }
-};
+}
 
-const confirmSuspendUser = (user) => {
-  confirmTitle.value = 'Suspend User';
-  confirmMessage.value = `Are you sure you want to suspend ${user.firstname} ${user.lastname}? They will not be able to log in until reactivated.`;
-  confirmButtonText.value = 'Suspend';
-  confirmButtonClass.value = 'px-4 py-2 bg-yellow-600 text-white rounded-md hover:bg-yellow-700';
-  confirmCallback.value = () => suspendUser(user);
+async function suspendUser(user) {
+  try {
+    await AdminUserService.suspendUser(user.id, 7);
+    toast.success('User suspended successfully');
+    fetchUsers();
+  } catch (err) {
+    toast.error(err.response?.data?.message || 'Failed to suspend user');
+    console.error('Failed to suspend user:', err);
+  }
+}
+
+async function deleteUser(user) {
+  try {
+    await AdminUserService.deleteUser(user.id);
+    toast.success('User deleted successfully');
+    fetchUsers();
+  } catch (err) {
+    toast.error(err.response?.data?.message || 'Failed to delete user');
+    console.error('Failed to delete user:', err);
+  }
+}
+
+function confirmAction(user, action) {
+  selectedUser.value = user;
+  confirmTitle.value = action === 'ban' ? 'Ban User' : action === 'suspend' ? 'Suspend User' : 'Delete User';
+  confirmMessage.value = action === 'ban' 
+    ? 'Are you sure you want to ban this user? This action cannot be undone.'
+    : action === 'suspend'
+    ? 'Are you sure you want to suspend this user for 7 days?'
+    : 'Are you sure you want to delete this user? This action cannot be undone.';
+  confirmActionCallback.value = action === 'ban' ? banUser : action === 'suspend' ? suspendUser : deleteUser;
   showConfirmModal.value = true;
-};
+}
 
-const confirmReactivateUser = (user) => {
-  confirmTitle.value = 'Reactivate User';
-  confirmMessage.value = `Are you sure you want to reactivate ${user.firstname} ${user.lastname}?`;
-  confirmButtonText.value = 'Reactivate';
-  confirmButtonClass.value = 'px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700';
-  confirmCallback.value = () => reactivateUser(user);
-  showConfirmModal.value = true;
-};
-
-const confirmBanUser = (user) => {
-  confirmTitle.value = 'Ban User';
-  confirmMessage.value = `Are you sure you want to ban ${user.firstname} ${user.lastname}? This will prevent them from using the platform permanently.`;
-  confirmButtonText.value = 'Ban';
-  confirmButtonClass.value = 'px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700';
-  confirmCallback.value = () => banUser(user);
-  showConfirmModal.value = true;
-};
-
-const confirmUnbanUser = (user) => {
-  confirmTitle.value = 'Unban User';
-  confirmMessage.value = `Are you sure you want to unban ${user.firstname} ${user.lastname}? This will allow them to access the platform again.`;
-  confirmButtonText.value = 'Unban';
-  confirmButtonClass.value = 'px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700';
-  confirmCallback.value = () => unbanUser(user);
-  showConfirmModal.value = true;
-};
-
-const confirmAction = () => {
-  if (confirmCallback.value) {
-    confirmCallback.value();
+function getStatusClass(status) {
+  switch (status) {
+    case 'active':
+      return 'bg-green-100 text-green-800';
+    case 'banned':
+      return 'bg-red-100 text-red-800';
+    case 'suspended':
+      return 'bg-yellow-100 text-yellow-800';
+    default:
+      return 'bg-gray-100 text-gray-800';
   }
-  showConfirmModal.value = false;
-};
+}
 
-const suspendUser = async (user) => {
-  try {
-    // Show suspension dialog
-    showSuspensionDialog.value = true;
-    userToSuspend.value = user;
-  } catch (error) {
-    toast.error('Failed to prepare suspension: ' + (error.response?.data?.message || error.message));
-  }
-};
-
-const reactivateUser = async (user) => {
-  try {
-    await adminUserService.activateUser(user.id);
-    toast.success(`${user.firstname} ${user.lastname} has been reactivated`);
-    fetchUsers();
-  } catch (error) {
-    toast.error('Failed to reactivate user: ' + (error.response?.data?.message || error.message));
-  }
-};
-
-const banUser = async (user) => {
-  try {
-    // Show ban dialog
-    showBanDialog.value = true;
-    userToBan.value = user;
-  } catch (error) {
-    toast.error('Failed to prepare ban: ' + (error.response?.data?.message || error.message));
-  }
-};
-
-const unbanUser = async (user) => {
-  try {
-    await adminUserService.unbanUser(user.id);
-    toast.success(`${user.firstname} ${user.lastname} has been unbanned`);
-    fetchUsers();
-  } catch (error) {
-    toast.error('Failed to unban user: ' + (error.response?.data?.message || error.message));
-  }
-};
-
-const getUserInitials = (user) => {
-  if (user.firstname && user.lastname) {
-    return (user.firstname[0] + user.lastname[0]).toUpperCase();
-  }
-  return user.email ? user.email[0].toUpperCase() : '?';
-};
-
-const getStatusClass = (status) => {
-  const classes = {
-    'active': 'bg-green-100 text-green-800',
-    'suspended': 'bg-yellow-100 text-yellow-800',
-    'banned': 'bg-red-100 text-red-800'
-  };
-  return classes[status] || 'bg-gray-100 text-gray-800';
-};
-
-const formatDate = (dateString) => {
-  if (!dateString) return 'N/A';
-  const date = new Date(dateString);
-  return date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
-};
-
-// Submit suspension
-const submitSuspension = async () => {
-  if (!userToSuspend.value) return;
-  
-  try {
-    await adminUserService.suspendUser(
-      userToSuspend.value.id, 
-      suspensionDays.value, 
-      suspensionReason.value
-    );
-    
-    toast.success(`${userToSuspend.value.firstname} ${userToSuspend.value.lastname} has been suspended for ${suspensionDays.value} days`);
-    showSuspensionDialog.value = false;
-    suspensionDays.value = 7;
-    suspensionReason.value = '';
-    fetchUsers();
-  } catch (error) {
-    toast.error('Failed to suspend user: ' + (error.response?.data?.message || error.message));
-  }
-};
-
-// Submit ban
-const submitBan = async () => {
-  if (!userToBan.value) return;
-  
-  try {
-    await adminUserService.banUser(
-      userToBan.value.id, 
-      banReason.value
-    );
-    
-    toast.success(`${userToBan.value.firstname} ${userToBan.value.lastname} has been banned`);
-    showBanDialog.value = false;
-    banReason.value = '';
-    fetchUsers();
-  } catch (error) {
-    toast.error('Failed to ban user: ' + (error.response?.data?.message || error.message));
-  }
-};
+function formatDate(dateString) {
+  return new Date(dateString).toLocaleDateString();
+}
 
 // Load users on component mount
 onMounted(() => {

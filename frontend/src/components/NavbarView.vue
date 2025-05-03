@@ -82,15 +82,15 @@
                   <div v-else>
                     <div v-for="notif in notifications" :key="notif.id" class="border-b py-3 cursor-pointer hover:bg-muted/10" @click.stop="markNotificationRead(notif.id)">
                       <div class="flex gap-3">
-                        <div v-if="notif.data.reporter?.photo" class="h-8 w-8 rounded-full overflow-hidden aspect-square">
+                        <div v-if="notif.data && notif.data.reporter && notif.data.reporter.photo" class="h-8 w-8 rounded-full overflow-hidden aspect-square">
                           <img :src="getAvatarUrl(notif.data.reporter.photo)" alt="Reporter" class="h-full w-full object-cover rounded-full" />
                         </div>
                         <div v-else class="h-8 w-8 rounded-full bg-muted flex items-center justify-center text-muted-foreground aspect-square">
                           <MapPin class="h-4 w-4" />
                         </div>
                         <div>
-                          <p v-if="notif.type === 'App\\Notifications\\ReportCreated'">
-                            <strong>{{ notif.data.reporter.name }}</strong> reported 
+                          <p v-if="notif.type === 'App\\Notifications\\ReportCreated' && notif.data">
+                            <strong>{{ notif.data.reporter?.name || 'Someone' }}</strong> reported 
                             <span v-if="notif.data.reportable_type === 'User'">user</span>
                             <span v-else>item</span> #{{ notif.data.reportable_id }} — "{{ notif.data.reason }}"
                           </p>
@@ -108,7 +108,7 @@
           <!-- User menu -->
           <div class="relative" ref="dropdownRef">
             <button @click="toggleUserMenu" class="h-8 w-8 rounded-full hover:ring-2 hover:ring-muted">
-              <template v-if="user.profile_photo">
+              <template v-if="user && user.profile_photo">
                 <img :src="getAvatarUrl(user.profile_photo)" alt="Profile" class="h-8 w-8 rounded-full object-cover" />
               </template>
               <template v-else>

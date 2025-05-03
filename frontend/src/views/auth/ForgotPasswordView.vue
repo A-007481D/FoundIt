@@ -118,45 +118,36 @@
     </div>
 </template>
 
-<script>
-import { ref } from 'vue'
-import { ArrowLeft, Mail, MapPin, Send } from 'lucide-vue-next'
-import { authService } from '@/services/auth.service'
+<script setup>
+import { ref } from 'vue';
+import { useRouter } from 'vue-router';
+import { toast } from 'vue3-toastify';
+import { auth } from '@services/api/auth';
 
-export default {
-    name: 'ForgotPassword',
-    components: {
-        ArrowLeft,
-        Mail,
-        MapPin,
-        Send
-    },
-    setup() {
-        const email = ref('')
-        const isLoading = ref(false)
-        const isSubmitted = ref(false)
-        const errorMessage = ref(null)
+const router = useRouter();
+const email = ref('');
+const isLoading = ref(false);
+const isSubmitted = ref(false);
+const errorMessage = ref(null);
 
-        const handleSubmit = async () => {
-            isLoading.value = true
-            errorMessage.value = null
-            try {
-                await authService.forgotPassword(email.value)
-                isSubmitted.value = true
-            } catch (error) {
-                errorMessage.value = error.response?.data?.message || 'Failed to send password reset email.'
-            } finally {
-                isLoading.value = false
-            }
-        }
+async function handleSubmit() {
+  try {
+    isLoading.value = true;
+    errorMessage.value = null;
 
-        return {
-            email,
-            isLoading,
-            isSubmitted,
-            errorMessage,
-            handleSubmit
-        }
-    }
+    await auth.forgotPassword(email.value);
+    isSubmitted.value = true;
+    toast.success('Password reset email sent successfully');
+  } catch (err) {
+    errorMessage.value = err.response?.data?.message || 'Failed to send password reset email';
+    toast.error(errorMessage.value);
+    console.error('Failed to send password reset email:', err);
+  } finally {
+    isLoading.value = false;
+  }
+}
+
+function handleBack() {
+  router.push({ name: 'Login' });
 }
 </script>

@@ -3,6 +3,7 @@ import './assets/transition.css'
 
 import { createApp }  from 'vue'
 import { createPinia } from 'pinia'
+import { createI18n } from 'vue-i18n'
 import App            from './App.vue'
 import router         from './router'
 import Vue3Toastify, { toast } from 'vue3-toastify'
@@ -21,6 +22,21 @@ axios.defaults.headers.common = {
   ...authHeader(),
 };
 
+// Import language files
+import en from './lang/en.json'
+import fr from './lang/fr.json'
+
+// Create i18n instance
+const i18n = createI18n({
+  legacy: false, // Use Composition API
+  locale: 'en', // Default language
+  fallbackLocale: 'en',
+  messages: {
+    en,
+    fr
+  }
+})
+
 const app = createApp(App)
 
 const pinia = createPinia()
@@ -32,6 +48,8 @@ app.use(Vue3Toastify, {
   autoClose: 3000,
   position: toast.POSITION.TOP_RIGHT
 })
+
+app.use(i18n)
 
 // Initialize Echo for real-time notifications
 window.Pusher = Pusher

@@ -28,7 +28,7 @@
             ref="fileInput"
             accept="image/*" 
             class="hidden"
-            @change="handleFileSelect"
+            @change="handleImageUpload"
           />
           
           <img v-if="imagePreview" :src="imagePreview" class="image-preview" />
@@ -46,7 +46,7 @@
         <!-- Detection Mode Selector -->
         <div class="mode-selector mb-4">
           <label class="block mb-1 font-medium" for="mode">Detection Mode:</label>
-          <select v-model="store.mode" id="mode" class="border rounded px-3 py-2 w-full">
+          <select v-model="mode" id="mode" class="border rounded px-3 py-2 w-full">
             <option value="simple">Simple</option>
             <option value="tf">TensorFlow</option>
             <option value="phash">PHash</option>
@@ -54,13 +54,13 @@
         </div>
         
         <button 
-          @click="startDetection" 
-          :disabled="!imageFile || store.isProcessing"
+          @click="predict" 
+          :disabled="!image || loading"
           class="detect-button"
         >
-          <Sparkles v-if="!store.isProcessing" size="20" />
+          <Sparkles v-if="!loading" size="20" />
           <Loader v-else size="20" class="animate-spin" />
-          {{ store.isProcessing ? 'Processing...' : 'Start Detection' }}
+          {{ loading ? 'Processing...' : 'Start Detection' }}
         </button>
       </div>
       
@@ -379,18 +379,21 @@ import {
   Briefcase, Shirt, ChevronDown, SearchX,
   AlertTriangle
 } from 'lucide-vue-next';
-import * as tf from '@tensorflow/tfjs';
-import axios from 'axios';
+import ItemDetectiveService from '@/services/api/item-detective';
+import { toast } from 'vue3-toastify';
 
 const store = useItemDetectiveStore();
 const fileInput = ref(null);
-const imageFile = ref(null);
+const image = ref(null);
 const imagePreview = ref(null);
 const isDragging = ref(false);
 const showUploader = ref(true);
 const matchThreshold = ref(70);
 const progressStage = computed(() => store.searchStatus);
 const filteredResults = computed(() => store.searchResults.filter(r => r.match_percentage >= matchThreshold.value));
+const loading = ref(false);
+const mode = ref('simple');
+const prediction = ref(null);
 
 // Debug related
 const isDevMode = ref(process.env.NODE_ENV === 'development');
@@ -405,9 +408,12 @@ watch(() => store.searchStatus, (newStatus) => {
   showUploader.value = !['analyzing', 'searching', 'complete'].includes(newStatus);
 });
 
-const handleFileSelect = (event) => {
+const handleImageUpload = (event) => {
   const file = event.target.files[0];
-  processFile(file);
+  if (file) {
+    image.value = file;
+    prediction.value = null;
+  }
 };
 
 const handleDrop = (event) => {
@@ -415,129 +421,39 @@ const handleDrop = (event) => {
   const file = event.dataTransfer.files[0];
   
   if (file && file.type.startsWith('image/')) {
-    processFile(file);
+    image.value = file;
   } else {
     // Toast notification would be used here
     console.error('Please upload an image file');
   }
 };
 
-const processFile = (file) => {
-  if (file && file.type.startsWith('image/')) {
-    imageFile.value = file;
-    
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      imagePreview.value = e.target.result;
-    };
-    reader.readAsDataURL(file);
+const predict = async () => {
+  if (!image.value) {
+    toast.error('Please upload an image first');
+    return;
   }
-};
 
-const serverSideOnlyUpload = async () => {
-  if (!imageFile.value) return;
-  
+  loading.value = true;
   try {
-    showUploader.value = false;
-    store.isProcessing = true;
-    
-    // Force server-side only mode
-    store.setServerSideOnly(true);
-    
-    // Use the store's built-in server-side processing
-    await store.serverSideProcessing(imageFile.value);
-    
-  } catch (error) {
-    console.error('Error with server-side fallback:', error);
-    
-    let errorMessage = 'Error searching for similar items.';
-    
-    // Handle specific error cases
-    if (error.response) {
-      // The request was made and the server responded with a status code
-      // that falls out of the range of 2xx
-      console.error('Server error response:', error.response.data);
-      
-      if (error.response.status === 401) {
-        errorMessage = 'Authentication required. Please log in and try again.';
-      } else if (error.response.status === 422) {
-        errorMessage = 'Invalid image format. Please try with a different image.';
-      } else if (error.response.status >= 500) {
-        errorMessage = 'Server error. Please try again later.';
-      }
-    } else if (error.request) {
-      // The request was made but no response was received
-      errorMessage = 'Server not responding. Please check your connection and try again.';
-    }
-    
-    store.errorMessage = errorMessage;
-    store.searchStatus = 'error';
-    store.isProcessing = false;
-  }
-};
+    const formData = new FormData();
+    formData.append('image', image.value);
+    formData.append('mode', mode.value);
 
-const testConnection = async () => {
-  try {
-    const response = await axios.get('/ping');
-    apiConnected.value = true;
-    lastApiUrl.value = '/ping';
-    lastApiStatus.value = response.status;
-    lastApiResponse.value = response.data;
-    return true;
-  } catch (error) {
-    apiConnected.value = false;
-    lastApiUrl.value = '/ping';
-    lastApiStatus.value = error.response ? error.response.status : 'No response';
-    lastApiResponse.value = error.response ? error.response.data : error.message;
-    return false;
-  }
-};
-
-const startDetection = async () => {
-  if (!imageFile.value) return;
-  
-  // Reset any previous state and errors
-  store.resetState();
-  showUploader.value = false;
-  
-  try {
-    // Test API connection first
-    console.log('Testing API connection...');
-    const connected = await testConnection();
-    
-    if (!connected) {
-      throw new Error('API connection failed. Please check your backend server.');
-    }
-    
-    // Use a more resilient approach
-    console.log('Starting item detection process...');
-    
-    // Try to process the image with TensorFlow.js
-    await store.processImage(imageFile.value);
-    
-    console.log('Image processing completed successfully');
-  } catch (error) {
-    console.error('Error during detection with TensorFlow.js, trying fallback:', error);
-    
-    try {
-      // Try server-side only approach if TensorFlow fails
-      await serverSideOnlyUpload();
-    } catch (fallbackError) {
-      console.error('Fallback also failed:', fallbackError);
-      store.errorMessage = store.errorMessage || 'Could not connect to the server. Please check your internet connection and try again.';
-      store.searchStatus = 'error';
-      
-      // Even if both methods fail, try to display the upload form again
-      setTimeout(() => {
-        showUploader.value = true;
-      }, 2000);
-    }
+    const response = await ItemDetectiveService.predict(formData);
+    prediction.value = response.data.prediction;
+    toast.success('Prediction completed successfully');
+  } catch (err) {
+    toast.error(err.response?.data?.message || 'Failed to process image');
+    console.error('Failed to process image:', err);
+  } finally {
+    loading.value = false;
   }
 };
 
 const resetDetection = () => {
   store.resetState();
-  imageFile.value = null;
+  image.value = null;
   imagePreview.value = null;
   showUploader.value = true;
 };
@@ -569,27 +485,27 @@ onMounted(async () => {
   try {
     // First check API connectivity
     await testConnection();
-    
-    console.log('Initializing TensorFlow.js...');
-    await tf.ready();
-    console.log('TensorFlow.js initialized with backend:', tf.getBackend());
-    
-    // Pre-warm the backend
-    tf.tidy(() => {
-      const dummy = tf.zeros([1, 1, 1, 1]);
-      dummy.dispose();
-    });
-    
-    // Try to pre-load the model but don't block the UI
-    setTimeout(() => {
-      store.loadModel().catch(error => {
-        console.warn('Model preloading failed, will try again when needed:', error);
-      });
-    }, 1000);
   } catch (error) {
-    console.error('Error initializing TensorFlow.js:', error);
+    console.error('Error initializing:', error);
   }
 });
+
+const testConnection = async () => {
+  try {
+    const response = await axios.get('/ping');
+    apiConnected.value = true;
+    lastApiUrl.value = '/ping';
+    lastApiStatus.value = response.status;
+    lastApiResponse.value = response.data;
+    return true;
+  } catch (error) {
+    apiConnected.value = false;
+    lastApiUrl.value = '/ping';
+    lastApiStatus.value = error.response ? error.response.status : 'No response';
+    lastApiResponse.value = error.response ? error.response.data : error.message;
+    return false;
+  }
+};
 
 const toggleProcessingMode = () => {
   store.serverSideOnly = !store.serverSideOnly;

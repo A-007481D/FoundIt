@@ -1,0 +1,409 @@
+Rapport du Projet Fil Rouge
+
+Conception et réalisation d’une application web communautaire de gestion d’objets perdus et trouvés : FoundIt!
+
+Réalisé par : [Nom et prénom à compléter]
+Encadré par : [Nom du formateur à compléter]
+YouCode
+Promotion : 2024-2025
+Résidence Naoura
+ss, Boulevard Ibnabdellah, ville nouvelle, Safi
+Site Web: www.youcode.ma
+
+---
+
+## Remerciements
+
+Il m’est agréable d’exprimer toute ma gratitude à l’ensemble des personnes qui m’ont soutenu durant la réalisation de ce projet. Je remercie sincèrement mon formateur [Nom] pour son accompagnement, ses conseils avisés et sa disponibilité. Merci également à mes encadrants pédagogiques et à toute l’équipe de YouCode pour la qualité de l’enseignement dispensé. Mes remerciements s’adressent aussi à mes collègues et amis pour leur aide, leurs encouragements et leurs critiques constructives. Enfin, je remercie toute personne ayant contribué, de près ou de loin, à la réussite de ce travail.
+
+---
+
+## Résumé
+
+Dans le cadre du projet fil rouge de la formation à YouCode, j’ai conçu et développé FoundIt!, une application web destinée à centraliser et faciliter la gestion des objets perdus et trouvés au sein d’une communauté. Ce projet m’a permis de mettre en pratique les compétences acquises en développement web fullstack, conception UML, sécurité, gestion de projet agile et UX/UI. L’application, réalisée avec Vue.js 3, Laravel 10, PostgreSQL, Redis et Meilisearch, propose une expérience moderne, sécurisée et collaborative. Le développement a suivi plusieurs étapes clés : analyse des besoins, modélisation UML, prototypage sur Figma, développement itératif, intégration de fonctionnalités avancées (matching intelligent, notifications, messagerie sécurisée), tests et déploiement. Ce rapport retrace toutes les phases du projet, des choix techniques aux difficultés rencontrées, en passant par la conception et la mise en œuvre.
+
+---
+
+## Sommaire
+
+1. Remerciements .................................................... 2
+2. Résumé .......................................................... 3
+3. Sommaire ........................................................ 4
+4. Liste des figures ................................................ 5
+5. Liste des abréviations ........................................... 6
+6. Introduction générale ............................................ 7
+7. CHAPITRE I : Contexte du projet et cahier des charges ............ 8
+8. CHAPITRE II : Analyse et conception ............................. 15
+9. CHAPITRE III : Réalisation et mise en œuvre du projet ........... 23
+10. Conclusion générale ............................................ 32
+11. Webographie .................................................... 33
+
+---
+
+## Liste des figures
+
+- Figure 1 : Schéma d’architecture générale de FoundIt! ............. 8
+- Figure 2 : Diagramme de cas d’utilisation (UML) .................. 16
+- Figure 3 : Diagramme de classes (UML) ............................ 17
+- Figure 4 : Maquette de l’interface d’accueil (Figma) ............. 18
+- Figure 5 : Capture d’écran du tableau de bord utilisateur ........ 24
+- Figure 6 : Capture d’écran de la messagerie sécurisée ............ 25
+- Figure 7 : Capture d’écran du panneau d’administration ........... 26
+
+---
+
+## Liste des abréviations
+
+| Abréviation | Signification                                      |
+|-------------|----------------------------------------------------|
+| API         | Interface de Programmation d’Application           |
+| JS          | JavaScript                                         |
+| HTML        | HyperText Markup Language                          |
+| CSS         | Cascading Style Sheets                             |
+| PHP         | HyperText Preprocessor                             |
+| MVC         | Modèle, Vue, Contrôleur                            |
+| UX/UI       | Expérience Utilisateur / Interface Utilisateur     |
+| RGPD        | Règlement Général sur la Protection des Données    |
+| SGBDR       | Système de Gestion de Base de Données Relationnelle|
+| CRUD        | Create, Read, Update, Delete                       |
+| JWT         | JSON Web Token                                     |
+| ORM         | Object-Relational Mapping                          |
+
+---
+
+## Introduction générale
+
+Ce projet s’inscrit dans le cadre du fil rouge de la formation à YouCode, visant à valider les compétences acquises en développement web et à les appliquer dans un contexte réel. FoundIt! est une application web communautaire permettant la déclaration, la recherche et la gestion d’objets perdus et trouvés. L’objectif est de proposer une solution moderne, centralisée et sécurisée pour répondre à une problématique fréquente dans les établissements éducatifs et les espaces collectifs. Ce rapport est structuré en quatre chapitres : le premier présente le contexte et le cahier des charges, le second détaille l’analyse et la conception, le troisième expose la réalisation technique et la mise en œuvre, et le dernier conclut sur les acquis, les résultats et les perspectives d’évolution.
+
+---
+
+# CHAPITRE I : Contexte du projet et cahier des charges
+
+## 1. Idée générale du projet
+
+FoundIt! est une application web destinée à toute personne d’une communauté (étudiants, personnel, visiteurs) souhaitant déclarer la perte ou la trouvaille d’un objet, consulter les annonces, utiliser une recherche avancée (texte, filtres, matching visuel) et entrer en contact via une messagerie sécurisée. L’interface est responsive, moderne et adaptée à tous les supports.
+
+## 2. Problématique
+
+La gestion des objets perdus est souvent inefficace : annonces dispersées, absence de centralisation, recherche fastidieuse, manque de sécurité et d’automatisation. Cela engendre frustration, pertes matérielles et perte de temps pour les membres de la communauté.
+
+## 3. Solutions proposées
+
+- Espace utilisateur : création/gestion d’annonces, messagerie, notifications, historique
+- Espace admin : gestion et modération des annonces, utilisateurs, catégories, rapports, journal d’activité
+- Système de matching automatique entre objets perdus et trouvés (texte, catégories, matching visuel par image)
+- Recherche avancée : filtres par lieu, date, catégorie, matching visuel (bonus)
+- Notifications push, emails, alertes internes
+- Sécurité renforcée et gestion des droits
+
+## 4. Étude des besoins
+
+### Besoins fonctionnels
+- Authentification sécurisée (Sanctum, vérification email)
+- Déclaration d’objets (perdu/trouvé) avec images, lieu, date, catégorie
+- Recherche et filtres dynamiques
+- Messagerie interne avec reporting et blocage
+- Notifications temps réel et emails
+- Administration, modération, journalisation
+- Matching automatique (bonus : matching visuel par image)
+
+### Besoins non-fonctionnels
+- Sécurité (auth, CSRF/XSS, RGPD, chiffrement)
+- Performance (pagination, cache Redis, recherche Meilisearch)
+- Accessibilité (responsive, UX, compatibilité navigateurs)
+- Scalabilité (Docker, AWS, architecture modulaire)
+
+## 5. Acteurs
+- Utilisateur : déclare, recherche, contacte, signale
+- Administrateur : modère, gère les utilisateurs, annonces, catégories, rapports
+- Visiteur : consulte les annonces publiques
+
+## 6. Faisabilité et périmètre
+
+Le projet est réalisable avec les technologies choisies et peut être déployé sur des infrastructures cloud modernes. Le périmètre fonctionnel couvre la gestion complète des objets perdus/trouvés, la messagerie, la modération, les notifications et la sécurité.
+
+## 7. Conclusion du chapitre
+
+Ce chapitre a présenté la genèse du projet, la problématique, les solutions envisagées, les besoins et les acteurs impliqués. Le prochain chapitre détaillera l’analyse technique et la conception du système.
+
+---
+
+# CHAPITRE II : Analyse et conception
+
+## 1. Modèle de conception MVC
+
+Le modèle MVC (Modèle-Vue-Contrôleur) a été adopté pour séparer la logique métier (Laravel), la présentation (Vue.js) et le contrôle des flux de données. Cette architecture permet une meilleure maintenabilité, évolutivité et testabilité du code.
+
+### A. Rôles des composants
+- Modèle : gestion des données, accès à la base PostgreSQL, ORM Eloquent
+- Vue : interfaces utilisateur (Vue.js 3, Tailwind CSS)
+- Contrôleur : gestion des requêtes, appels API, logique métier
+
+### B. Interactions entre composants
+- Les requêtes utilisateur sont traitées par les contrôleurs Laravel, qui interagissent avec les modèles pour récupérer ou modifier les données, puis renvoient les résultats (JSON) au frontend Vue.js.
+
+### C. Avantages et inconvénients
+- Avantages : séparation des responsabilités, facilité de test, évolutivité
+- Inconvénients : complexité accrue, nécessité de bien structurer les communications API
+
+## 2. Modélisation UML
+
+### A. Cas d’utilisation
+- S’authentifier (inscription, connexion, vérification email)
+- Déclarer un objet (perdu/trouvé)
+- Rechercher un objet (texte, filtres, matching visuel)
+- Envoyer/recevoir un message
+- Signaler un abus
+- Gérer/modérer (admin)
+
+### B. Diagrammes de cas d’utilisation
+[Insérer diagramme UML ici]
+
+### C. Diagrammes de classes
+[Insérer diagramme de classes UML ici]
+
+### D. Diagrammes de séquence
+[Insérer diagramme de séquence UML ici]
+
+## 3. Outils de conception
+
+- Figma pour le prototypage et la conception UI/UX
+- Structuration des écrans par modules (Accueil, Découverte, Profil, Messagerie, Admin)
+- Utilisation de Tailwind CSS pour la cohérence graphique
+
+## 4. Conclusion du chapitre
+
+La phase de conception a permis de structurer le projet, de clarifier les flux de données et de préparer la réalisation technique. Les diagrammes UML et les maquettes Figma ont servi de base pour le développement.
+
+---
+
+# CHAPITRE III : Réalisation et mise en œuvre du projet
+
+## 1. Outils de développement
+
+### A. Langages et frameworks
+- JavaScript (Vue.js 3, Composition API, Pinia, Vue Router)
+- PHP (Laravel 10, Eloquent ORM)
+- HTML5, CSS3, Tailwind CSS
+
+### B. Logiciels et services
+- VS Code (édition de code)
+- Postman (tests API)
+- Figma (maquettes UI/UX)
+- Git, GitHub (gestion de versions)
+- Docker (virtualisation, déploiement)
+- AWS S3 (stockage fichiers)
+- Meilisearch (recherche rapide)
+- Redis (cache et queues)
+- PostgreSQL (base de données)
+
+## 2. Déroulement du développement
+
+- Initialisation du backend : Laravel, configuration PostgreSQL, création des modèles (User, Item, Category, Message, Report, Notification)
+- Mise en place de l’API RESTful (auth, annonces, recherche, messagerie, admin)
+- Intégration de la sécurité (Sanctum, validation, CSRF/XSS, RGPD)
+- Initialisation du frontend : Vue.js 3, Vite, Tailwind CSS, Pinia, Vue Router
+- Développement des modules (auth, annonces, recherche, messagerie, notifications, admin)
+- Intégration du matching automatique (texte, catégories, visuel bonus)
+- Mise en place des notifications temps réel et emails
+- Gestion des erreurs, logs, journalisation d’activité
+- Tests unitaires et fonctionnels (backend et frontend)
+- Déploiement sur Docker, configuration AWS S3, Meilisearch, Redis
+
+## 3. Présentation des interfaces
+
+- Accueil : Présentation du projet, accès rapide à la recherche, statistiques
+- Authentification : Login/register, vérification email, gestion profil
+- Découverte : Liste filtrable des annonces, recherche avancée, accès détails objets
+- Déclaration d’objet : Formulaire complet (type, lieu, date, catégorie, images)
+- Messagerie : Échanges sécurisés, reporting, notifications
+- Notifications : Alertes push, emails, historique
+- Dashboard admin : Gestion utilisateurs, annonces, catégories, rapports, journal d’activité
+- Mobile : Interface responsive sur tous les écrans
+
+[Insérer captures d’écrans ici]
+
+## 4. Obstacles techniques et solutions
+
+- Gestion des contraintes lost_date/found_date (validation conditionnelle)
+- Intégration matching visuel (bonus, TensorFlow/PHash simplifié)
+- Sécurisation API/admin (refactoring, tests, middleware)
+- Problèmes de pagination/filtrage (optimisation requêtes, indexation)
+- Gestion des erreurs et des logs (monitoring, alertes)
+
+## 5. Conclusion du chapitre
+
+La réalisation technique a permis de concrétiser la conception en une application web fonctionnelle, sécurisée et performante. Les outils modernes utilisés ont facilité le développement, les tests et le déploiement.
+
+---
+
+# Conclusion générale
+
+Ce projet a été une expérience formatrice et enrichissante, permettant de maîtriser le développement fullstack moderne, la gestion d’un cycle projet complet et la résolution de problématiques réelles (sécurité, matching, UX, performance). Les résultats obtenus sont une application fonctionnelle, sécurisée, scalable et adaptée aux besoins de la communauté. Pour une future version, il serait pertinent de renforcer l’aspect mobile natif, d’intégrer une carte interactive et d’ouvrir l’API à d’autres établissements ou partenaires. FoundIt! est prêt à évoluer et à accueillir de nouveaux modules (API publique, statistiques avancées, gamification, etc.).
+
+---
+
+# Webographie
+
+- https://vuejs.org/ (documentation officielle Vue.js)
+- https://laravel.com/ (documentation officielle Laravel)
+- https://www.postgresql.org/ (documentation PostgreSQL)
+- https://tailwindcss.com/ (documentation Tailwind CSS)
+- https://vitejs.dev/ (documentation Vite)
+- https://redis.io/ (documentation Redis)
+- https://meilisearch.com/ (documentation Meilisearch)
+- https://stackoverflow.com/ (aide communautaire)
+- https://github.com/ (hébergement code, issues)
+- https://figma.com/ (prototypage UI/UX)
+- https://docker.com/ (virtualisation, déploiement)
+- https://aws.amazon.com/s3/ (stockage cloud)
+- https://www.digitalocean.com/community/tutorials (tutos devops)
+- https://developer.mozilla.org/fr/ (référence web)
+- https://www.php.net/manual/fr/ (doc PHP)
+- https://javascript.info/ (doc JS avancée)
+- https://git-scm.com/doc (doc Git)
+- https://pusher.com/docs/ (messagerie temps réel, inspiration)
+- https://medium.com/ (articles techniques)
+- https://codeium.com/ (aide à la génération de code)
+- https://www.w3schools.com/ (référence web)
+- https://openai.com/research/ (inspiration IA)
+- https://www.canva.com/fr_fr/ (design)
+- https://www.figma.com/community (ressources UI)
+- https://www.npmjs.com/ (gestion paquets JS)
+- https://getbootstrap.com/ (design, inspiration)
+
+
+## 1️⃣ Page de garde
+
+**Titre du projet :** FoundIt! – Plateforme communautaire de gestion d’objets perdus et trouvés
+
+**Nom et prénom :** [À compléter]
+
+**Nom du formateur :** [À compléter]
+
+**Date & promotion :** 01/05/2025 – Fil Rouge
+
+**Logo :** [À insérer]
+
+**Illustration :** [Optionnelle]
+
+---
+
+## 2️⃣ Remerciements
+
+Je tiens à remercier chaleureusement mon formateur [Nom], ainsi que l’ensemble des encadrants pour leur accompagnement et leurs conseils tout au long de ce projet. Merci également à mes collègues et amis pour leur soutien, leurs retours constructifs et leur motivation. Enfin, gratitude à toute personne ayant contribué, de près ou de loin, à la réussite de ce travail.
+
+---
+
+## 3️⃣ Résumé
+
+Le projet FoundIt! a pour objectif de centraliser et faciliter la gestion des objets perdus et trouvés au sein d’une communauté. Réalisée avec Vue.js (frontend) et Laravel (backend), l’application propose une expérience moderne, sécurisée et intuitive. Les étapes principales ont été : analyse des besoins, conception UML, développement itératif (front et back), intégration des fonctionnalités avancées (matching, notifications, messagerie), tests et déploiement. Ce projet m’a permis de consolider mes compétences en développement web fullstack, gestion de projet et conception d’architectures robustes.
+
+---
+
+## 4️⃣ Introduction générale
+
+Dans le contexte des établissements éducatifs, la perte d’objets personnels est fréquente et la gestion traditionnelle (affichage, groupes Discord) montre ses limites. FoundIt! répond à cette problématique en offrant une plateforme centralisée, structurée et accessible à tous. L’objectif est de réduire les pertes, renforcer l’entraide et moderniser la communication autour des objets trouvés. Ce rapport retrace les étapes de conception, de réalisation et d’évaluation du projet.
+
+---
+
+## 5️⃣ Chapitre 1 : Contexte du projet et Cahier des charges
+
+### Idée générale du projet
+FoundIt! permet aux membres d’une communauté (étudiants, personnel, visiteurs) de déclarer la perte ou la trouvaille d’un objet, de consulter les annonces, d’utiliser la recherche avancée (texte, filtres, matching visuel) et d’entrer en contact via une messagerie sécurisée.
+
+### Problématique
+La perte d’objets est mal gérée dans les espaces collectifs. Les annonces se perdent, la recherche est difficile et il n’existe pas de système de correspondance automatisée.
+
+### Solutions proposées
+- Espace utilisateur : création/gestion d’annonces, messagerie, notifications
+- Espace admin : gestion et modération des annonces, utilisateurs, rapports
+- Matching automatique entre objets perdus et trouvés
+- Recherche avancée (filtres, matching visuel)
+
+### Étude des besoins
+- Fonctionnels :
+    - Authentification sécurisée
+    - Déclaration d’objets (perdu/trouvé)
+    - Recherche et filtres
+    - Messagerie interne
+    - Notifications
+    - Administration/modération
+- Non-fonctionnels :
+    - Sécurité (auth, CSRF/XSS, RGPD)
+    - Performance (pagination, cache, recherche rapide)
+    - Accessibilité (responsive, UX)
+    - Compatibilité navigateurs
+
+### Acteurs
+- Utilisateur : déclare, recherche, contacte
+- Administrateur : modère, gère les utilisateurs et annonces
+
+---
+
+## 6️⃣ Chapitre 2 : Analyse et conception
+
+### Méthodologie utilisée
+- Modèle MVC (Laravel, Vue.js)
+- Approche agile (itérations courtes, feedbacks réguliers)
+
+### Modélisation UML
+- Cas d’utilisation :
+    - Se connecter / s’inscrire
+    - Déclarer un objet
+    - Rechercher un objet
+    - Envoyer un message
+    - Gérer/modérer (admin)
+- Diagrammes de classe :
+    - Utilisateur, Objet, Catégorie, Message, Notification, Report
+
+### Outils de conception
+- Maquettes sur Figma
+- Interfaces structurées par modules (Accueil, Découverte, Profil, Admin)
+
+---
+
+## 7️⃣ Chapitre 3 : Réalisation technique
+
+### Outils utilisés
+- **Langages :** JavaScript (Vue.js), PHP (Laravel)
+- **Frameworks :** Vue.js 3, Laravel 10
+- **Logiciels :** VS Code, Postman, Figma, Docker, Git
+
+### Déroulement du développement
+- Initialisation du backend (Laravel, base de données, API)
+- Initialisation du frontend (Vue.js, Vite, Tailwind)
+- Authentification et gestion des utilisateurs
+- Développement des modules annonces, recherche, messagerie
+- Intégration matching automatique et notifications
+- Tests, corrections et déploiement
+- Obstacles : gestion des dates (lost/found), intégration matching visuel, sécurisation API (résolus par validation, refactoring, tests)
+
+### Présentation des interfaces
+- Accueil : présentation, accès rapide à la recherche
+- Authentification : login/register, vérification email
+- Découverte : liste filtrable des annonces
+- Messagerie : échanges sécurisés
+- Dashboard admin : gestion utilisateurs/annonces/reports
+
+---
+
+## 8️⃣ Conclusion générale
+
+Ce projet m’a permis de maîtriser le développement fullstack moderne, la gestion d’un cycle projet complet et la résolution de problématiques réelles (sécurité, matching, UX). Les résultats sont une application fonctionnelle, sécurisée et adaptée aux besoins. Pour une future version, je renforcerais l’aspect mobile, ajouterais une carte interactive et ouvrirais l’API à d’autres établissements.
+
+---
+
+## 9️⃣ Webographie
+
+- https://vuejs.org/
+- https://laravel.com/
+- https://www.postgresql.org/
+- https://tailwindcss.com/
+- https://vitejs.dev/
+- https://redis.io/
+- https://meilisearch.com/
+- https://stackoverflow.com/
+- https://github.com/
+- https://figma.com/
+- https://docker.com/

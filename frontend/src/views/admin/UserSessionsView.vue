@@ -120,7 +120,7 @@
               </tr>
             </thead>
             <tbody class="bg-white divide-y divide-gray-200">
-              <tr v-for="session in sessions" :key="session.id">
+              <tr v-for="session in paginatedSessions" :key="session.id">
                 <td class="px-6 py-4 whitespace-nowrap">
                   <div class="flex items-center">
                     <div class="text-sm font-medium text-gray-900">
@@ -163,7 +163,7 @@
         <div class="px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6">
           <div class="flex-1 flex justify-between sm:hidden">
             <button
-              @click="changePage(currentPage - 1)"
+              @click="prevPage"
               :disabled="currentPage === 1"
               class="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
               :class="{ 'opacity-50 cursor-not-allowed': currentPage === 1 }"
@@ -171,7 +171,7 @@
               Previous
             </button>
             <button
-              @click="changePage(currentPage + 1)"
+              @click="nextPage"
               :disabled="currentPage === lastPage"
               class="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
               :class="{ 'opacity-50 cursor-not-allowed': currentPage === lastPage }"
@@ -183,9 +183,9 @@
             <div>
               <p class="text-sm text-gray-700">
                 Showing
-                <span class="font-medium">{{ (currentPage - 1) * perPage + 1 }}</span>
+                <span class="font-medium">{{ startIndex + 1 }}</span>
                 to
-                <span class="font-medium">{{ Math.min(currentPage * perPage, totalSessions) }}</span>
+                <span class="font-medium">{{ endIndex }}</span>
                 of
                 <span class="font-medium">{{ totalSessions }}</span>
                 results
@@ -194,7 +194,7 @@
             <div>
               <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
                 <button
-                  @click="changePage(currentPage - 1)"
+                  @click="prevPage"
                   :disabled="currentPage === 1"
                   class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50"
                   :class="{ 'opacity-50 cursor-not-allowed': currentPage === 1 }"
@@ -212,7 +212,7 @@
                   {{ page }}
                 </button>
                 <button
-                  @click="changePage(currentPage + 1)"
+                  @click="nextPage"
                   :disabled="currentPage === lastPage"
                   class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50"
                   :class="{ 'opacity-50 cursor-not-allowed': currentPage === lastPage }"
@@ -343,247 +343,113 @@
   </div>
 </template>
 
-<script>
-import { ref, computed, onMounted, watch } from 'vue';
-import { useUsersStore } from '@/stores/users.store';
-import axios from 'axios';
+<script setup>
+import { ref, computed, onMounted } from 'vue';
+import { toast } from 'vue3-toastify';
+import AdminUserService from '@/services/api/admin/user';
 
-export default {
-  name: 'UserSessionsView',
-  setup() {
-    const usersStore = useUsersStore();
-    const loading = ref(false);
-    const sessions = ref([]);
-    const selectedSession = ref(null);
-    const totalSessions = ref(0);
-    const currentPage = ref(1);
-    const lastPage = ref(1);
-    const perPage = ref(15);
-    
-    // For confirmation modal
-    const showConfirmation = ref(false);
-    const confirmationTitle = ref('');
-    const confirmationMessage = ref('');
-    const confirmAction = ref(() => {});
-    
-    const filters = ref({
-      user_id: 'all',
-      from_date: '',
-      to_date: '',
-      page: 1,
-      per_page: 15
+const loading = ref(false);
+const sessions = ref([]);
+const searchQuery = ref('');
+const statusFilter = ref('all');
+const currentPage = ref(1);
+const itemsPerPage = ref(10);
+
+// Computed values for pagination
+const startIndex = computed(() => (currentPage.value - 1) * itemsPerPage.value);
+const endIndex = computed(() => Math.min(startIndex.value + itemsPerPage.value, sessions.value.length));
+const paginatedSessions = computed(() => sessions.value.slice(startIndex.value, endIndex.value));
+
+// Methods
+async function fetchSessions() {
+  loading.value = true;
+  try {
+    const response = await AdminUserService.getSessions({
+      search: searchQuery.value,
+      status: statusFilter.value === 'all' ? '' : statusFilter.value,
+      page: currentPage.value,
+      per_page: itemsPerPage.value
     });
-    
-    const selectedUser = computed(() => {
-      if (filters.value.user_id === 'all') return null;
-      return usersStore.findUserById(filters.value.user_id);
-    });
-    
-    watch(() => filters.value.user_id, () => {
-      if (filters.value.user_id !== 'all') {
-        const user = usersStore.findUserById(filters.value.user_id);
-        if (!user) {
-          filters.value.user_id = 'all';
-        }
-      }
-    });
-    
-    const pageNumbers = computed(() => {
-      const pages = [];
-      const totalPages = lastPage.value;
-      const currentPageNum = currentPage.value;
-      
-      // Always show first page
-      if (totalPages > 0) {
-        pages.push(1);
-      }
-      
-      // Show pages around current page
-      for (let i = Math.max(2, currentPageNum - 1); i <= Math.min(totalPages - 1, currentPageNum + 1); i++) {
-        if (pages[pages.length - 1] !== i - 1) {
-          pages.push('...');
-        }
-        pages.push(i);
-      }
-      
-      // Always show last page if there is more than one page
-      if (totalPages > 1 && pages[pages.length - 1] !== totalPages - 1) {
-        if (pages[pages.length - 1] !== totalPages - 2) {
-          pages.push('...');
-        }
-        pages.push(totalPages);
-      }
-      
-      return pages;
-    });
-    
-    const fetchUsers = async () => {
-      if (usersStore.users.length === 0) {
-        await usersStore.fetchUsers();
-      }
-    };
-    
-    const fetchSessions = async () => {
-      loading.value = true;
-      
-      try {
-        const params = { ...filters.value, page: currentPage.value };
-        
-        // Remove the '/api' prefix to avoid duplication
-        const response = await axios.get('/admin/sessions', { params });
-        
-        sessions.value = response.data.data;
-        totalSessions.value = response.data.total;
-        lastPage.value = response.data.last_page;
-        currentPage.value = response.data.current_page;
-        perPage.value = response.data.per_page;
-        
-      } catch (error) {
-        console.error('Error fetching sessions:', error);
-      } finally {
-        loading.value = false;
-      }
-    };
-    
-    const changePage = (page) => {
-      if (page >= 1 && page <= lastPage.value && page !== currentPage.value) {
-        currentPage.value = page;
-        fetchSessions();
-      }
-    };
-    
-    const resetFilters = () => {
-      filters.value = {
-        user_id: 'all',
-        from_date: '',
-        to_date: '',
-        page: 1,
-        per_page: 15
-      };
-      currentPage.value = 1;
-      fetchSessions();
-    };
-    
-    const showSessionDetails = (session) => {
-      selectedSession.value = session;
-    };
-    
-    const confirmTerminateSession = (session) => {
-      confirmationTitle.value = 'Terminate Session';
-      confirmationMessage.value = `Are you sure you want to terminate this session for user ${session.user.firstname} ${session.user.lastname}? This will log the user out immediately.`;
-      confirmAction.value = () => terminateSession(session.id);
-      showConfirmation.value = true;
-    };
-    
-    const confirmTerminateAllUserSessions = () => {
-      if (!selectedUser.value) return;
-      
-      confirmationTitle.value = 'Terminate All Sessions';
-      confirmationMessage.value = `Are you sure you want to terminate ALL sessions for user ${selectedUser.value.firstname} ${selectedUser.value.lastname}? This will log the user out from all devices.`;
-      confirmAction.value = () => terminateAllUserSessions(selectedUser.value.id);
-      showConfirmation.value = true;
-    };
-    
-    const confirmCleanupExpiredSessions = () => {
-      confirmationTitle.value = 'Cleanup Expired Sessions';
-      confirmationMessage.value = 'Are you sure you want to clean up all expired sessions? This will mark all expired sessions as inactive.';
-      confirmAction.value = () => cleanupExpiredSessions();
-      showConfirmation.value = true;
-    };
-    
-    const cancelConfirmation = () => {
-      showConfirmation.value = false;
-      confirmationTitle.value = '';
-      confirmationMessage.value = '';
-      confirmAction.value = () => {};
-    };
-    
-    const terminateSession = async (sessionId) => {
-      try {
-        await axios.post(`/admin/sessions/${sessionId}/terminate`);
-        
-        // Close modals
-        selectedSession.value = null;
-        showConfirmation.value = false;
-        
-        // Refresh sessions
-        fetchSessions();
-      } catch (error) {
-        console.error('Error terminating session:', error);
-      }
-    };
-    
-    const terminateAllUserSessions = async (userId) => {
-      try {
-        await axios.post(`/admin/sessions/users/${userId}/terminate-all`);
-        
-        // Close confirmation
-        showConfirmation.value = false;
-        
-        // Refresh sessions
-        fetchSessions();
-      } catch (error) {
-        console.error('Error terminating all user sessions:', error);
-      }
-    };
-    
-    const cleanupExpiredSessions = async () => {
-      try {
-        await axios.post('/admin/sessions/cleanup');
-        
-        // Close confirmation if it was shown
-        showConfirmation.value = false;
-        
-        // Refresh sessions
-        fetchSessions();
-      } catch (error) {
-        console.error('Error cleaning up expired sessions:', error);
-      }
-    };
-    
-    const formatDateTime = (datetime) => {
-      if (!datetime) return '';
-      const date = new Date(datetime);
-      return date.toLocaleString();
-    };
-    
-    onMounted(async () => {
-      await Promise.all([
-        fetchUsers(),
-        fetchSessions()
-      ]);
-    });
-    
-    return {
-      loading,
-      users: computed(() => usersStore.users),
-      sessions,
-      selectedSession,
-      filters,
-      selectedUser,
-      totalSessions,
-      currentPage,
-      lastPage,
-      perPage,
-      pageNumbers,
-      showConfirmation,
-      confirmationTitle,
-      confirmationMessage,
-      fetchSessions,
-      changePage,
-      resetFilters,
-      showSessionDetails,
-      confirmTerminateSession,
-      confirmTerminateAllUserSessions,
-      cleanupExpiredSessions,
-      confirmAction,
-      cancelConfirmation,
-      terminateSession,
-      terminateAllUserSessions,
-      formatDateTime
-    };
+    sessions.value = response.data.data;
+  } catch (err) {
+    toast.error(err.response?.data?.message || 'Failed to fetch sessions');
+    console.error('Failed to fetch sessions:', err);
+  } finally {
+    loading.value = false;
   }
-};
+}
+
+function handleSearch() {
+  currentPage.value = 1;
+  fetchSessions();
+}
+
+function filterSessions() {
+  currentPage.value = 1;
+  fetchSessions();
+}
+
+function prevPage() {
+  if (currentPage.value > 1) {
+    currentPage.value--;
+    fetchSessions();
+  }
+}
+
+function nextPage() {
+  currentPage.value++;
+  fetchSessions();
+}
+
+function getPlatformClass(platform) {
+  const classes = {
+    'web': 'bg-blue-100 text-blue-800',
+    'mobile': 'bg-green-100 text-green-800',
+    'desktop': 'bg-purple-100 text-purple-800',
+    'other': 'bg-gray-100 text-gray-800'
+  };
+  return classes[platform] || classes['other'];
+}
+
+function getStatusClass(status) {
+  const classes = {
+    'active': 'bg-green-100 text-green-800',
+    'expired': 'bg-red-100 text-red-800',
+    'terminated': 'bg-yellow-100 text-yellow-800'
+  };
+  return classes[status] || 'bg-gray-100 text-gray-800';
+}
+
+function formatDate(dateString) {
+  return new Date(dateString).toLocaleString();
+}
+
+async function terminateSession(session) {
+  try {
+    await AdminUserService.terminateSession(session.id);
+    toast.success('Session terminated successfully');
+    fetchSessions();
+  } catch (err) {
+    toast.error(err.response?.data?.message || 'Failed to terminate session');
+    console.error('Failed to terminate session:', err);
+  }
+}
+
+async function terminateAllSessions(user) {
+  try {
+    await AdminUserService.terminateAllSessions(user.id);
+    toast.success('All sessions terminated successfully');
+    fetchSessions();
+  } catch (err) {
+    toast.error(err.response?.data?.message || 'Failed to terminate sessions');
+    console.error('Failed to terminate sessions:', err);
+  }
+}
+
+// Load sessions on component mount
+onMounted(() => {
+  fetchSessions();
+});
 </script>
 
 <style scoped>

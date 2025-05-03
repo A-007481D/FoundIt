@@ -157,115 +157,133 @@
 </template>
 
 <script setup>
-import { ref, onMounted, computed, nextTick } from 'vue';
+import { ref, onMounted, computed, watch, onUnmounted } from 'vue';
 import { useRoute } from 'vue-router';
-import { useAuthStore } from '@/stores/auth.store';
+import { toast } from 'vue3-toastify';
+import ChatService from '@/services/api/chat';
 import { useChatStore } from '@/stores/chat.store';
 import { MessageSquare } from 'lucide-vue-next';
-import { API_BASE_URL } from '@/config';
+import { useAuthStore } from '@/stores/auth.store';
 
 const route = useRoute();
-const authStore = useAuthStore();
 const chatStore = useChatStore();
+const authStore = useAuthStore();
 
-const messagesContainer = ref(null);
+const loading = ref(false);
+const messages = ref([]);
 const newMessage = ref('');
+const conversation = ref(null);
+const typingUsers = ref([]);
 const showReportModal = ref(false);
 const reportReason = ref('');
-const messageToReport = ref(null);
+const reportingMessage = ref(null);
 
-const storageBase = API_BASE_URL.replace(/\/api$/, '');
-function getAvatarUrl(photo) {
-  if (!photo) return '/img/default-profile.png';
-  if (photo.startsWith('http')) return photo;
-  if (photo.startsWith('/storage')) return `${storageBase}${photo}`;
-  return `${storageBase}/storage/${photo}`;
-}
-
+// Computed values
 const currentUser = computed(() => authStore.user);
-const sortedConversations = computed(() => chatStore.sortedConversations);
-const currentConversation = computed(() => chatStore.currentConversation);
-const messages = computed(() => chatStore.messages);
-
-onMounted(async () => {
-  await chatStore.fetchConversations();
-  
-  // If conversation ID is in the route, select it
-  if (route.params.conversationId) {
-    const conversation = sortedConversations.value.find(
-      c => c.id === parseInt(route.params.conversationId)
-    );
-    if (conversation) {
-      selectConversation(conversation);
-    }
+const currentConversation = computed(() => conversation.value);
+const isTyping = computed(() => typingUsers.value.length > 0);
+const typingMessage = computed(() => {
+  if (typingUsers.value.length === 1) {
+    return `${typingUsers.value[0]} is typing...`;
   }
-
-  window.Echo.private(`App.Models.User.${currentUser.value.id}`)
-    .listen('ChatEvent', (e) => {
-      if (e.conversation_id === currentConversation.value.id) {
-        chatStore.messages.push({
-          id: e.id,
-          content: e.content,
-          sender: e.sender,
-          created_at: e.created_at
-        });
-        nextTick(scrollToBottom);
-      }
-    });
+  return `${typingUsers.value.length} users are typing...`;
 });
 
-const selectConversation = async (conversation) => {
-  chatStore.setCurrentConversation(conversation);
-  await chatStore.fetchMessages(conversation.id);
-  await nextTick();
-  scrollToBottom();
-};
-
-const sendMessage = async () => {
-  if (!newMessage.value.trim()) return;
-
+// Methods
+async function fetchConversation() {
+  loading.value = true;
   try {
-    await chatStore.sendMessage({
-      conversationId: currentConversation.value.id,
-      content: newMessage.value
-    });
+    const response = await ChatService.getConversation(route.params.id);
+    conversation.value = response.data.conversation;
+    messages.value = response.data.messages || [];
+    chatStore.updateUnreadCount();
+  } catch (err) {
+    toast.error(err.response?.data?.message || 'Failed to fetch conversation');
+    console.error('Failed to fetch conversation:', err);
+  } finally {
+    loading.value = false;
+  }
+}
+
+async function sendMessage() {
+  if (!newMessage.value.trim()) return;
+  
+  try {
+    const response = await ChatService.sendMessage(route.params.id, newMessage.value);
+    messages.value.push(response.data.message);
     newMessage.value = '';
-    await nextTick();
-    scrollToBottom();
-  } catch (error) {
-    console.error('Error sending message:', error);
+    chatStore.updateUnreadCount();
+  } catch (err) {
+    toast.error(err.response?.data?.message || 'Failed to send message');
+    console.error('Failed to send message:', err);
   }
-};
+}
 
-const scrollToBottom = () => {
-  if (messagesContainer.value) {
-    messagesContainer.value.scrollTop = messagesContainer.value.scrollHeight;
-  }
-};
+function startTyping() {
+  ChatService.startTyping(route.params.id);
+}
 
-const formatDate = (date) => {
+function stopTyping() {
+  ChatService.stopTyping(route.params.id);
+}
+
+function formatDate(date) {
+  if (!date) return '';
   return new Date(date).toLocaleString();
-};
+}
 
-const openReportModal = (message) => {
-  messageToReport.value = message;
+function openReportModal(message) {
+  reportingMessage.value = message;
   showReportModal.value = true;
   reportReason.value = '';
-};
+}
 
-const submitReport = async () => {
-  if (!reportReason.value.trim()) return;
-
-  try {
-    await chatStore.reportMessage({
-      messageId: messageToReport.value.id,
-      reason: reportReason.value
-    });
-    showReportModal.value = false;
-    messageToReport.value = null;
-    reportReason.value = '';
-  } catch (error) {
-    console.error('Error reporting message:', error);
+async function submitReport() {
+  if (!reportReason.value.trim() || !reportingMessage.value) {
+    toast.error('Please provide a reason for reporting');
+    return;
   }
-};
+  
+  try {
+    await ChatService.reportMessage(reportingMessage.value.id, reportReason.value);
+    toast.success('Message reported successfully');
+    showReportModal.value = false;
+    reportingMessage.value = null;
+    reportReason.value = '';
+  } catch (err) {
+    toast.error(err.response?.data?.message || 'Failed to report message');
+    console.error('Failed to report message:', err);
+  }
+}
+
+// Watch for route changes
+watch(() => route.params.id, (newId) => {
+  if (newId) {
+    fetchConversation();
+  }
+});
+
+// Load conversation on component mount
+onMounted(() => {
+  if (route.params.id) {
+    fetchConversation();
+  }
+  
+  // Listen for new messages
+  ChatService.onNewMessage((message) => {
+    messages.value.push(message);
+    chatStore.updateUnreadCount();
+  });
+  
+  // Listen for typing events
+  ChatService.onTyping((users) => {
+    typingUsers.value = users;
+  });
+});
+
+// Cleanup event listeners on component unmount
+onUnmounted(() => {
+  ChatService.offNewMessage();
+  ChatService.offTyping();
+});
 </script>

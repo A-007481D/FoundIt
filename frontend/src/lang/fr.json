@@ -1,0 +1,22 @@
+{
+  "app": {
+    "name": "FoundIt!",
+    "copyright": "{{year}} FoundIt! Tous droits réservés.",
+    "terms": "Conditions d'utilisation",
+    "privacy": "Confidentialité",
+    "contact": "Contact"
+  },
+  "auth": {
+    "login": "Connexion",
+    "register": "Inscription",
+    "forgotPassword": "Mot de passe oublié",
+    "resetPassword": "Réinitialiser le mot de passe",
+    "verifyEmail": "Vérifier l'email"
+  },
+  "errors": {
+    "default": "Une erreur est survenue",
+    "authFailed": "Échec de l'authentification",
+    "registrationFailed": "Échec de l'inscription",
+    "verificationFailed": "Échec de la vérification de l'email"
+  }
+}

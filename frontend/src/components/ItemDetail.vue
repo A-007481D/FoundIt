@@ -285,186 +285,102 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue';
-import { useAuthStore } from '@/stores/auth.store';
-import { useChatStore } from '@/stores/chat.store';
+import { ref, computed, onMounted, watch } from 'vue';
 import { useRouter } from 'vue-router';
 import { format } from 'date-fns';
-import itemService from '@/services/item.service';
-
-const router = useRouter();
-const authStore = useAuthStore();
-const chatStore = useChatStore();
+import { getItem, updateItem, deleteItem, createMatch, getMatches } from '@services/api/item';
+import { toast } from 'vue3-toastify';
 
 const props = defineProps({
   itemId: {
-    type: [Number, String],
+    type: String,
     required: true
   }
 });
 
-const emit = defineEmits(['close', 'edit', 'update']);
+const emit = defineEmits(['close']);
 
-// State
-const item = ref(null);
+const router = useRouter();
 const loading = ref(true);
 const error = ref(null);
-const showReportModal = ref(false);
-const confirmArchive = ref(false);
-const isSubmitting = ref(false);
-const reportData = ref({
-  reason: '',
-  details: ''
+const item = ref(null);
+const matches = ref([]);
+const showMatchModal = ref(false);
+
+// Computed properties
+const formattedDate = computed(() => {
+  if (!item.value?.date) return '';
+  return format(new Date(item.value.date), 'PP');
 });
 
-// Computed
 const isOwner = computed(() => {
-  if (!item.value || !authStore.user) return false;
-  return item.value.user_id === authStore.user.id;
+  return item.value?.user?.id === localStorage.getItem('user_id');
 });
 
-// Fetch item data
-onMounted(async () => {
+// Load item data
+async function loadItem() {
   try {
-    loading.value = true;
-    const response = await itemService.getItem(props.itemId);
+    const response = await getItem(props.itemId);
+    item.value = response.data;
     
-    // Log the raw response to debug the structure
-    console.log('Raw item detail response:', JSON.stringify(response.data, null, 2));
-    
-    // Handle different API response structures
-    if (response.data?.item) {
-      // If response has an 'item' property
-      item.value = response.data.item;
-    } else if (response.data?.data) {
-      // If response is a Laravel resource with 'data' property
-      item.value = response.data.data;
-    } else {
-      // If response itself is the item
-      item.value = response.data;
-    }
-    
-    console.log('Processed item data:', item.value);
-    
-    if (!item.value) {
-      throw new Error('Invalid item data received');
+    // Load matches if item exists
+    if (item.value) {
+      const matchesResponse = await getMatches(props.itemId);
+      matches.value = matchesResponse.data;
     }
   } catch (err) {
-    console.error('Error fetching item:', err);
-    error.value = 'Failed to load item details. The item may have been removed or you do not have permission to view it.';
+    error.value = err.response?.data?.message || 'Failed to load item';
+    toast.error(error.value);
   } finally {
     loading.value = false;
   }
-});
+}
 
-// Format date
-const formatDate = (dateString) => {
-  if (!dateString) return 'N/A';
-  return format(new Date(dateString), 'PPP p'); // e.g., "Apr 29, 2025, 3:00 PM"
-};
-
-// Format status
-const formatStatus = (status) => {
-  const statusMap = {
-    'active': 'Active',
-    'archived': 'Archived',
-    'reported': 'Under Review',
-    'deleted': 'Deleted'
-  };
-  return statusMap[status] || status;
-};
-
-// Get status class
-const getStatusClass = (status) => {
-  const classMap = {
-    'active': 'bg-green-100 text-green-800',
-    'archived': 'bg-gray-100 text-gray-800',
-    'reported': 'bg-yellow-100 text-yellow-800',
-    'deleted': 'bg-red-100 text-red-800'
-  };
-  return classMap[status] || 'bg-gray-100 text-gray-800';
-};
-
-// Contact owner
-const contactOwner = async () => {
+// Update item status
+async function updateStatus(status) {
   try {
-    // Create or get existing conversation
-    const conversationId = await chatStore.createConversation(item.value.user.id);
-    // Navigate to chat with this conversation open
-    router.push(`/chat/${conversationId}`);
-  } catch (error) {
-    console.error('Error starting conversation:', error);
-    alert('Failed to start conversation. Please try again later.');
+    await updateItem(props.itemId, { status });
+    item.value.status = status;
+    toast.success('Item status updated successfully');
+  } catch (err) {
+    toast.error(err.response?.data?.message || 'Failed to update item status');
   }
-};
+}
 
-// Submit report
-const submitReport = async () => {
-  if (!reportData.value.reason) {
-    alert('Please select a reason for your report.');
+// Create a match
+async function createMatchWithItem() {
+  try {
+    await createMatch(props.itemId);
+    toast.success('Match created successfully');
+    loadItem();
+  } catch (err) {
+    toast.error(err.response?.data?.message || 'Failed to create match');
+  }
+}
+
+// Delete item
+async function deleteItemConfirm() {
+  if (!confirm('Are you sure you want to delete this item? This action cannot be undone.')) {
     return;
   }
-  
-  try {
-    isSubmitting.value = true;
-    await itemService.reportItem(
-      item.value.id, 
-      reportData.value.reason, 
-      reportData.value.details
-    );
-    
-    showReportModal.value = false;
-    alert('Thank you for your report. Our team will review it shortly.');
-    
-    // Reset report form
-    reportData.value = {
-      reason: '',
-      details: ''
-    };
-  } catch (err) {
-    console.error('Error submitting report:', err);
-    alert('Failed to submit report. Please try again later.');
-  } finally {
-    isSubmitting.value = false;
-  }
-};
 
-// Archive item
-const archiveItem = async () => {
   try {
-    isSubmitting.value = true;
-    const response = await itemService.archiveItem(item.value.id);
-    
-    // Update the local item data
-    item.value = response.data.item;
-    confirmArchive.value = false;
-    
-    // Emit update event to refresh parent component
-    emit('update', item.value);
+    await deleteItem(props.itemId);
+    toast.success('Item deleted successfully');
+    emit('close');
+    router.push('/my-items');
   } catch (err) {
-    console.error('Error archiving item:', err);
-    alert('Failed to archive item. Please try again later.');
-  } finally {
-    isSubmitting.value = false;
+    toast.error(err.response?.data?.message || 'Failed to delete item');
   }
-};
+}
 
-// Restore item
-const restoreItem = async () => {
-  try {
-    isSubmitting.value = true;
-    const response = await itemService.restoreItem(item.value.id);
-    
-    // Update the local item data
-    item.value = response.data.item;
-    
-    // Emit update event to refresh parent component
-    emit('update', item.value);
-  } catch (err) {
-    console.error('Error restoring item:', err);
-    alert('Failed to restore item. Please try again later.');
-  } finally {
-    isSubmitting.value = false;
-  }
-};
+// Watch for item ID changes
+watch(() => props.itemId, () => {
+  loadItem();
+});
+
+// Load item on mount
+onMounted(() => {
+  loadItem();
+});
 </script>

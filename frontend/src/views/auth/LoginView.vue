@@ -95,7 +95,7 @@
             </div>
         </main>
 
-        <!-- Footer ... same as before -->
+        <!-- Footer -->
         <footer class="border-t py-4 bg-gray-50">
             <div class="container mx-auto px-4 text-sm text-gray-500 text-center">
                 &copy; {{ new Date().getFullYear() }} FoundIt! All rights reserved.
@@ -107,7 +107,7 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
-import { Eye, EyeOff, Facebook, Lock, LogIn, Mail, MapPin } from 'lucide-vue-next'
+import { Eye, EyeOff, Lock, LogIn, Mail } from 'lucide-vue-next'
 import { useAuthStore } from '@/stores/auth.store'
 
 // Setup the auth store

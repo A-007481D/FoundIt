@@ -1,0 +1,116 @@
+Cahier des charges : FoundIt!
+Une solution communautaire pour retrouver ce qui est perdu!
+
+Contexte du Projet
+Introduction au problématique :
+L’histoire d’Ahmed :
+Un mercredi soir, après une longue journée à YouCode, Ahmed et son équipe se rendent au local du centre-ville pour finaliser leur projet. À 23h, épuisés mais fiers de leur travail, ils quittent précipitamment le lieu. Dans la précipitation, Ahmed oublie son chargeur sous une table. Quelques minutes plus tard, Anass, un autre étudiant, quitte le local et trouve le chargeur. Il poste un message sur Discord : "Chargeur trouvé ce soir au centre-ville – modèle USB-C noir. Si c’est le vôtre, contactez-moi !". Mais entre les memes et autres messages, l'annonce disparaît rapidement.
+Le lendemain matin, Ahmed réalise son oubli. Il consulte Discord, mais ne voit pas l'annonce d'Anass. Il poste à son tour : "Urgent ! Chargeur perdu hier soir au centre-ville – modèle USB-C noir." Malheureusement, son message subit le même sort. Ce n’est que le soir, en retournant au centre-ville, qu’il croise Anass par hasard et apprend que son chargeur était entre de bonnes mains.
+Le problème :
+Les annonces sur Discord se perdent rapidement.
+Aucun système de priorité ou de géolocalisation pour les objets trouvés.
+Les étudiants ne savent pas où chercher les objets trouvés, même si une annonce existe.
+Pourquoi Discord ne suffit pas ?
+Messages éphémères : Les annonces disparaissent sous les discussions.
+Manque de structure : Pas de filtres par lieu, date ou catégorie.
+Aucune visibilité centralisée : Les objets trouvés ne sont pas facilement accessibles.
+
+Solution proposée : FoundIt!
+Fonctionnalités clés :
+Annonces structurées et géolocalisées
+- Possibilité de déclarer une perte ou une trouvaille avec lieu et horaire.
+- Annonces taguées par emplacement (campus, centre-ville, etc.)
+- Système complet de catégories
+- Double gestion des dates (lost_date/found_date) selon le type d'annonce
+- Statut avancé des objets (active, archived, reported, deleted)
+- Upload d’images multiples
+
+Notifications ciblées
+- Notifications push en cas de correspondance avec une annonce.
+- Notifications internes et emails
+
+Messagerie sécurisée
+- Communication interne sans partage de coordonnées personnelles.
+- Système de reporting et de modération des messages
+
+Carte interactive (Bonus)
+- Visualisation des zones de pertes récurrentes.
+
+Système de correspondance intelligente
+- Recherche avancée (texte, filtres, catégories, dates, lieux)
+- Recherche visuelle par image (Simple, TensorFlow, PHash)
+- Algorithme de matching automatique entre objets perdus et trouvés
+
+Objectifs de la Plateforme
+- Réduction des pertes : Centraliser les déclarations d’objets.
+- Connectivité : Mettre en relation les personnes concernées.
+- Soutien communautaire : Renforcer l’entraide.
+- Accessibilité : Interface intuitive et responsive.
+
+Architecture Fonctionnelle
+Partie Utilisateur
+- Accueil : Présentation du projet, recherche rapide.
+- Inscription/Connexion : Formulaire d’inscription, authentification (email obligatoire).
+- Tableau de bord : Gestion des annonces, messagerie, notifications.
+- Messagerie interne : Communication entre utilisateurs, reporting, blocage.
+- Déclaration d’objets : Ajout d’annonces avec filtres, images, catégories, dates, localisation.
+- Recherche avancée : Tri par localisation, catégorie, date, matching visuel.
+- Notifications : Alertes sur correspondances, emails, push.
+
+Partie Administrateur
+- Panneau de gestion : Gestion des annonces, utilisateurs, catégories.
+- Modération : Surveillance des annonces, commentaires, messages.
+- Statistiques et rapports : Suivi de l'activité, journal d’activité, gestion des sessions.
+
+Gestion des risques
+Fausse déclarations
+- Vérification des comptes utilisateurs via email.
+- Système de signalement et modération.
+- Possibilité de bannir les utilisateurs faisant de fausses déclarations.
+Abus sur la messagerie
+- Signaler les messages offensants.
+- Possibilité de bloquer et signaler un utilisateur.
+Adoption de la plateforme
+- Campagne de sensibilisation au sein de YouCode.
+- Notifications et rappels aux utilisateurs.
+
+Conformité et Sécurité
+- Protection des données personnelles : Stockage sécurisé et chiffrement des informations sensibles.
+- Conformité RGPD : Les utilisateurs ne peuvent pas supprimer leurs données, mais celles-ci seront protégées.
+- Prévention des abus : Signaler les utilisateurs faisant de fausses déclarations.
+- Authentification sécurisée (Sanctum), journalisation des actions sensibles, contrôle des sessions.
+
+Charte Graphique
+- Palette de couleurs : Blanc, Bleu, Vert.
+- Typographie : Inter.
+- Composants graphiques : Boutons, icônes, cartes interactives.
+
+Rétroplanning & Timeline
+Phase 1 : Analyse et Planification (1 semaine)
+- Définition des besoins et architecture technique.
+- Conception des maquettes (Figma/Adobe XD).
+Phase 2 : Conception et Développement (7 semaines)
+- Backend : Laravel 10 (authentification, API, base de données, matching, notifications, reporting, modération).
+- Frontend : Vue.js 3 (composants réutilisables, intégration API, notifications, messagerie, matching visuel).
+- Intégration base de données (CRUD annonces, utilisateurs, catégories).
+- Implémentation messagerie en temps réel (store, notifications internes).
+Phase 3 : Tests et Validation (1,5 semaine)
+- Tests utilisateurs, correction de bugs, vérifications de sécurité.
+Phase 4 : Livraison Finale et Déploiement (1,5 semaine)
+- Ajustements finaux et déploiement (Docker, AWS S3, PostgreSQL, Meilisearch, Redis).
+
+Stack Technologique
+- Backend : Laravel 10
+- Base De Données : PostgreSQL
+- Recherche : Meilisearch
+- Cache & Queue : Redis
+- Stockage : AWS S3
+- Frontend : Vue.js 3 (Vite, Tailwind CSS, Pinia)
+- Déploiement : Docker
+
+Sécurité
+- Protection contre les attaques XSS et CSRF.
+- Authentification par mot de passe haché.
+- Surveillance et modération des contenus.
+- Journalisation des activités sensibles.
+- Contrôle des sessions utilisateurs.

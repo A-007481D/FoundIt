@@ -1,6 +1,6 @@
 <!-- MatchesPage.vue -->
 <template>
-    <div v-if="!isLoaded" class="min-h-screen flex items-center justify-center">
+    <div v-if="loading" class="min-h-screen flex items-center justify-center">
         <div class="animate-spin h-10 w-10 border-4 border-purple-600 border-t-transparent rounded-full"></div>
     </div>
     <template v-else>
@@ -17,16 +17,10 @@
                         </p>
                     </div>
 
-
-                    <a href="/dashboard/new-item">
-                        <button class="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-white shadow transition-colors hover:bg-primary-dark focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-2 h-4 w-4">
-                                <path d="M5 12h14"></path>
-                                <path d="M12 5v14"></path>
-                            </svg>
-                            New Listing
-                        </button>
-                    </a>
+                    <div class="flex items-center gap-2 ml-auto">
+                        <span class="text-sm text-muted-foreground hidden sm:inline">Search:</span>
+                        <input v-model="searchQuery" @input="handleSearch" type="search" class="w-full h-9 rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50">
+                    </div>
                 </div>
 
                 <!-- Filters -->
@@ -41,13 +35,13 @@
                     </div>
 
                     <div class="flex items-center gap-2 ml-auto">
-                        <span class="text-sm text-muted-foreground hidden sm:inline">Sort by:</span>
+                        <span class="text-sm text-muted-foreground hidden sm:inline">Status:</span>
                         <div class="relative">
-                            <select v-model="sortBy" class="h-9 w-[180px] rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50">
-                                <option value="match-score">Match Score</option>
-                                <option value="date-new">Date (Newest)</option>
-                                <option value="date-old">Date (Oldest)</option>
-                                <option value="status">Status</option>
+                            <select v-model="statusFilter" @change="filterMatches" class="h-9 w-[180px] rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50">
+                                <option value="all">All</option>
+                                <option value="new">New</option>
+                                <option value="in-progress">In Progress</option>
+                                <option value="resolved">Resolved</option>
                             </select>
                         </div>
                     </div>
@@ -58,41 +52,11 @@
                     <div class="p-6">
                         <div class="grid gap-6 md:grid-cols-3">
                             <div class="space-y-2">
-                                <h3 class="text-sm font-medium">Status</h3>
-                                <div class="grid grid-cols-3 gap-2">
-                                    <div class="flex items-center space-x-2">
-                                        <div class="relative inline-flex h-4 w-8 items-center rounded-full bg-muted transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 data-[state=checked]:bg-primary" :class="{ 'bg-primary': filters.status.new }">
-                                            <span class="inline-block h-3 w-3 rounded-full bg-white transition-transform data-[state=checked]:translate-x-4" :class="{ 'translate-x-4': filters.status.new }" @click="filters.status.new = !filters.status.new"></span>
-                                        </div>
-                                        <label class="text-sm cursor-pointer" @click="filters.status.new = !filters.status.new">
-                                            New
-                                        </label>
-                                    </div>
-                                    <div class="flex items-center space-x-2">
-                                        <div class="relative inline-flex h-4 w-8 items-center rounded-full bg-muted transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 data-[state=checked]:bg-primary" :class="{ 'bg-primary': filters.status.inProgress }">
-                                            <span class="inline-block h-3 w-3 rounded-full bg-white transition-transform data-[state=checked]:translate-x-4" :class="{ 'translate-x-4': filters.status.inProgress }" @click="filters.status.inProgress = !filters.status.inProgress"></span>
-                                        </div>
-                                        <label class="text-sm cursor-pointer" @click="filters.status.inProgress = !filters.status.inProgress">
-                                            In Progress
-                                        </label>
-                                    </div>
-                                    <div class="flex items-center space-x-2">
-                                        <div class="relative inline-flex h-4 w-8 items-center rounded-full bg-muted transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 data-[state=checked]:bg-primary" :class="{ 'bg-primary': filters.status.resolved }">
-                                            <span class="inline-block h-3 w-3 rounded-full bg-white transition-transform data-[state=checked]:translate-x-4" :class="{ 'translate-x-4': filters.status.resolved }" @click="filters.status.resolved = !filters.status.resolved"></span>
-                                        </div>
-                                        <label class="text-sm cursor-pointer" @click="filters.status.resolved = !filters.status.resolved">
-                                            Resolved
-                                        </label>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="space-y-2">
                                 <h3 class="text-sm font-medium">Match Score</h3>
-                                <input type="range" min="0" max="100" step="5" v-model="filters.matchScore" class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer">
+                                <input type="range" min="0" max="100" step="5" v-model="matchScoreFilter" class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer">
                                 <div class="flex justify-between text-xs text-muted-foreground">
                                     <span>0%</span>
-                                    <span>{{ filters.matchScore }}%</span>
+                                    <span>{{ matchScoreFilter }}%</span>
                                     <span>100%</span>
                                 </div>
                             </div>
@@ -100,7 +64,7 @@
                             <div class="space-y-2">
                                 <h3 class="text-sm font-medium">Categories</h3>
                                 <div class="relative">
-                                    <select v-model="filters.category" class="w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50">
+                                    <select v-model="categoryFilter" class="w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50">
                                         <option value="all">All categories</option>
                                         <option value="electronics">Electronics</option>
                                         <option value="jewelry">Jewelry</option>
@@ -202,22 +166,22 @@
 
                     <!-- All Matches Tab -->
                     <div v-if="activeTab === 'all'" class="space-y-6">
-                        <match-card v-for="match in filteredAllMatches" :key="match.id" :match="match" />
+                        <MatchCard v-for="match in filteredMatches" :key="match.id" :match="match" />
                     </div>
 
                     <!-- New Matches Tab -->
                     <div v-if="activeTab === 'new'" class="space-y-6">
-                        <match-card v-for="match in newMatches" :key="match.id" :match="match" />
+                        <MatchCard v-for="match in filteredMatches" :key="match.id" :match="match" />
                     </div>
 
                     <!-- In Progress Matches Tab -->
                     <div v-if="activeTab === 'in-progress'" class="space-y-6">
-                        <match-card v-for="match in inProgressMatches" :key="match.id" :match="match" />
+                        <MatchCard v-for="match in filteredMatches" :key="match.id" :match="match" />
                     </div>
 
                     <!-- Resolved Matches Tab -->
                     <div v-if="activeTab === 'resolved'" class="space-y-6">
-                        <match-card v-for="match in resolvedMatches" :key="match.id" :match="match" />
+                        <MatchCard v-for="match in filteredMatches" :key="match.id" :match="match" />
                     </div>
 
                     <div class="mt-8 flex justify-center">
@@ -357,326 +321,148 @@
 </template>
 
 <script setup>
-import { ref, onMounted, nextTick } from 'vue'
-import { useAuthStore } from '@/stores/auth.store'
+import { ref, computed, onMounted } from 'vue';
+import { toast } from 'vue3-toastify';
+import MatchCard from '@components/MatchCard.vue';
+import { getMatches, updateStatus } from '@services/api/match';
+import { getMyItems } from '@services/api/item';
 
-// Ensure authentication state is properly loaded
-const authStore = useAuthStore()
+const loading = ref(false);
+const matches = ref([]);
+const searchQuery = ref('');
+const statusFilter = ref('all');
+const currentPage = ref(1);
+const itemsPerPage = ref(10);
+const matchScoreFilter = ref(60);
+const categoryFilter = ref('all');
+const showFilters = ref(false);
 
-// Track component loading state
-const isLoaded = ref(false)
-const sortBy = ref('match-score')
-const showFilters = ref(false)
+// Computed values for pagination
+const startIndex = computed(() => (currentPage.value - 1) * itemsPerPage.value);
+const endIndex = computed(() => {
+  if (!matches.value || !Array.isArray(matches.value)) return 0;
+  return Math.min(startIndex.value + itemsPerPage.value, matches.value.length);
+});
 
-// Force component to load data on mount
-onMounted(async () => {
-  // Simulate data loading
-  await nextTick()
-  isLoaded.value = true
-})
+// Computed filters
+const filteredMatches = computed(() => {
+  if (!matches.value || !Array.isArray(matches.value)) return [];
+  
+  return matches.value.filter(match => {
+    if (!match || !match.lost_item || !match.found_item) return false;
+    
+    const matchesSearch = (
+      (match.lost_item.title && match.lost_item.title.toLowerCase().includes(searchQuery.value.toLowerCase())) ||
+      (match.found_item.title && match.found_item.title.toLowerCase().includes(searchQuery.value.toLowerCase())) ||
+      (match.lost_item.description && match.lost_item.description.toLowerCase().includes(searchQuery.value.toLowerCase())) ||
+      (match.found_item.description && match.found_item.description.toLowerCase().includes(searchQuery.value.toLowerCase()))
+    );
+    
+    const matchesStatus = statusFilter.value === 'all' || match.status === statusFilter.value;
+    
+    const matchesScore = match.match_score >= matchScoreFilter.value;
+    
+    const matchesCategory = categoryFilter.value === 'all' || 
+      (match.lost_item.category && match.lost_item.category === categoryFilter.value) ||
+      (match.found_item.category && match.found_item.category === categoryFilter.value);
+    
+    return matchesSearch && matchesStatus && matchesScore && matchesCategory;
+  });
+});
 
-// Status label helper function
-function statusLabel(status) {
-  switch (status) {
-    case 'new': return 'New match';
-    case 'in-progress': return 'In Progress';
-    case 'resolved': return 'Resolved';
-    default: return '';
+// Load matches
+async function loadMatches() {
+  try {
+    loading.value = true;
+    const response = await getMatches({
+      page: currentPage.value,
+      per_page: itemsPerPage.value,
+      search: searchQuery.value,
+      status: statusFilter.value === 'all' ? null : statusFilter.value,
+      min_score: matchScoreFilter.value,
+      category: categoryFilter.value === 'all' ? null : categoryFilter.value
+    });
+    
+    // Safely handle the response data structure
+    if (response && Array.isArray(response)) {
+      matches.value = response;
+    } else if (response && response.data) {
+      matches.value = Array.isArray(response.data) ? response.data : (response.data.data || []);
+    } else {
+      matches.value = [];
+    }
+  } catch (err) {
+    toast.error(err.response?.data?.message || 'Failed to load matches');
+    console.error('Failed to load matches:', err);
+    matches.value = []; // Ensure matches is always an array even on error
+  } finally {
+    loading.value = false;
   }
 }
 
-// Date formatting helper
-function formatDate(dateString) {
-  return new Date(dateString).toLocaleDateString();
+// Update match status
+async function updateMatchStatus(matchId, status) {
+  try {
+    await updateStatus(matchId, status);
+    toast.success('Match status updated successfully');
+    loadMatches();
+  } catch (err) {
+    toast.error(err.response?.data?.message || 'Failed to update match status');
+    console.error('Failed to update match status:', err);
+  }
 }
+
+// Handle pagination
+function handlePageChange(page) {
+  currentPage.value = page;
+  loadMatches();
+}
+
+// Handle filters
+function handleFilterChange() {
+  currentPage.value = 1;
+  loadMatches();
+}
+
+// Handle search
+function handleSearch() {
+  currentPage.value = 1;
+  loadMatches();
+}
+
+// Reset filters
+function resetFilters() {
+  statusFilter.value = 'all';
+  matchScoreFilter.value = 60;
+  categoryFilter.value = 'all';
+  searchQuery.value = '';
+  currentPage.value = 1;
+  handleFilterChange();
+}
+
+// Load matches on mount
+onMounted(() => {
+  loadMatches();
+});
 </script>
 
 <script>
-import MatchService from '@/services/match.service';
+import MatchCard from '@components/MatchCard.vue';
 
 export default {
     name: 'MatchesPage',
     components: {
-        MatchCard: {
-            props: ['match'],
-            template: `
-        <div class="rounded-lg border bg-card text-card-foreground shadow-sm overflow-hidden">
-          <div class="p-4 pb-3 border-b">
-            <div class="flex items-center justify-between">
-              <div class="inline-flex items-center rounded-md px-2.5 py-0.5 text-xs font-semibold"
-                   :class="{
-                     'bg-primary/10 text-primary': match.status === 'new',
-                     'bg-orange-500/10 text-orange-500': match.status === 'in-progress',
-                     'bg-secondary/10 text-secondary': match.status === 'resolved'
-                   }">
-                {{ statusLabel(match.status) }}
-              </div>
-              <div class="flex items-center gap-2">
-                <span class="text-sm font-medium"
-                      :class="{
-                        'text-secondary': match.matchScore >= 90,
-                        'text-primary': match.matchScore >= 80 && match.matchScore < 90,
-                        'text-orange-500': match.matchScore >= 70 && match.matchScore < 80,
-                        'text-red-500': match.matchScore < 70
-                      }">
-                  {{ match.matchScore }}% Match
-                </span>
-                <div class="h-2 w-14 rounded-full bg-gray-200 overflow-hidden">
-                  <div class="h-full rounded-full"
-                       :class="{
-                         'bg-secondary': match.matchScore >= 90,
-                         'bg-primary': match.matchScore >= 80 && match.matchScore < 90,
-                         'bg-orange-500': match.matchScore >= 70 && match.matchScore < 80,
-                         'bg-red-500': match.matchScore < 70
-                       }"
-                       :style="{ width: match.matchScore + '%' }">
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-0">
-            <!-- Lost Item -->
-            <div class="p-4 border-b md:border-b-0 md:border-r">
-              <div class="flex items-center gap-2 mb-3">
-                <div class="inline-flex items-center rounded-md border px-2.5 py-0.5 text-xs font-semibold bg-red-500/10 text-red-500 border-red-500/20">
-                  Lost
-                </div>
-                <div class="inline-flex items-center rounded-md border px-2.5 py-0.5 text-xs font-semibold border-input">
-                  {{ match.lostItem.category }}
-                </div>
-              </div>
-
-              <h3 class="font-semibold text-base mb-1">{{ match.lostItem.title }}</h3>
-
-              <div class="flex items-center gap-1 text-xs text-muted-foreground mb-2">
-                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-3 w-3">
-                  <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"></path>
-                  <circle cx="12" cy="10" r="3"></circle>
-                </svg>
-                <span>{{ match.lostItem.location }}</span>
-              </div>
-
-              <p class="text-sm line-clamp-2 text-muted-foreground mb-3">{{ match.lostItem.description }}</p>
-
-              <div class="text-xs text-muted-foreground mb-3">
-                {{ formatDate(match.lostItem.date) }} at {{ match.lostItem.time }}
-              </div>
-
-              <div class="flex items-center gap-2">
-                <div class="relative flex h-6 w-6 shrink-0 overflow-hidden rounded-full">
-                  <img v-if="match.lostItem.user.avatar" :src="match.lostItem.user.avatar" :alt="match.lostItem.user.name" class="aspect-square h-full w-full">
-                  <div v-else class="flex h-full w-full items-center justify-center rounded-full bg-muted">
-                    {{ match.lostItem.user.initials }}
-                  </div>
-                </div>
-                <span class="text-xs">{{ match.lostItem.user.name }}</span>
-              </div>
-            </div>
-
-            <!-- Found Item -->
-            <div class="p-4">
-              <div class="flex items-center gap-2 mb-3">
-                <div class="inline-flex items-center rounded-md border px-2.5 py-0.5 text-xs font-semibold bg-secondary/10 text-secondary border-secondary/20">
-                  Found
-                </div>
-                <div class="inline-flex items-center rounded-md border px-2.5 py-0.5 text-xs font-semibold border-input">
-                  {{ match.foundItem.category }}
-                </div>
-              </div>
-
-              <h3 class="font-semibold text-base mb-1">{{ match.foundItem.title }}</h3>
-
-              <div class="flex items-center gap-1 text-xs text-muted-foreground mb-2">
-                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-3 w-3">
-                  <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"></path>
-                  <circle cx="12" cy="10" r="3"></circle>
-                </svg>
-                <span>{{ match.foundItem.location }}</span>
-              </div>
-
-              <p class="text-sm line-clamp-2 text-muted-foreground mb-3">{{ match.foundItem.description }}</p>
-
-              <div class="text-xs text-muted-foreground mb-3">
-                {{ formatDate(match.foundItem.date) }} at {{ match.foundItem.time }}
-              </div>
-
-              <div class="flex items-center gap-2">
-                <div class="relative flex h-6 w-6 shrink-0 overflow-hidden rounded-full">
-                  <img v-if="match.foundItem.user.avatar" :src="match.foundItem.user.avatar" :alt="match.foundItem.user.name" class="aspect-square h-full w-full">
-                  <div v-else class="flex h-full w-full items-center justify-center rounded-full bg-muted">
-                    {{ match.foundItem.user.initials }}
-                  </div>
-                </div>
-                <span class="text-xs">{{ match.foundItem.user.name }}</span>
-              </div>
-            </div>
-          </div>
-
-          <!-- Matching attributes -->
-          <div class="px-4 py-3 bg-muted/50">
-            <div class="flex flex-wrap gap-2">
-              <span class="text-xs text-muted-foreground">Matching Attributes:</span>
-              <div v-for="(attr, idx) in match.matchingAttributes" :key="idx"
-                   class="inline-flex items-center rounded-md border px-2.5 py-0.5 text-xs font-semibold bg-primary/10 text-primary border-primary/20">
-                {{ attr }}
-              </div>
-            </div>
-          </div>
-
-          <div class="flex justify-between p-4 border-t">
-            <div class="flex gap-2">
-              <button class="inline-flex items-center justify-center rounded-md border border-input bg-background px-3 py-2 text-xs font-medium h-8 shadow-sm transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50">
-                <span>Details</span>
-              </button>
-              <button class="inline-flex items-center justify-center rounded-md border border-input bg-background px-3 py-2 text-xs font-medium h-8 shadow-sm transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 gap-1">
-                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-3 w-3">
-                  <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
-                </svg>
-                <span>Contact</span>
-              </button>
-            </div>
-
-            <div class="flex gap-2">
-              <template v-if="match.status === 'new'">
-                <button class="inline-flex items-center justify-center rounded-md border border-input bg-background w-8 h-8 p-0 shadow-sm transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-4 w-4 text-red-500">
-                    <path d="M18 6 6 18"></path>
-                    <path d="m6 6 12 12"></path>
-                  </svg>
-                </button>
-                <button class="inline-flex items-center justify-center rounded-md border border-input bg-background w-8 h-8 p-0 shadow-sm transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-4 w-4 text-secondary">
-                    <path d="M20 6 9 17l-5-5"></path>
-                  </svg>
-                </button>
-              </template>
-              <button v-if="match.status === 'in-progress'" class="inline-flex items-center justify-center rounded-md border border-input bg-background px-3 py-2 text-xs font-medium h-8 shadow-sm transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50">
-                <span>Mark as Resolved</span>
-              </button>
-              <button v-if="match.status === 'resolved'" class="inline-flex items-center justify-center rounded-md text-xs h-8 px-3 gap-1 text-secondary">
-                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-3 w-3">
-                  <path d="M20 6 9 17l-5-5"></path>
-                </svg>
-                <span>Resolved</span>
-              </button>
-            </div>
-          </div>
-        </div>
-      `,
-            methods: {
-                statusLabel(status) {
-                    switch (status) {
-                        case 'new': return 'New match';
-                        case 'in-progress': return 'In Progress';
-                        case 'resolved': return 'Resolved';
-                        default: return '';
-                    }
-                },
-                formatDate(dateString) {
-                    return new Date(dateString).toLocaleDateString();
-                }
-            }
-        }
+        MatchCard
     },
     data() {
         return {
-            mobileMenuOpen: false,
-            userMenuOpen: false,
-            showFilters: false,
             activeTab: 'all',
-            sortBy: 'match-score',
             tabs: [
                 { value: 'all', label: 'All' },
                 { value: 'new', label: 'New' },
                 { value: 'in-progress', label: 'In Progress' },
                 { value: 'resolved', label: 'Resolved' }
-            ],
-            filters: {
-                status: {
-                    new: true,
-                    inProgress: true,
-                    resolved: true
-                },
-                matchScore: 60,
-                category: 'all'
-            },
-            matchedItems: []
-        }
-    },
-    created() {
-        MatchService.getMatches()
-            .then(response => { this.matchedItems = response.data; })
-            .catch(error => console.error('Error loading matches:', error));
-    },
-    computed: {
-        filteredAllMatches() {
-            const q = this.$route.query.q?.toLowerCase() || '';
-            return this.matchedItems.filter(match => {
-              if (!q) return true;
-              const fields = [
-                match.lostItem.title || '',
-                match.lostItem.description || '',
-                match.lostItem.location || '',
-                match.foundItem.title || '',
-                match.foundItem.description || '',
-                match.foundItem.location || ''
-              ].map(f => f.toLowerCase());
-              return fields.some(f => f.includes(q));
-            });
-        },
-        newMatches() {
-            const q = this.$route.query.q?.toLowerCase() || '';
-            return this.matchedItems.filter(match => match.status === 'new' && (
-              !q || [
-                match.lostItem.title || '',
-                match.lostItem.description || '',
-                match.lostItem.location || '',
-                match.foundItem.title || '',
-                match.foundItem.description || '',
-                match.foundItem.location || ''
-              ].map(f => f.toLowerCase()).some(f => f.includes(q))
-            ));
-        },
-        inProgressMatches() {
-            const q = this.$route.query.q?.toLowerCase() || '';
-            return this.matchedItems.filter(match => match.status === 'in-progress' && (
-              !q || [
-                match.lostItem.title || '',
-                match.lostItem.description || '',
-                match.lostItem.location || '',
-                match.foundItem.title || '',
-                match.foundItem.description || '',
-                match.foundItem.location || ''
-              ].map(f => f.toLowerCase()).some(f => f.includes(q))
-            ));
-        },
-        resolvedMatches() {
-            const q = this.$route.query.q?.toLowerCase() || '';
-            return this.matchedItems.filter(match => match.status === 'resolved' && (
-              !q || [
-                match.lostItem.title || '',
-                match.lostItem.description || '',
-                match.lostItem.location || '',
-                match.foundItem.title || '',
-                match.foundItem.description || '',
-                match.foundItem.location || ''
-              ].map(f => f.toLowerCase()).some(f => f.includes(q))
-            ));
-        }
-    },
-    methods: {
-        resetFilters() {
-            this.filters = {
-                status: {
-                    new: true,
-                    inProgress: true,
-                    resolved: true
-                },
-                matchScore: 60,
-                category: 'all'
-            };
+            ]
         }
     }
 }

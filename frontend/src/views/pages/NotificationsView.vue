@@ -24,20 +24,20 @@
       <div v-else>
         <div v-if="!notifications.length" class="text-muted">No notifications in the last 30 days.</div>
         <div v-else class="space-y-4">
-          <div v-for="notif in notifications" :key="notif.id" class="p-4 border rounded-md flex justify-between items-center">
+          <div v-for="notif in paginatedNotifications" :key="notif.id" class="p-4 border rounded-md flex justify-between items-center">
             <div>
               <p v-if="notif.type === 'App\\Notifications\\ReportCreated'">
                 <strong>{{ notif.data.reporter.name }}</strong> reported
                 <span v-if="notif.data.reportable_type === 'User'">user</span><span v-else>item</span> #{{ notif.data.reportable_id }}: "{{ notif.data.reason }}"
               </p>
               <p v-else-if="notif.type === 'App\\Notifications\\NewMatchFound'">Match found for your item.</p>
-              <p class="text-xs text-muted-foreground">{{ new Date(notif.created_at).toLocaleString() }}</p>
+              <p class="text-xs text-muted-foreground">{{ formatDate(notif.created_at) }}</p>
             </div>
-            <button class="text-primary text-sm underline" @click="markRead(notif.id)">Mark as read</button>
+            <button class="text-primary text-sm underline" @click="markAsRead(notif)">Mark as read</button>
           </div>
         </div>
         <div v-if="hasMore" class="text-center mt-4">
-          <button class="bg-primary text-white px-4 py-2 rounded" @click="loadMore">Load more</button>
+          <button class="bg-primary text-white px-4 py-2 rounded" @click="nextPage">Load more</button>
         </div>
       </div>
     </section>
@@ -46,43 +46,121 @@
 
 <script setup>
 import { ref, onMounted, computed } from 'vue';
-import axiosInstance from '@/services/apiClient';
+import { toast } from 'vue3-toastify';
+import NotificationService from '@/services/api/notification';
 import { useNotificationStore } from '@/stores/notification.store';
 
 const notificationStore = useNotificationStore();
 const loading = ref(false);
+const notifications = ref([]);
+const searchQuery = ref('');
+const typeFilter = ref('all');
+const statusFilter = ref('all');
+const currentPage = ref(1);
+const itemsPerPage = ref(10);
 const prefs = ref({
   email_notifications: true,
   push_notifications: true,
   item_updates: true
 });
 
-const notifications = computed(() => notificationStore.notifications);
-const hasMore = computed(() => notificationStore.hasMore);
+// Computed values for pagination
+const startIndex = computed(() => (currentPage.value - 1) * itemsPerPage.value);
+const endIndex = computed(() => Math.min(startIndex.value + itemsPerPage.value, notifications.value.length));
+const paginatedNotifications = computed(() => notifications.value.slice(startIndex.value, endIndex.value));
 
-const loadNotifications = async () => {
+// Computed values for filters
+const unreadCount = computed(() => 
+  notifications.value.filter(n => n.read_at === null).length
+);
+
+const hasMore = computed(() => 
+  notifications.value.length > paginatedNotifications.value.length
+);
+
+// Methods
+async function fetchNotifications() {
   loading.value = true;
-  await notificationStore.fetchNotifications(1);
-  loading.value = false;
-};
-
-const loadMore = async () => {
-  const nextPage = notificationStore.page + 1;
-  await notificationStore.fetchNotifications(nextPage);
-};
-
-const markRead = async (id) => {
   try {
-    await axiosInstance.post(`/notifications/${id}/read`);
-    notificationStore.notifications = notificationStore.notifications.filter(n => n.id !== id);
-  } catch (e) {
-    console.error('Error marking notification read', e);
+    const response = await NotificationService.getNotifications({
+      search: searchQuery.value,
+      type: typeFilter.value === 'all' ? '' : typeFilter.value,
+      status: statusFilter.value === 'all' ? '' : statusFilter.value,
+      page: currentPage.value,
+      per_page: itemsPerPage.value
+    });
+    notifications.value = response.data.data;
+  } catch (err) {
+    toast.error(err.response?.data?.message || 'Failed to fetch notifications');
+    console.error('Failed to fetch notifications:', err);
+  } finally {
+    loading.value = false;
   }
-};
+}
 
-const loadPrefs = async () => {
+function handleSearch() {
+  currentPage.value = 1;
+  fetchNotifications();
+}
+
+function filterNotifications() {
+  currentPage.value = 1;
+  fetchNotifications();
+}
+
+function prevPage() {
+  if (currentPage.value > 1) {
+    currentPage.value--;
+    fetchNotifications();
+  }
+}
+
+function nextPage() {
+  currentPage.value++;
+  fetchNotifications();
+}
+
+async function markAsRead(notification) {
   try {
-    const res = await axiosInstance.get('/profile');
+    await NotificationService.markAsRead(notification.id);
+    notification.read_at = new Date().toISOString();
+    notificationStore.updateUnreadCount();
+    toast.success('Notification marked as read');
+  } catch (err) {
+    toast.error(err.response?.data?.message || 'Failed to mark notification as read');
+    console.error('Failed to mark notification as read:', err);
+  }
+}
+
+async function markAllAsRead() {
+  try {
+    await NotificationService.markAllAsRead();
+    notifications.value.forEach(n => n.read_at = new Date().toISOString());
+    notificationStore.updateUnreadCount();
+    toast.success('All notifications marked as read');
+  } catch (err) {
+    toast.error(err.response?.data?.message || 'Failed to mark all notifications as read');
+    console.error('Failed to mark all notifications as read:', err);
+  }
+}
+
+function getNotificationTypeClass(type) {
+  const classes = {
+    'info': 'bg-blue-100 text-blue-800',
+    'success': 'bg-green-100 text-green-800',
+    'warning': 'bg-yellow-100 text-yellow-800',
+    'error': 'bg-red-100 text-red-800'
+  };
+  return classes[type] || 'bg-gray-100 text-gray-800';
+}
+
+function formatDate(dateString) {
+  return new Date(dateString).toLocaleString();
+}
+
+async function loadPrefs() {
+  try {
+    const res = await NotificationService.getPreferences();
     if (res.data.user.notification_preferences) {
       Object.assign(prefs.value, res.data.user.notification_preferences);
     }
@@ -91,17 +169,18 @@ const loadPrefs = async () => {
   }
 };
 
-const savePrefs = async () => {
+async function savePrefs() {
   try {
-    await axiosInstance.put('/profile/notifications', prefs.value);
+    await NotificationService.savePreferences(prefs.value);
   } catch (e) {
     console.error('Error saving preferences', e);
   }
 };
 
+// Load notifications on component mount
 onMounted(async () => {
   await loadPrefs();
-  await loadNotifications();
+  await fetchNotifications();
 });
 </script>
 

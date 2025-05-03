@@ -75,7 +75,7 @@
           </tr>
         </thead>
         <tbody class="bg-white divide-y divide-gray-200">
-          <tr v-for="item in items" :key="item.id" class="hover:bg-gray-50">
+          <tr v-for="item in paginatedItems" :key="item.id" class="hover:bg-gray-50">
             <td class="px-6 py-4 whitespace-nowrap">
               <div class="flex items-center">
                 <div class="h-10 w-10 flex-shrink-0">
@@ -142,7 +142,7 @@
 
     <div class="flex justify-between items-center mt-4">
       <div class="text-sm text-gray-700">
-        Showing <span class="font-medium">{{ startIndex + 1 }}</span> to <span class="font-medium">{{ endIndex }}</span> of <span class="font-medium">{{ totalItems }}</span> items
+        Showing <span class="font-medium">{{ startIndex + 1 }}</span> to <span class="font-medium">{{ endIndex }}</span> of <span class="font-medium">{{ items.length }}</span> items
       </div>
       <div class="flex space-x-2">
         <button 
@@ -155,93 +155,12 @@
         </button>
         <button 
           @click="nextPage" 
-          :disabled="endIndex >= totalItems" 
-          :class="endIndex >= totalItems ? 'opacity-50 cursor-not-allowed' : ''"
+          :disabled="endIndex >= items.length" 
+          :class="endIndex >= items.length ? 'opacity-50 cursor-not-allowed' : ''"
           class="px-3 py-1 border rounded-md hover:bg-gray-50"
         >
           Next
         </button>
-      </div>
-    </div>
-
-    <div v-if="showItemModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div class="bg-white rounded-lg shadow-xl max-w-3xl w-full p-6">
-        <div class="flex justify-between items-center mb-4">
-          <h3 class="text-lg font-medium">Item Details</h3>
-          <button @click="showItemModal = false" class="text-gray-400 hover:text-gray-500">
-            <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-            </svg>
-          </button>
-        </div>
-        
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div>
-            <img :src="currentItem.image" :alt="currentItem.title" class="w-full h-64 object-cover rounded-lg" />
-          </div>
-          <div class="space-y-4">
-            <div>
-              <h4 class="text-xl font-semibold">{{ currentItem.title }}</h4>
-              <div class="flex space-x-2 mt-1">
-                <span class="px-2 py-1 text-xs rounded-full" 
-                  :class="currentItem.type === 'lost' ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800'">
-                  {{ currentItem.type }}
-                </span>
-                <span class="px-2 py-1 text-xs rounded-full" :class="getStatusClass(currentItem.status)">
-                  {{ currentItem.status }}
-                </span>
-              </div>
-            </div>
-            
-            <p class="text-gray-700">{{ currentItem.description }}</p>
-            
-            <div>
-              <h5 class="text-sm font-medium text-gray-700">Location</h5>
-              <p>{{ currentItem.location }}</p>
-            </div>
-            
-            <div>
-              <h5 class="text-sm font-medium text-gray-700">Posted By</h5>
-              <p>{{ currentItem.user?.name }} ({{ currentItem.user?.email }})</p>
-            </div>
-            
-            <div>
-              <h5 class="text-sm font-medium text-gray-700">Date Posted</h5>
-              <p>{{ formatDate(currentItem.created_at) }}</p>
-            </div>
-            
-            <div v-if="currentItem.status === 'reported'">
-              <h5 class="text-sm font-medium text-gray-700 text-red-600">Report Reason</h5>
-              <p class="text-red-600">{{ currentItem.report_reason }}</p>
-            </div>
-          </div>
-        </div>
-        
-        <div class="mt-6 flex justify-end space-x-3">
-          <button @click="showItemModal = false" class="px-4 py-2 border rounded-md hover:bg-gray-50">
-            Close
-          </button>
-          <div class="flex flex-col space-y-4">
-            <button 
-              v-if="currentItem.status === 'reported' && !currentItem.visible" 
-              @click="makeItemVisible(currentItem)" 
-              class="px-4 py-2 bg-green-600 hover:bg-green-700 text-white font-medium rounded-md">
-              Make Item Visible
-            </button>
-            <button 
-              v-if="currentItem.status === 'reported' && currentItem.visible" 
-              @click="makeItemHidden(currentItem)" 
-              class="px-4 py-2 bg-yellow-600 hover:bg-yellow-700 text-white font-medium rounded-md">
-              Hide Item
-            </button>
-          </div>
-          <button v-if="currentItem.status === 'active'" @click="confirmArchiveItem(currentItem)" class="px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700">
-            Archive
-          </button>
-          <button v-if="currentItem.status !== 'deleted'" @click="confirmDeleteItem(currentItem)" class="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700">
-            Delete
-          </button>
-        </div>
       </div>
     </div>
 
@@ -255,7 +174,7 @@
           <button @click="showConfirmModal = false" class="px-4 py-2 border rounded-md hover:bg-gray-50">
             Cancel
           </button>
-          <button @click="confirmAction" :class="confirmButtonClass">
+          <button @click="confirmAction" class="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700">
             {{ confirmButtonText }}
           </button>
         </div>
@@ -266,208 +185,150 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue';
-import adminItemService from '@/services/admin.item.service';
+import AdminItemService from '@/services/api/admin/item';
 import { toast } from 'vue3-toastify';
 
-const items = ref([]);
-
 const loading = ref(false);
-
-// Pagination
-const itemsPerPage = 10;
-const currentPage = ref(1);
-const totalItems = ref(0);
-
-// Filters
+const items = ref([]);
 const searchQuery = ref('');
 const typeFilter = ref('all');
 const statusFilter = ref('all');
 const visibilityFilter = ref('all');
-
-// Fetch items from API
-const fetchItems = async () => {
-  try {
-    loading.value = true;
-    const response = await adminItemService.getItems({
-      search: searchQuery.value,
-      type: typeFilter.value,
-      status: statusFilter.value,
-      visibility: visibilityFilter.value,
-      page: currentPage.value,
-      per_page: itemsPerPage
-    });
-    
-    console.log('API Response:', response.data);
-    
-    // Handle the data based on the API response structure
-    if (response.data.data) {
-      // Laravel pagination response structure
-      items.value = response.data.data || [];
-      totalItems.value = response.data.total || 0;
-      currentPage.value = response.data.current_page || 1;
-    } else {
-      // Simple array response
-      items.value = response.data || [];
-      totalItems.value = response.data.length || 0;
-      currentPage.value = 1;
-    }
-    
-    loading.value = false;
-  } catch (error) {
-    console.error('Error fetching items:', error);
-    toast.error('Failed to load items');
-    loading.value = false;
-    items.value = [];
-  }
-};
-
-// We don't need this local filtering anymore as we're using server-side filtering
-
-// Computed values for pagination
-const startIndex = computed(() => (currentPage.value - 1) * itemsPerPage);
-const endIndex = computed(() => Math.min(startIndex.value + itemsPerPage, totalItems.value));
-
-// Modal state
-const showItemModal = ref(false);
-const currentItem = ref({});
+const currentPage = ref(1);
+const itemsPerPage = ref(10);
 const showConfirmModal = ref(false);
+const selectedItem = ref(null);
 const confirmTitle = ref('');
 const confirmMessage = ref('');
 const confirmButtonText = ref('');
-const confirmButtonClass = ref('');
-const confirmCallback = ref(null);
+
+// Computed values for pagination
+const startIndex = computed(() => (currentPage.value - 1) * itemsPerPage.value);
+const endIndex = computed(() => Math.min(startIndex.value + itemsPerPage.value, items.value.length));
+const paginatedItems = computed(() => items.value.slice(startIndex.value, endIndex.value));
 
 // Methods
-const handleSearch = () => {
-  currentPage.value = 1; // Reset to first page on search
-  fetchItems();
-};
+async function fetchItems() {
+  loading.value = true;
+  try {
+    const response = await AdminItemService.getItems({
+      search: searchQuery.value,
+      type: typeFilter.value === 'all' ? '' : typeFilter.value,
+      status: statusFilter.value === 'all' ? '' : statusFilter.value,
+      visibility: visibilityFilter.value === 'all' ? '' : visibilityFilter.value,
+      page: currentPage.value,
+      per_page: itemsPerPage.value
+    });
+    items.value = response.data.data;
+  } catch (err) {
+    toast.error(err.response?.data?.message || 'Failed to fetch items');
+    console.error('Failed to fetch items:', err);
+  } finally {
+    loading.value = false;
+  }
+}
 
-const filterItems = () => {
-  currentPage.value = 1; // Reset to first page on filter change
+function handleSearch() {
+  currentPage.value = 1;
   fetchItems();
-};
+}
 
-const prevPage = () => {
+function filterItems() {
+  currentPage.value = 1;
+  fetchItems();
+}
+
+function prevPage() {
   if (currentPage.value > 1) {
     currentPage.value--;
     fetchItems();
   }
-};
+}
 
-const nextPage = () => {
-  if (endIndex.value < totalItems.value) {
-    currentPage.value++;
-    fetchItems();
-  }
-};
+function nextPage() {
+  currentPage.value++;
+  fetchItems();
+}
 
-const viewItem = (item) => {
-  currentItem.value = { ...item };
-  showItemModal.value = true;
-};
+function viewItem(item) {
+  // Implement view item functionality
+}
 
-const reviewItem = (item) => {
-  currentItem.value = { ...item };
-  showItemModal.value = true;
-};
+function reviewItem(item) {
+  // Implement review item functionality
+}
 
-const makeItemVisible = async (item) => {
+async function makeItemVisible(item) {
   try {
-    const response = await adminItemService.updateVisibility(item.id, true);
-    toast.success('Item is now visible to users');
-    
-    // Update both visibility and status in the current view
-    if (response.data && response.data.item) {
-      currentItem.value = { ...response.data.item };
-    } else {
-      // If response doesn't include the updated item, update manually
-      currentItem.value = { 
-        ...currentItem.value, 
-        visible: true, 
-        status: 'active' // Status will change to active on the backend
-      };
-    }
-    
+    await AdminItemService.updateItemVisibility(item.id, true);
+    toast.success('Item made visible');
     fetchItems();
-  } catch (error) {
-    toast.error('Failed to update item visibility: ' + (error.response?.data?.message || error.message));
+  } catch (err) {
+    toast.error(err.response?.data?.message || 'Failed to make item visible');
+    console.error('Failed to make item visible:', err);
   }
-};
+}
 
-const makeItemHidden = async (item) => {
+async function makeItemHidden(item) {
   try {
-    await adminItemService.updateVisibility(item.id, false);
-    toast.success('Item is now hidden from users');
-    currentItem.value = { ...currentItem.value, visible: false };
+    await AdminItemService.updateItemVisibility(item.id, false);
+    toast.success('Item hidden');
     fetchItems();
-  } catch (error) {
-    toast.error('Failed to update item visibility: ' + (error.response?.data?.message || error.message));
+  } catch (err) {
+    toast.error(err.response?.data?.message || 'Failed to hide item');
+    console.error('Failed to hide item:', err);
   }
-};
+}
 
-const confirmArchiveItem = (item) => {
+function confirmArchiveItem(item) {
+  selectedItem.value = item;
   confirmTitle.value = 'Archive Item';
-  confirmMessage.value = `Are you sure you want to archive "${item.title}"? It will no longer be visible to users but can be restored later.`;
+  confirmMessage.value = 'Are you sure you want to archive this item? This action cannot be undone.';
   confirmButtonText.value = 'Archive';
-  confirmButtonClass.value = 'px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700';
-  confirmCallback.value = () => archiveItem(item);
   showConfirmModal.value = true;
-  showItemModal.value = false;
-};
+}
 
-const confirmDeleteItem = (item) => {
+function confirmDeleteItem(item) {
+  selectedItem.value = item;
   confirmTitle.value = 'Delete Item';
-  confirmMessage.value = `Are you sure you want to delete "${item.title}"? This action cannot be undone.`;
+  confirmMessage.value = 'Are you sure you want to delete this item? This action cannot be undone.';
   confirmButtonText.value = 'Delete';
-  confirmButtonClass.value = 'px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700';
-  confirmCallback.value = () => deleteItem(item);
   showConfirmModal.value = true;
-  showItemModal.value = false;
-};
+}
 
-const confirmAction = () => {
-  if (confirmCallback.value) {
-    confirmCallback.value();
-  }
-  showConfirmModal.value = false;
-};
-
-const archiveItem = async (item) => {
+async function confirmAction() {
   try {
-    await adminItemService.archiveItem(item.id);
-    toast.success('Item archived successfully');
+    if (confirmTitle.value === 'Archive Item') {
+      await AdminItemService.archiveItem(selectedItem.value.id);
+      toast.success('Item archived successfully');
+    } else if (confirmTitle.value === 'Delete Item') {
+      await AdminItemService.deleteItem(selectedItem.value.id);
+      toast.success('Item deleted successfully');
+    }
+    showConfirmModal.value = false;
     fetchItems();
-  } catch (error) {
-    toast.error('Failed to archive item: ' + (error.response?.data?.message || error.message));
+  } catch (err) {
+    toast.error(err.response?.data?.message || 'Failed to perform action');
+    console.error('Failed to perform action:', err);
   }
-};
+}
 
-const deleteItem = async (item) => {
-  try {
-    await adminItemService.deleteItem(item.id);
-    toast.success('Item deleted successfully');
-    fetchItems();
-  } catch (error) {
-    toast.error('Failed to delete item: ' + (error.response?.data?.message || error.message));
+function getStatusClass(status) {
+  switch (status) {
+    case 'active':
+      return 'bg-green-100 text-green-800';
+    case 'archived':
+      return 'bg-gray-100 text-gray-800';
+    case 'reported':
+      return 'bg-yellow-100 text-yellow-800';
+    default:
+      return 'bg-gray-100 text-gray-800';
   }
-};
+}
 
-const getStatusClass = (status) => {
-  const classes = {
-    'active': 'bg-green-100 text-green-800',
-    'archived': 'bg-gray-100 text-gray-800',
-    'reported': 'bg-yellow-100 text-yellow-800',
-    'deleted': 'bg-red-100 text-red-800'
-  };
-  return classes[status] || 'bg-gray-100 text-gray-800';
-};
-
-const formatDate = (dateString) => {
-  if (!dateString) return 'N/A';
-  const date = new Date(dateString);
-  return date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
-};
+function formatDate(dateString) {
+  return new Date(dateString).toLocaleDateString();
+}
 
 // Load items on component mount
 onMounted(() => {
