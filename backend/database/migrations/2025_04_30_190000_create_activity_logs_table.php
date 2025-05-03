@@ -25,7 +25,6 @@ return new class extends Migration
             
             $table->index(['user_id', 'created_at']);
             $table->index(['entity_type', 'entity_id']);
-            $table->index('category');
         });
     }
 
