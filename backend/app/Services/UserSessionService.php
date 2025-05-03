@@ -8,6 +8,7 @@ use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Tymon\JWTAuth\Facades\JWTAuth;
+use App\Services\ActivityLogService;
 
 class UserSessionService
 {
@@ -84,11 +85,24 @@ class UserSessionService
      * Terminate a specific session
      *
      * @param int $sessionId The session ID
+     * @param int|null $adminUserId The ID of the admin who terminated the session, if applicable
      * @return bool Whether the session was terminated successfully
      */
-    public function terminateSession(int $sessionId): bool
+    public function terminateSession(int $sessionId, ?int $adminUserId = null): bool
     {
-        $session = UserSession::findOrFail($sessionId);
+        $session = UserSession::with('user')->findOrFail($sessionId);
+        $userId = $session->user_id;
+        $userData = $session->user ? ['user_email' => $session->user->email] : [];
+        
+        // Log the activity - who terminated whose session
+        app(ActivityLogService::class)->log(
+            'admin_terminated_session',
+            'user',
+            $userId,
+            array_merge(['session_id' => $sessionId], $userData),
+            $adminUserId ?? auth()->id()
+        );
+        
         return $session->terminate();
     }
     
@@ -96,13 +110,33 @@ class UserSessionService
      * Terminate all sessions for a user
      *
      * @param int $userId The user ID
+     * @param int|null $adminUserId The ID of the admin who terminated the sessions
      * @return int Number of sessions terminated
      */
-    public function terminateAllUserSessions(int $userId): int
+    public function terminateAllUserSessions(int $userId, ?int $adminUserId = null): int
     {
-        return UserSession::forUser($userId)
-                          ->active()
-                          ->update(['is_active' => false]);
+        // Get user info for logging
+        $user = User::find($userId);
+        $userData = $user ? ['user_email' => $user->email] : [];
+        
+        // Log the activity - who terminated all sessions
+        app(ActivityLogService::class)->log(
+            'admin_terminated_all_sessions',
+            'user',
+            $userId,
+            array_merge(['terminated_all_sessions' => true], $userData),
+            $adminUserId ?? auth()->id()
+        );
+        
+        // Get all the active sessions
+        $sessions = UserSession::forUser($userId)->active()->get();
+        
+        // Terminate them one by one so proper events/logs are created
+        foreach ($sessions as $session) {
+            $session->terminate(false); // Don't create individual logs for each
+        }
+        
+        return $sessions->count();
     }
     
     /**
@@ -121,6 +155,20 @@ class UserSessionService
         }
         
         return false;
+    }
+    
+    /**
+     * Check if a token has an active session
+     *
+     * @param string $token The JWT token
+     * @return bool Whether the token has an active session
+     */
+    public function isTokenSessionActive(string $token): bool
+    {
+        $hashedToken = hash('sha256', $token);
+        return UserSession::where('token', $hashedToken)
+                         ->where('is_active', true)
+                         ->exists();
     }
     
     /**

@@ -57,16 +57,26 @@ class ActivityLogController extends Controller
     }
     
     /**
-     * Get entity types for filtering
+     * List entity types used in activity logs
      */
     public function getEntityTypes()
     {
-        // Get distinct entity types from the database
-        $entityTypes = \App\Models\ActivityLog::distinct('entity_type')->pluck('entity_type');
+        $entityTypes = \App\Models\ActivityLog::distinct('entity_type')
+            ->whereNotNull('entity_type')
+            ->pluck('entity_type')
+            ->toArray();
         
-        return response()->json([
-            'entity_types' => $entityTypes
-        ]);
+        return response()->json(['entity_types' => $entityTypes]);
+    }
+    
+    /**
+     * Get available log categories
+     */
+    public function getCategories(ActivityLogService $activityLogService)
+    {
+        $categories = $activityLogService->getLogCategories();
+        
+        return response()->json(['categories' => $categories]);
     }
     
     /**

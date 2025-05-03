@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Carbon\Carbon;
+use App\Services\ActivityLogService;
 
 class UserSession extends Model
 {
@@ -50,8 +51,7 @@ class UserSession extends Model
      */
     public function scopeActive($query)
     {
-        return $query->where('is_active', true)
-                     ->where('expires_at', '>', Carbon::now());
+        return $query->where('is_active', true);
     }
 
     /**
@@ -63,28 +63,55 @@ class UserSession extends Model
     }
 
     /**
+     * Update the last activity time.
+     */
+    public function updateLastActivity()
+    {
+        $this->last_activity_at = Carbon::now();
+        return $this->save();
+    }
+
+    /**
+     * Terminate this session.
+     * 
+     * @param bool $logActivity Whether to log this activity
+     * @return bool
+     */
+    public function terminate($logActivity = true)
+    {
+        $this->is_active = false;
+        $this->save();
+
+        if ($logActivity) {
+            // Log session termination
+            app(ActivityLogService::class)->log(
+                'session_terminated',
+                null,
+                null,
+                ['session_id' => $this->id, 'terminated_user_id' => $this->user_id],
+                auth()->check() ? auth()->id() : null
+            );
+        }
+        
+        return true;
+    }
+    
+    /**
+     * Check if this session is associated with the given token
+     * 
+     * @param string $token The JWT token to check
+     * @return bool
+     */
+    public function matchesToken($token)
+    {
+        return $this->token === hash('sha256', $token);
+    }
+
+    /**
      * Determine if the session is expired.
      */
     public function isExpired(): bool
     {
         return Carbon::now()->greaterThan($this->expires_at);
-    }
-
-    /**
-     * Terminate this session.
-     */
-    public function terminate(): bool
-    {
-        $this->is_active = false;
-        return $this->save();
-    }
-
-    /**
-     * Update the last activity timestamp.
-     */
-    public function updateLastActivity(): bool
-    {
-        $this->last_activity_at = Carbon::now();
-        return $this->save();
     }
 }

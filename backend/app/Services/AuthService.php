@@ -60,6 +60,8 @@ class AuthService extends AuthRepository
                     'User',
                     $user->id,
                     ['reason' => 'incorrect_password', 'user_id' => $user->id],
+                    $user->id,
+                    'authentication',
                     $request
                 );
             }
@@ -76,6 +78,8 @@ class AuthService extends AuthRepository
                     'User',
                     $user->id,
                     ['reason' => 'email_not_verified', 'user_id' => $user->id],
+                    $user->id,
+                    'authentication',
                     $request
                 );
             }
@@ -94,6 +98,8 @@ class AuthService extends AuthRepository
                     'User',
                     $user->id,
                     ['reason' => 'account_banned', 'banned_reason' => $user->banned_reason, 'user_id' => $user->id],
+                    $user->id,
+                    'authentication',
                     $request
                 );
             }
@@ -142,6 +148,8 @@ class AuthService extends AuthRepository
                             'suspension_end' => $user->suspension_end,
                             'user_id' => $user->id
                         ],
+                        $user->id,
+                        'authentication',
                         $request
                     );
                 }
@@ -167,7 +175,9 @@ class AuthService extends AuthRepository
                 'User',
                 $user->id,
                 ['user_id' => $user->id],  // Explicitly include user_id in metadata
-                $request
+                $user->id,   // Explicitly provide user_id as 5th parameter
+                'authentication', // Add category as 6th parameter
+                $request    // Request is now 7th parameter
             );
         }
         
@@ -193,6 +203,8 @@ class AuthService extends AuthRepository
                 'User',
                 $user->id,
                 ['user_id' => $user->id],
+                $user->id,
+                'authentication',
                 $request
             );
         }

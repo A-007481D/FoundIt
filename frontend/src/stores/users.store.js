@@ -49,7 +49,7 @@ export const useUsersStore = defineStore('users', {
           ...filters
         };
         
-        const response = await axios.get('/api/admin/users', { params });
+        const response = await axios.get('/admin/users', { params });
         
         this.users = response.data.data;
         this.currentPage = response.data.current_page;
@@ -68,7 +68,8 @@ export const useUsersStore = defineStore('users', {
     
     async fetchUserById(id) {
       try {
-        const response = await axios.get(`/api/admin/users/${id}`);
+        // Remove the '/api' prefix to avoid duplication since it's already in the baseURL
+        const response = await axios.get(`/admin/users/${id}`);
         
         // Update the user in the users array if it exists
         const index = this.users.findIndex(user => user.id === id);

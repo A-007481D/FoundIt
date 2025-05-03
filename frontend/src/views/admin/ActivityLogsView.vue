@@ -34,6 +34,15 @@
           </select>
         </div>
         <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Category</label>
+          <select v-model="filters.category" class="w-full rounded-md border border-gray-300 p-2">
+            <option value="all">All Categories</option>
+            <option v-for="(label, value) in categories" :key="value" :value="value">
+              {{ label }}
+            </option>
+          </select>
+        </div>
+        <div>
           <label class="block text-sm font-medium text-gray-700 mb-1">From Date</label>
           <input type="date" v-model="filters.from_date" class="w-full rounded-md border border-gray-300 p-2">
         </div>
@@ -322,6 +331,7 @@ export default {
     const selectedLog = ref(null);
     const actions = ref([]);
     const entityTypes = ref([]);
+    const categories = ref({});
     const totalLogs = ref(0);
     const currentPage = ref(1);
     const lastPage = ref(1);
@@ -331,6 +341,7 @@ export default {
       user_id: 'all',
       action: 'all',
       entity_type: 'all',
+      category: 'all',
       from_date: '',
       to_date: '',
       page: 1,
@@ -388,7 +399,7 @@ export default {
     
     const fetchActionTypes = async () => {
       try {
-        const response = await axios.get('/api/admin/activity-logs/actions');
+        const response = await axios.get('/admin/activity-logs/actions');
         actions.value = response.data.action_types;
       } catch (error) {
         console.error('Error fetching action types:', error);
@@ -397,10 +408,19 @@ export default {
     
     const fetchEntityTypes = async () => {
       try {
-        const response = await axios.get('/api/admin/activity-logs/entities');
+        const response = await axios.get('/admin/activity-logs/entities');
         entityTypes.value = response.data.entity_types;
       } catch (error) {
         console.error('Error fetching entity types:', error);
+      }
+    };
+    
+    const fetchCategories = async () => {
+      try {
+        const response = await axios.get('/admin/activity-logs/categories');
+        categories.value = response.data.categories;
+      } catch (error) {
+        console.error('Error fetching log categories:', error);
       }
     };
     
@@ -410,7 +430,7 @@ export default {
       try {
         const params = { ...filters.value, page: currentPage.value };
         
-        const response = await axios.get('/api/admin/activity-logs', { params });
+        const response = await axios.get('/admin/activity-logs', { params });
         
         activityLogs.value = response.data.data;
         totalLogs.value = response.data.total;
@@ -437,6 +457,7 @@ export default {
         user_id: 'all',
         action: 'all',
         entity_type: 'all',
+        category: 'all',
         from_date: '',
         to_date: '',
         page: 1,
@@ -491,6 +512,7 @@ export default {
         fetchUsers(),
         fetchActionTypes(),
         fetchEntityTypes(),
+        fetchCategories(),
         fetchActivityLogs()
       ]);
     });
@@ -500,6 +522,7 @@ export default {
       users: computed(() => usersStore.users),
       actions,
       entityTypes,
+      categories,
       activityLogs,
       selectedLog,
       filters,

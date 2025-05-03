@@ -142,11 +142,11 @@ Route::middleware(['auth:api', 'verified'])->group(function () {
         Route::get('/settings', [SettingsController::class, 'index']);
         Route::put('/settings', [SettingsController::class, 'update']);
         
-        // Activity Logs
+        // Activity logs
         Route::get('/activity-logs', [\App\Http\Controllers\Admin\ActivityLogController::class, 'index']);
-        Route::get('/activity-logs/users/{userId}', [\App\Http\Controllers\Admin\ActivityLogController::class, 'userActivities']);
         Route::get('/activity-logs/actions', [\App\Http\Controllers\Admin\ActivityLogController::class, 'getActionTypes']);
         Route::get('/activity-logs/entities', [\App\Http\Controllers\Admin\ActivityLogController::class, 'getEntityTypes']);
+        Route::get('/activity-logs/categories', [\App\Http\Controllers\Admin\ActivityLogController::class, 'getCategories']);
         
         // User Sessions
         Route::get('/sessions', [\App\Http\Controllers\Admin\UserSessionController::class, 'index']);

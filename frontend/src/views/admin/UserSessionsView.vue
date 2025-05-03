@@ -429,7 +429,8 @@ export default {
       try {
         const params = { ...filters.value, page: currentPage.value };
         
-        const response = await axios.get('/api/admin/sessions', { params });
+        // Remove the '/api' prefix to avoid duplication
+        const response = await axios.get('/admin/sessions', { params });
         
         sessions.value = response.data.data;
         totalSessions.value = response.data.total;
@@ -499,7 +500,7 @@ export default {
     
     const terminateSession = async (sessionId) => {
       try {
-        await axios.post(`/api/admin/sessions/${sessionId}/terminate`);
+        await axios.post(`/admin/sessions/${sessionId}/terminate`);
         
         // Close modals
         selectedSession.value = null;
@@ -514,7 +515,7 @@ export default {
     
     const terminateAllUserSessions = async (userId) => {
       try {
-        await axios.post(`/api/admin/sessions/users/${userId}/terminate-all`);
+        await axios.post(`/admin/sessions/users/${userId}/terminate-all`);
         
         // Close confirmation
         showConfirmation.value = false;
@@ -528,7 +529,7 @@ export default {
     
     const cleanupExpiredSessions = async () => {
       try {
-        await axios.post('/api/admin/sessions/cleanup');
+        await axios.post('/admin/sessions/cleanup');
         
         // Close confirmation if it was shown
         showConfirmation.value = false;

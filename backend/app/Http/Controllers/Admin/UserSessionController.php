@@ -9,6 +9,8 @@ use App\Models\User;
 use App\Services\ActivityLogService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Notification;
+use App\Notifications\SessionTerminated;
 
 class UserSessionController extends Controller
 {
@@ -65,22 +67,24 @@ class UserSessionController extends Controller
             ], 400);
         }
         
+        // Get the user before terminating the session for notification purposes
+        $user = $session->user;
+        
         // Terminate session
-        $terminated = $this->sessionService->terminateSession($sessionId);
+        $terminated = $this->sessionService->terminateSession($sessionId, auth('api')->id());
         
         if ($terminated) {
-            // Log the action
-            $this->activityLogService->log(
-                'session_terminated',
-                'UserSession',
-                $session->id,
-                [
-                    'user_id' => $session->user_id,
-                    'user_email' => $session->user->email,
-                    'terminated_by' => auth('api')->id()
-                ],
-                $request
-            );
+            // Send notification to user about session termination if possible
+            if ($user) {
+                try {
+                    // Notify the user that their session was terminated
+                    // This creates a database notification they'll see on their next login
+                    Notification::send($user, new SessionTerminated(auth('api')->user()->firstname));
+                } catch (\Exception $e) {
+                    // Log the error but continue with the termination process
+                    \Log::error('Failed to send session termination notification: ' . $e->getMessage());
+                }
+            }
             
             return response()->json([
                 'message' => 'Session terminated successfully',
@@ -102,20 +106,18 @@ class UserSessionController extends Controller
         $user = User::findOrFail($userId);
         
         // Terminate all active sessions
-        $count = $this->sessionService->terminateAllUserSessions($userId);
+        $count = $this->sessionService->terminateAllUserSessions($userId, auth('api')->id());
         
-        // Log the action
-        $this->activityLogService->log(
-            'all_sessions_terminated',
-            'User',
-            $userId,
-            [
-                'count' => $count,
-                'user_email' => $user->email,
-                'terminated_by' => auth('api')->id()
-            ],
-            $request
-        );
+        // Send notification to user about all sessions being terminated
+        try {
+            // Notify user that all their sessions were terminated
+            // This creates a database notification they'll see on their next login
+            $adminName = auth('api')->user()->firstname;
+            Notification::send($user, new SessionTerminated($adminName, true));
+        } catch (\Exception $e) {
+            // Log the error but continue with the termination process
+            \Log::error('Failed to send session termination notification: ' . $e->getMessage());
+        }
         
         return response()->json([
             'message' => "All sessions terminated successfully for user {$user->email}",
