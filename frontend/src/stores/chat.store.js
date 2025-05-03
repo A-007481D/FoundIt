@@ -25,6 +25,10 @@ export const useChatStore = defineStore('chat', {
     actions: {
         setCurrentConversation(conversation) {
             this.currentConversation = conversation;
+            // Mark all messages as read for this conversation if there are unread
+            if (conversation.unread_count > 0) {
+                this.markConversationAsRead(conversation.id);
+            }
         },
 
         async fetchConversations() {
@@ -110,6 +114,18 @@ export const useChatStore = defineStore('chat', {
             } catch (error) {
                 this.error = error.response?.data?.message || 'Error marking all notifications as read';
                 throw error;
+            }
+        },
+
+        async markConversationAsRead(conversationId) {
+            try {
+                await chatService.markConversationAsRead(conversationId);
+                // Update local unread_count for this conversation
+                const conv = this.conversations.find(c => c.id === conversationId);
+                if (conv) conv.unread_count = 0;
+            } catch (error) {
+                // Optionally handle error
+                console.error('Failed to mark conversation as read:', error);
             }
         }
     }

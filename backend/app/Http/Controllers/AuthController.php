@@ -64,7 +64,7 @@ class AuthController extends Controller
         $validated = $request->validated();
         
         try {
-            $token = $this->authService->login($validated);
+            $token = $this->authService->login($validated, $request);
             $user = $this->authService->findByEmail($validated['email']);
             
             return response()->json([
@@ -111,9 +111,9 @@ class AuthController extends Controller
      *
      * @return \Illuminate\Http\JsonResponse
      */
-    public function logout()
+    public function logout(Request $request)
     {
-        $this->authService->logout();
+        $this->authService->logout($request);
         
         return response()->json(['message' => 'Successfully logged out']);
     }

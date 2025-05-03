@@ -24,6 +24,8 @@ import AdminUsers from '@/views/admin/UsersView.vue';
 import AdminItems from '@/views/admin/ItemsView.vue';
 import AdminReports from '@/views/admin/ReportsView.vue';
 import SettingsView from '@/views/admin/SettingsView.vue';
+import ActivityLogsView from '@/views/admin/ActivityLogsView.vue';
+import UserSessionsView from '@/views/admin/UserSessionsView.vue';
 
 const routes = [
     {
@@ -122,6 +124,16 @@ const routes = [
                 path: 'reports',
                 name: 'AdminReports',
                 component: AdminReports
+            },
+            {
+                path: 'activity-logs',
+                name: 'AdminActivityLogs',
+                component: ActivityLogsView
+            },
+            {
+                path: 'sessions',
+                name: 'AdminSessions',
+                component: UserSessionsView
             },
             {
                 path: 'settings',

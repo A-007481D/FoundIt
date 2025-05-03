@@ -55,5 +55,9 @@ export default {
 
     markAllNotificationsAsRead() {
         return axiosInstance.post('/notifications/read-all');
+    },
+
+    markConversationAsRead(conversationId) {
+        return axiosInstance.post(`/chat/conversations/${conversationId}/read`);
     }
 };

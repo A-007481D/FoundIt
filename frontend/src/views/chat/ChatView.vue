@@ -12,8 +12,11 @@
               v-for="conversation in sortedConversations"
               :key="conversation.id"
               @click="selectConversation(conversation)"
-              class="p-4 hover:bg-gray-50 cursor-pointer"
-              :class="{ 'bg-gray-50': currentConversation?.id === conversation.id }"
+              class="p-4 hover:bg-gray-50 cursor-pointer transition-colors"
+              :class="[
+                currentConversation?.id === conversation.id ? 'bg-gray-50' : '',
+                conversation.unread_count > 0 ? 'bg-blue-100 border-l-4 border-blue-400' : ''
+              ]"
             >
               <div class="flex items-center gap-4">
                 <img
@@ -22,8 +25,10 @@
                   class="w-12 h-12 rounded-full object-cover"
                 />
                 <div class="flex-1">
-                  <h3 class="font-medium">{{ conversation.other_user.name }}</h3>
-                  <p class="text-sm text-gray-500 truncate">
+                  <h3 :class="conversation.unread_count > 0 ? 'font-bold text-blue-900' : 'font-medium'">
+                    {{ conversation.other_user.name }}
+                  </h3>
+                  <p :class="conversation.unread_count > 0 ? 'font-semibold text-blue-700' : 'text-sm text-gray-500'" class="truncate">
                     {{ conversation.last_message?.content || 'No messages yet' }}
                   </p>
                 </div>

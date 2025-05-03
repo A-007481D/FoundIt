@@ -89,8 +89,16 @@ class Item extends Model
     public function toSearchableArray()
     {
         return [
+            'id' => $this->id,
             'title' => $this->title,
+            'description' => $this->description,
             'location' => $this->location,
+            'type' => $this->type,
+            'status' => $this->status,
+            'visible' => $this->visible,
+            'category_id' => $this->category_id,
+            'found_date' => $this->found_date ? $this->found_date->toDateString() : null,
+            'lost_date' => $this->lost_date ? $this->lost_date->toDateString() : null,
         ];
     }
 }
