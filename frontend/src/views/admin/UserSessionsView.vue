@@ -364,7 +364,7 @@ export default {
       
       try {
         const params = {
-          user_id: filters.value.user_id,
+          user_id: filters.value.user_id !== 'all' ? filters.value.user_id : null,
           device: filters.value.device !== 'all' ? filters.value.device : null,
           status: filters.value.status !== 'all' ? (filters.value.status === 'active' ? 1 : 0) : null,
           page: currentPage.value,
@@ -473,7 +473,7 @@ export default {
               browser: browserInfo,
               user_agent: userAgent, // Store the raw user agent for detail view
               last_active: session.last_activity_at || session.created_at,
-              status: session.is_active ? 'active' : 'expired'
+              status: session.is_active === true || session.is_active === 1 ? 'active' : 'expired'
             };
           });
           
@@ -614,7 +614,12 @@ export default {
 
     const cleanupExpiredSessions = async () => {
       try {
-        const response = await axios.post('/admin/sessions/cleanup');
+        // Include additional information that might be needed by the backend
+        const response = await axios.post('/admin/sessions/cleanup', { 
+          // Pass reason and information for activity log
+          reason: 'Cleaning up expired sessions',
+          initiated_by: 'admin'
+        });
         
         // Close modal
         showConfirmModal.value = false;
@@ -622,7 +627,7 @@ export default {
         // Refresh sessions
         fetchSessions();
         
-        toast.success(`${response.data.count} expired sessions have been cleaned up`);
+        toast.success(`${response.data.count || 0} expired sessions have been cleaned up`);
       } catch (error) {
         console.error('Error cleaning up expired sessions:', error);
         toast.error('Failed to clean up expired sessions: ' + (error.response?.data?.message || error.message));
