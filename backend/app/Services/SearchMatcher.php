@@ -121,19 +121,24 @@ class SearchMatcher implements MatcherInterface
         try {
             $query = Item::where('type', $otherType)
                 ->where('status', 'active')
-                ->where('visible', true);
+                ->where('visible', true)
+                ->where('id', '!=', $item->id); // Prevent self-matching
             
-            // Add title-based matching if title exists
-            if (!empty($item->title)) {
-                $query->where(function($q) use ($item) {
-                    $q->where('title', 'like', '%' . $item->title . '%')
-                      ->orWhere('title', 'like', '%' . str_replace(' ', '%', $item->title) . '%');
-                });
-            }
-            
-            if (!empty($item->category_id)) {
-                $query->orWhere('category_id', $item->category_id);
-            }
+            // Create a combined where clause for title and category
+            $query->where(function($q) use ($item) {
+                // Add title-based matching if title exists
+                if (!empty($item->title)) {
+                    $q->where(function($sq) use ($item) {
+                        $sq->where('title', 'like', '%' . $item->title . '%')
+                          ->orWhere('title', 'like', '%' . str_replace(' ', '%', $item->title) . '%');
+                    });
+                }
+                
+                // Add category matching in the same scope
+                if (!empty($item->category_id)) {
+                    $q->orWhere('category_id', $item->category_id);
+                }
+            });
             
             return $query->get();
         } catch (\Exception $e) {
