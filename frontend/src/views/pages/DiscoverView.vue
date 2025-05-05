@@ -65,7 +65,7 @@
 
                                 <div>
                                     <h3 class="mb-2 text-sm sm:text-base font-medium">Categories</h3>
-                                    <div class="space-y-2 max-h-40 overflow-y-auto pr-2">
+                                    <div class="space-y-2 max-h-45  pr-2">
                                         <div v-for="category in categories" :key="category.id" class="flex items-center space-x-2">
                                              <input
                                                  type="checkbox"

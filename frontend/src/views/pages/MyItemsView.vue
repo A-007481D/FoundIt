@@ -19,7 +19,7 @@
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
               </svg>
               <span class="hidden xs:inline">New Listing</span>
-              <span class="xs:hidden">New</span>
+              <span class="xs:hidden">New Listing</span>
             </button>
           </div>
           <p class="text-muted-foreground text-sm sm:text-base">Manage your lost and found items</p>

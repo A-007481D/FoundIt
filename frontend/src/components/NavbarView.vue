@@ -80,7 +80,7 @@
                     No new notifications
                   </div>
                   <div v-else>
-                    <div v-for="notif in notifications" :key="notif.id" class="border-b py-3 cursor-pointer hover:bg-muted/10" @click.stop="markNotificationRead(notif.id)">
+                    <div v-for="notif in limitedNotifications" :key="notif.id" class="border-b py-3 cursor-pointer hover:bg-muted/10" @click.stop="markNotificationRead(notif.id)">
                       <div class="flex gap-3">
                         <div v-if="notif.data.reporter?.photo" class="h-8 w-8 rounded-full overflow-hidden aspect-square">
                           <img :src="getAvatarUrl(notif.data.reporter.photo)" alt="Reporter" class="h-full w-full object-cover rounded-full" />
@@ -251,6 +251,11 @@ const userInitials = computed(() => {
 
 const unreadMessagesCount = computed(() => {
   return chatStore.conversations.reduce((total, conv) => total + conv.unread_count, 0)
+})
+
+// Limit notifications to 5 entries for the dropdown
+const limitedNotifications = computed(() => {
+  return notifications.value.slice(0, 5)
 })
 
 // build storage base URL from API_BASE_URL
